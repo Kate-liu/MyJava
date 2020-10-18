@@ -1,8 +1,6 @@
-# My Java
+# Spring Core
 
-This is my java study Record.
-
-
+## Spring Framework Overview
 
 
 
@@ -10,19 +8,8 @@ This is my java study Record.
 
 
 
-## Version
-
-JDK 8
-
-Spring Framework 5.2.2
 
 
-
-
-
-## Book
-
-《Spring Boot 编程思想》
 
 
 
