@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="user" class="org.copydays.thinking.spring.ioc.overview.domain.User">
+        <property name="id" value="1"/>
+        <property name="name" value="rmliu"/>
+    </bean>
+
+    <bean id="superUser" class="org.copydays.thinking.spring.ioc.overview.domain.SuperUser" parent="user"
+          primary="true">
+        <!--  error:  available: expected single matching bean but found 2: user,superUser
+              solve:  add primary="true" ,表示只有主要的和次要的，两种类型
+        -->
+        <property name="address" value="xi'an"/>
+    </bean>
+
+    <bean id="objectFactory" class="org.springframework.beans.factory.config.ObjectFactoryCreatingFactoryBean">
+        <property name="targetBeanName" value="user"/>
+    </bean>
+
+</beans>
