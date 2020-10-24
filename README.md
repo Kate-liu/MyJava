@@ -22,7 +22,7 @@ Spring Framework 5.2.2
 
 ## Book
 
-《Spring Boot 编程思想》
+- 《Spring Boot 编程思想》
 
 
 

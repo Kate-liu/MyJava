@@ -1,7 +1,6 @@
 package org.copydays.thinking.spring.ioc.overview.domain;
 
 /**
- *
  * 用户类
  *
  * @author <a href="mailto:rmliumail@gmail.com">rmliu</a>
@@ -35,5 +34,11 @@ public class User {
                 ", name='" + name + '\'' +
                 '}';
     }
+
+    public static User createUser() {
+        User user = new User();
+        user.setId(1L);
+        user.setName("rmliu");
+        return user;    }
 }
 

@@ -10,6 +10,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>ioc-container-overview</module>
+        <module>spring-bean</module>
     </modules>
 
     <properties>
@@ -59,6 +60,19 @@
         </dependency>
     </dependencies>
 
+    <!-- 更改maven编译级别版本为1.8，默认是1.5，会导致 interface中 default方法 飘红-->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 
 </project>
