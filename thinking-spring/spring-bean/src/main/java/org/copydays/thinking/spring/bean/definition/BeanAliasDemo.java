@@ -16,11 +16,11 @@ public class BeanAliasDemo {
         // 启动应用上下文
         BeanFactory beanFactory = new ClassPathXmlApplicationContext("classpath:/META-INF/Bean-definition-context.xml");
 
-        // 通过别名 rmliu 获取曾用名 user 的 Bean
+        // 通过别名 rmliuUser 获取曾用名 user 的 Bean
         User user = beanFactory.getBean("user", User.class);
-        User rmliuUser = beanFactory.getBean("rmliu", User.class);
+        User rmliuUser = beanFactory.getBean("rmliuUser", User.class);
 
-        System.out.println("user == rmliuUser?" + (user == rmliuUser));
+        System.out.println("user == rmliuUser? " + (user == rmliuUser));
 
 
     }

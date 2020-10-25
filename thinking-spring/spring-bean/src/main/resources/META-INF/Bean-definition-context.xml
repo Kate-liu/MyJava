@@ -9,7 +9,7 @@
     <!-- 导入 第三方 xml 配置文件 -->
     <import resource="classpath:META-INF/dependency-lookup-context.xml"/>
 
-    <!-- 将 Spring 容器中 User Bean 关联/ 建立别名 - "rmliu" -->
+    <!-- 将 Spring 容器中 User Bean 关联/ 建立别名 - "rmliuUser" -->
     <alias name="user" alias="rmliuUser"/>
 
 

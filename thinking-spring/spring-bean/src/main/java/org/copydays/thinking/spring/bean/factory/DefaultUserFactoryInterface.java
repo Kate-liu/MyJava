@@ -16,6 +16,7 @@ import java.sql.SQLOutput;
  */
 public class DefaultUserFactoryInterface implements UserFactoryInterface, InitializingBean, DisposableBean {
 
+    // 初始化
     // 1.基于 @PostConstruct 注解
     // 顺序：第一
     @PostConstruct
@@ -36,6 +37,7 @@ public class DefaultUserFactoryInterface implements UserFactoryInterface, Initia
         System.out.println("InitializingBean#afterPropertiesSet()： User Factory 初始化中...");
     }
 
+    // 销毁
     // 1.基于 @PreDestroy 注解
     // 顺序：第一
     @PreDestroy
@@ -57,6 +59,7 @@ public class DefaultUserFactoryInterface implements UserFactoryInterface, Initia
 
     }
 
+    // 回收
     // 覆盖 Object 类中的 finalize() 方法
     @Override
     protected void finalize() throws Throwable {

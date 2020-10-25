@@ -48,7 +48,6 @@ public class AnnotationBeanDefinitionDemo {
         System.out.println("Config 类型的所有 Beans: " + applicationContext.getBeansOfType(Config.class));
         System.out.println("User 类型的所有 Beans: " + applicationContext.getBeansOfType(User.class));
 
-
         // 显示的关闭 Spring 应用上下文
         applicationContext.close();
     }
@@ -60,6 +59,7 @@ public class AnnotationBeanDefinitionDemo {
                 .addPropertyValue("name", "rmliu");
 
         // 判断如果 beanName 参数存在时
+        // 使用 Spring 内置的 StringUtils 工具判断文本对否存在
         if (StringUtils.hasText(beanName)) {
             // 注册 BeanDefinition
             registry.registerBeanDefinition(beanName, beanDefinitionBuilder.getBeanDefinition());
@@ -67,14 +67,11 @@ public class AnnotationBeanDefinitionDemo {
             // 非命名的 Bean 注册方式
             BeanDefinitionReaderUtils.registerWithGeneratedName(beanDefinitionBuilder.getBeanDefinition(), registry);
         }
-
     }
 
     public static void registerUserBeanDefinition(BeanDefinitionRegistry registry) {
         registerUserBeanDefinition(registry, null);
-
     }
-
 
     // 2.通过 @Component 方式
     @Component  // 定义当前类作为 Spring Bean 组件，扫描之后自动加载

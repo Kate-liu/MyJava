@@ -37,7 +37,7 @@ public class SpecialBeanInstantiationDemo {
         // 等效于上面实现方式
         // demoServiceLoader();
 
-        // 1.方式二
+        // 2.方式二
         // 通过 ApplicationContext 获取 AutowireCapableBeanFactory 实现
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:/META-INF/special-bean-instantiation-context.xml");
         AutowireCapableBeanFactory beanFactory = applicationContext.getAutowireCapableBeanFactory();
