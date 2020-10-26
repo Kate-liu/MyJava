@@ -1141,6 +1141,182 @@ BeanFactory 则提供了单一类型、集合类型以及层次性等多种依�
 
 
 
+## Spring Ioc 依赖注入
+
+### 依赖注入的模式
+
+- 手动模式 - 配置或者编程的方式，提前安排注入规则
+  - XML 资源配置元信息
+  - Java 注解配置元信息
+  - API 配置元信息
+
+- 自动模式 - 实现方提供依赖自动关联的方式，按照內建的注入规则
+  - Autowiring（自动绑定） 
+
+
+
+### 依赖注入的类型
+
+- 依赖注入类型 
+
+| 依赖注入类型 | 配置元数据举例                                   |
+| ------------ | ------------------------------------------------ |
+| Setter 方法  | <proeprty name="user" ref="userBean"/>           |
+| 构造器       | <constructor-arg name="user" ref="userBean" />   |
+| 字段         | @Autowired User user;                            |
+| 方法         | @Autowired public void user(User user) { ... }   |
+| 接口回调     | class MyBean implements BeanFactoryAware { ... } |
+
+
+
+### 自动绑定（AutoWiring）
+
+- 官方说明
+  - The Spring container can autowire relationships between collaborating beans. You can let Spring resolve collaborators (other beans) automatically for your bean by inspecting the contents of the ApplicationContext.
+- 优点
+  - Autowiring can significantly reduce the need to specify properties or constructor arguments.
+  - Autowiring can update a configuration as your objects evolve. 
+
+
+
+### 自动绑定（AutoWiring）模式
+
+- Autowiring modes 
+
+| 模式        | 说明                                                         |
+| ----------- | ------------------------------------------------------------ |
+| no          | 默认值，未激活 Autowiring，需要手动指定依赖注入对象。        |
+| byName      | 根据被注入属性的名称作为 Bean 名称进行依赖查找，并将对象设置到该 属性。 |
+| byType      | 根据被注入属性的类型作为依赖类型进行查找，并将对象设置到该属性。 |
+| constructor | 特殊 byType 类型，用于构造器参数。                           |
+
+- 参考枚举：org.springframework.beans.factory.annotation.Autowire 
+
+
+
+### 自动绑定（AutoWiring）限制和不足
+
+- 官方说明
+  - Limitations and Disadvantages of Autowiring 小节
+  - 链接：https://docs.spring.io/spring-framework/docs/5.2.2.RELEASE/spring-framework-reference/core.html#beans-autowired-exceptions
+
+
+
+### Setter 方法注入
+
+- 实现方法
+  - 手动模式
+    - XML 资源配置元信息
+    - Java 注解配置元信息
+    - API 配置元信息
+  - 自动模式
+    - byName
+    - byType 
+
+
+
+
+
+### 构造器注入
+
+- 实现方法
+  - 手动模式
+    - XML 资源配置元信息
+    - Java 注解配置元信息
+    - API 配置元信息
+  - 自动模式
+    - constructor 
+
+
+
+### 字段注入
+
+- 实现方法
+  - 手动模式
+    - Java 注解配置元信息
+      - @Autowired
+      - @Resource
+      - @Inject（可选） 
+
+
+
+
+
+### 方法注入
+
+- 实现方法
+  - 手动模式
+    - Java 注解配置元信息
+      - @Autowired
+      - @Resource
+      - @Inject（可选） 
+      - @Bean
+
+
+
+### 接口回调注入
+
+- Aware 系列接口回调
+  - 自动模式 
+
+| 內建接口                       | 说明                                                     |
+| ------------------------------ | -------------------------------------------------------- |
+| BeanFactoryAware               | 获取 IoC 容器 - BeanFactory                              |
+| ApplicationContextAware        | 获取 Spring 应用上下文 - ApplicationContext 对象         |
+| EnvironmentAware               | 获取 Environment 对象                                    |
+| ResourceLoaderAware            | 获取资源加载器 对象 - ResourceLoader                     |
+| BeanClassLoaderAware           | 获取加载当前 Bean Class 的 ClassLoader                   |
+| BeanNameAware                  | 获取当前 Bean 的名称                                     |
+| MessageSourceAware             | 获取 MessageSource 对象，用于 Spring 国际化              |
+| ApplicationEventPublisherAware | 获取 ApplicationEventPublishAware 对象，用于 Spring 事件 |
+| EmbeddedValueResolverAware     | 获取 StringValueResolver 对象，用于占位符处理            |
+
+
+
+
+
+### 依赖注入类型选择
+
+- 注入选型
+  - 低依赖：构造器注入
+  - 多依赖：Setter 方法注入
+  - 便利性：字段注入
+  - 声明类：方法注入 
+
+
+
+
+
+### 基础类型注入
+
+- 基础类型
+  - 原生类型（Primitive）：boolean、byte、char、short、int、float、long、double
+  - 标量类型（Scalar）：Number、Character、Boolean、Enum、Locale、Charset、Currency、Properties、UUID
+  - 常规类型（General）：Object、String、TimeZone、Calendar、Optional 等
+  - Spring 类型：Resource、InputSource、Formatter 等 
+
+
+
+
+
+### 集合类型注入
+
+- 集合类型
+  - 数组类型（Array）：原生类型、标量类型、常规类型、Spring 类型
+  - 集合类型（Collection）
+    - Collection：List、Set（SortedSet、NavigableSet、EnumSet）
+    - Map：Properties 
+
+
+
+
+
+### 限定注入
+
+
+
+
+
 
 
 
