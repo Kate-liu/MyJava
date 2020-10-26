@@ -7,6 +7,17 @@
     <bean id="user" class="org.copydays.thinking.spring.ioc.overview.domain.User">
         <property name="id" value="1"/>
         <property name="name" value="rmliu"/>
+        <property name="city" value="HANGZHOU"/>
+        <property name="workCities" value="BEIJING,HANGZHOU"/>
+        <!--        <property name="lifeCities" value="BEIJING,SHANGHAI"/>-->
+        <!--        lifeCities, 内部会自动进行集合类型的拆分，也可以直接使用下面的复杂XML配置方式替代-->
+        <property name="lifeCities">
+            <list>
+                <value>BEIJING</value>
+                <value>SHANGHAI</value>
+            </list>
+        </property>
+        <property name="configFileLocation" value="classpath:/META-INF/user-config.properties"/>
     </bean>
 
     <bean id="superUser" class="org.copydays.thinking.spring.ioc.overview.domain.SuperUser" parent="user"

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <import resource="classpath:/META-INF/dependency-lookup-context.xml"/>
+
+    <!-- 手动方式，每次需要更改 ref 的值 -->
+    <!-- ref 底层 用到了 API 配置元信息中的 BeanDefinitionBuilder#addPropertyReference() 方法-->
+    <bean class="org.copydays.thinking.spring.dependency.injection.UserHolder">
+        <property name="user" ref="superUser"/>
+    </bean>
+
+</beans>

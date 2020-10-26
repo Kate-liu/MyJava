@@ -1,6 +1,5 @@
 package org.copydays.thinking.spring.bean.definition;
 
-import org.copydays.thinking.spring.bean.factory.UserFactoryInterface;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
