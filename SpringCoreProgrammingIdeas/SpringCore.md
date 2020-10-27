@@ -1313,6 +1313,137 @@ BeanFactory 则提供了单一类型、集合类型以及层次性等多种依�
 
 ### 限定注入
 
+- 使用注解 @Qualifier 限定
+  - 通过 Bean 名称限定
+  - 通过分组限定
+- 基于注解 @Qualifier 扩展限定
+  - 自定义注解 - 如 Spring Cloud @LoadBalanced 
+
+
+
+
+
+### 延迟依赖注入
+
+- 使用 API ObjectFactory 延迟注入
+  - 单一类型
+  - 集合类型
+- 使用 API ObjectProvider 延迟注入（推荐）
+  - 单一类型
+  - 集合类型 
+
+
+
+
+
+### 依赖处理过程
+
+- 基础知识
+  - 入口 - DefaultListableBeanFactory#resolveDependency
+  - 依赖描述符 - DependencyDescriptor
+  - 自定绑定候选对象处理器 - AutowireCandidateResolver 
+
+
+
+### @Autowired 注入
+
+- @Autowired 注入规则
+  - 非静态字段
+  - 非静态方法
+  - 构造器 
+
+- @Autowired 注入过程
+  - 元信息解析
+  - 依赖查找
+  - 依赖注入（字段、方法） 
+
+
+
+
+
+### @Inject 注入
+
+- @Inject 注入过程
+  - 如果 JSR-330 存在于 ClassPath 中，复用 AutowiredAnnotationBeanPostProcessor 实现 
+
+
+
+
+
+### Java 通用注解注入原理
+
+- CommonAnnotationBeanPostProcessor
+  - 注入注解
+    - javax.xml.ws.WebServiceRef
+    - javax.ejb.EJB
+    - javax.annotation.Resource
+  - 生命周期注解
+    • javax.annotation.PostConstruct
+    • javax.annotation.PreDestroy 
+
+
+
+
+
+
+
+### 自定义依赖注入注解
+
+- 基于 AutowiredAnnotationBeanPostProcessor 实现
+- 自定义实现
+  - 生命周期处理
+    - InstantiationAwareBeanPostProcessor
+    - MergedBeanDefinitionPostProcessor
+  - 元数据
+    - InjectedElement
+    - InjectionMetadata 
+
+
+
+
+
+### 面试题
+
+#### 有多少种依赖注入的方式？
+
+答：构造器注入，Setter注入，字段注入，方法注入，接口回调注入
+
+
+
+#### 你偏好构造器注入还是 Setter 注入？ 
+
+答：两种依赖注入的方式均可使用；
+
+如果是必须依赖的话，那么推荐使用构造器注入，
+
+如果是可选依赖的话，推荐使用Setter注入。
+
+一般，如果参数比较少的时候，可以使用构造器注入，反之可以使用Setter注入。构造器注入依赖于注入的顺序，而Setter不存在顺序。
+
+
+
+#### Spring 依赖注入的来源有哪些？ 
+
+答：答案将《Spring IoC依赖来源》章节中继续讨论 
+
+关注点：依赖查找的 getBean，依赖注入的 resolveDependency的实现中。
+
+
+
+
+
+## Spring IoC 依赖来源 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
