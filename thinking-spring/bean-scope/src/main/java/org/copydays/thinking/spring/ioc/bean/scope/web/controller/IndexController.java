@@ -37,6 +37,9 @@ public class IndexController {
     public String index(Model model) {
         // jsp EL 变量搜索路径： page -> request -> session -> application(ServletContext)
 
+        // @ApplicationScope
+        //
+        // 结论:
         // userObject ，存在渲染上下文中
         // user 对象，存在与 ServletContext 上下文中，名称叫做 scopedTarget.user，
         // 在 org.springframework.web.context.request.SessionScope.get() 中，查看 name 即可看到
