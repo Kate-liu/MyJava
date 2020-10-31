@@ -12,6 +12,8 @@
     <!--    <context:annotation-config/>-->
     <!--    <context:component-scan base-package="org.acme"/>-->
 
+    <!-- 使用 RootBeanDefinition， 不需要合并，不存在 parent   -->
+    <!-- 经过 合并之后，GenericBeanDefinition 变成 RootBeanDefinition   -->
     <bean id="user" class="org.copydays.thinking.spring.ioc.overview.domain.User">
         <property name="id" value="1"/>
         <property name="name" value="rmliu"/>
@@ -28,6 +30,8 @@
         <property name="configFileLocation" value="classpath:/META-INF/user-config.properties"/>
     </bean>
 
+    <!-- 普通 beanDefinition,使用 GenericBeanDefinition   -->
+    <!-- 经过 合并之后，GenericBeanDefinition 变成 RootBeanDefinition ，并且覆盖 Parent 相关配置属性 ，递归查找 父类 parent -->
     <bean id="superUser" class="org.copydays.thinking.spring.ioc.overview.domain.SuperUser" parent="user"
           primary="true">
         <!--  error:  available: expected single matching bean but found 2: user,superUser
