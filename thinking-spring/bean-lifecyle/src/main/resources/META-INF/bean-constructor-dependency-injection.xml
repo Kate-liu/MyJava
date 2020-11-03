@@ -8,8 +8,11 @@
         http://www.springframework.org/schema/context
         https://www.springframework.org/schema/beans/spring-context.xsd">
 
+    <bean class="org.copydays.thinking.spring.bean.lifecyle.MyInstantiationAwareBeanPostProcessor"/>
 
-    <bean id="userHolder" class="org.copydays.thinking.spring.bean.lifecyle.UserHolder" autowire="constructor">
+    <bean id="userHolder" class="org.copydays.thinking.spring.bean.lifecyle.UserHolder"
+          autowire="constructor" init-method="init" destroy-method="doDestroy">
 
+        <property name="description" value="The user holder"/>
     </bean>
 </beans>
