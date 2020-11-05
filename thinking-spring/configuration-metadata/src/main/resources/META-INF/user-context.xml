@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+        xmlns="http://www.springframework.org/schema/beans"
+        xmlns:copydays="http://www.copydays.org/schema/users"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.copydays.org/schema/users
+        http://www.copydays.org/schema/users.xsd
+">
+
+    <!--
+        <bean id="user" class="org.copydays.thinking.spring.ioc.overview.domain.User">
+            <property name="id" value="1"/>
+            <property name="name" value="rmliu"/>
+            <property name="city" value="HANGZHOU"/>
+            <property name="workCities" value="BEIJING,HANGZHOU"/>
+            <property name="lifeCities">
+                <list>
+                    <value>BEIJING</value>
+                    <value>SHANGHAI</value>
+                </list>
+            </property>
+            <property name="configFileLocation" value="classpath:/META-INF/user-config.properties"/>
+        </bean>
+        -->
+    <copydays:user id="1" name="荣明" city="SHANGHAI"/>
+
+</beans>
