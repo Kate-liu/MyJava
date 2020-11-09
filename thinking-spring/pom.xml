@@ -17,6 +17,7 @@
         <module>bean-scope</module>
         <module>bean-lifecyle</module>
         <module>configuration-metadata</module>
+        <module>resource</module>
     </modules>
 
     <properties>
