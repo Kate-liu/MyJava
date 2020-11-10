@@ -1,6 +1,5 @@
 package org.copydays.thinking.spring.i18n;
 
-import com.sun.source.tree.Tree;
 import org.springframework.context.MessageSource;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.support.AbstractMessageSource;
@@ -8,7 +7,6 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.EncodedResource;
-import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
@@ -18,7 +16,6 @@ import java.io.Reader;
 import java.nio.file.*;
 import java.text.MessageFormat;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
