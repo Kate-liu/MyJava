@@ -341,6 +341,125 @@
 
 ## 微服务架构实战
 
+### OAuth2 和 微服务安全架构
+
+#### 课程概述 
+
+##### 课程概述
+
+![1605605518491](MicroserviceArchitecture.assets/1605605518491.png)
+
+
+
+##### 课程参考书 
+
+OAuth2 in Action：https://www.manning.com/books/oauth-2-in-action 
+
+OAuth 2.0 Cookbook：https://www.packtpub.com/virtualization-and-cloud/oauth-20-cookbook 
+
+
+
+##### 微服务基础架构体系2018预览(draft) 
+
+- OAuth2授权认证中心架构和实践
+- 微服务配置中心Apollo架构和实践
+- 调用链监控CAT架构和实践
+- 微服务网关Zuul架构和实践
+- 容错限流Hystrix/Turbine架构和实践
+- 微服务注册发现Eureka/Ribbon架构和实践
+- 时间序列监控KairosDB架构和实践
+- 微服务监控告警ZMon架构和实践
+- 综合案例分析 
+
+
+
+##### 架构和技术栈预览 
+
+![1605605823773](MicroserviceArchitecture.assets/1605605823773.png)
+
+
+
+#### 问题域 
+
+##### 开放系统间授权 
+
+> 场景：相片拥有者想去使用云冲印服务，打印云存储服务商的粘片。
+
+![1605609997145](MicroserviceArchitecture.assets/1605609997145.png)
+
+
+
+##### 图例 
+
+- 资源拥有者
+- 客户应用
+- 受保护的资源
+
+![1605610059636](MicroserviceArchitecture.assets/1605610059636.png)
+
+
+
+
+
+##### 办法1：密码用户名复制 
+
+> 直接将用户名和密码给客户应用，进行登录，进行后续操作。
+
+![1605610111946](MicroserviceArchitecture.assets/1605610111946.png)
+
+
+
+##### 办法2：万能钥匙 
+
+> 使用一个key，访问某个受保护的资源文件，进行相应的操作。
+
+![1605610164074](MicroserviceArchitecture.assets/1605610164074.png)
+
+
+
+##### 办法3：特殊令牌 
+
+> 使用令牌的方式，实现访问资源。
+
+![1605610214579](MicroserviceArchitecture.assets/1605610214579.png)
+
+
+
+##### 传统单块应用安全 
+
+- 登录工程：传统 Web 应用中的身份验证技术：https://insights.thoughtworks.cn/traditional-web-app-authentication/
+- 传统中，登录的时候进行用户鉴权，然后才可以进行后续的操作；
+- 为了保证不是每一次登录都进行数据库鉴权，使用Cookie和Session机制，给客户端发送Cookie，在后续访问中携带，服务端基于Cookie，找到之前的会话（Session），进行有状态的会话服务。
+
+![1605610472014](MicroserviceArchitecture.assets/1605610472014.png)
+
+
+
+##### 现代微服务安全 
+
+- 单独使用不是一个AuthServer ，进行鉴权；
+- 各个客户端，进行访问的时候，传递token。
+
+![1605610550154](MicroserviceArchitecture.assets/1605610550154.png)
+
+
+
+##### 你见过OAuth吗? 
+
+- 不需要注册账号，直接就可以使用其他应用的账号进行登录方式；
+- 使用微信登录，qq登录，微博登录等等。
+
+![1605610624601](MicroserviceArchitecture.assets/1605610624601.png)
+
+
+
+##### 总结： OAuth2解决问题域和场景 
+
+- 开放系统间鉴权
+- 现代微服务安全
+- 企业内部应用认证鉴权（IAM/SSO）
+
+![1605610658666](MicroserviceArchitecture.assets/1605610658666.png)
 
 
 
@@ -348,8 +467,287 @@
 
 
 
+#### OAuth2最简向导 
+
+- The Simplest Guide To OAuth 2.0：https://darutk.medium.com/the-simplest-guide-to-oauth-2-0-8c71bd9a15bb
+
+![1605611251360](MicroserviceArchitecture.assets/1605611251360.png)
 
 
+
+- 首先有用户的数据 
+- 有个资源服务器负责管理用户数据 
+- 有个客户应用需要访问用户的数据 
+- 给资源服务器按个门暴露用户数据称为API 
+- 客户应用可以通过API访问用户数据 
+- 资源服务器返回用户数据 
+
+![1605611407539](MicroserviceArchitecture.assets/1605611407539.png)
+
+
+
+- 如果来了个恶意客户应用怎么办 
+- 即使恶意客户应用要求访问用户数据 
+- 资源服务器还是返回用户数据，恶意应用也能访问用户数据
+- 需要一种机制保护用户数据
+
+![1605611506190](MicroserviceArchitecture.assets/1605611506190.png)
+
+
+
+- 业界实践是提前给客户应用颁发一个Access Token，它表示客户应用被授权可以访问用户数据 
+- 访问用户数据时，给出Access Token 
+- 资源服务器取出请求中的Access Token 
+- 并校验Access Token确认客户应用有访问用户数据的权限 
+- 校验通过后，资源服务器返回用户数据 
+- 该机制可以工作的前提是 必须提前给客户应用颁发Access Token 
+
+![1605611632111](MicroserviceArchitecture.assets/1605611632111.png)
+
+
+
+- 谁颁发Access Token呢？ 授权服务器
+- 授权服务器和客户应用的关系如下 
+- 授权服务器负责生成Access Token 
+- 并给客户应用颁发Access Token 
+
+![1605611719810](MicroserviceArchitecture.assets/1605611719810.png)
+
+
+
+- 角色回顾：一个授权服务器，一个客户应用，一个资源服务器 
+- 授权服务器负责生成Access Token 
+- 并将Access Token颁发给客户应用 
+- 客户应用带上Access Token访问用户数据 
+- 资源服务器从请求中取出Access Token 
+- 校验Access Token具有访问用户数据的权限 
+- 校验通过后，资源服务器返回用户数据 
+
+![1605611812851](MicroserviceArchitecture.assets/1605611812851.png)
+
+
+
+- 上面的流程中第一步是授权服务器生成Access Token，在真实流程中，在颁发Token前先要征询用户同意 
+- 首先客户应用请求Access Token 
+- 授权服务器征询用户意见，是否将权限授予客户应用 
+- 如果用户同意授权服务器颁发token 
+- 授权服务器生成一个Access Token 
+- 并将token颁发给客户应用 
+- 注意黄色椭圆圈起来的部分 
+- OAuth 2.0标准化了Access Token的请求和响应部分，OAuth2.0的细节在RFC 6749（ OAuth 2.0授权框架）中描述 
+
+![1605611934230](MicroserviceArchitecture.assets/1605611934230.png)
+
+
+
+
+
+#### OAuth2定义和原理 
+
+##### 什么是OAuth 2.0 
+
+- 用于REST/APIs的代理授权框架(delegated authorization framework) 
+- 基于令牌Token的授权，在无需暴露用户密码的情况下，使应用能获取对用户数据的有限访问权限 
+- 解耦认证和授权 
+- 事实上的标准安全框架，支持多种用例场景
+  - 服务器端WebApp
+  - 浏览器单页SPA
+  - 无线/原生App
+  - 服务器对服务器之间 
+
+
+
+##### 令牌类比仆从钥匙(Valet Key) 
+
+- 给应用授予有限的访问权限，让应用能够代表用户去访问用户的数据
+
+![1605613368408](MicroserviceArchitecture.assets/1605613368408.png)
+
+
+
+##### OAuth 2.0历史 
+
+![1605613549353](MicroserviceArchitecture.assets/1605613549353.png)
+
+
+
+##### OAuth 2.0优势 
+
+![1605613582889](MicroserviceArchitecture.assets/1605613582889.png)
+
+
+
+##### OAuth 2.0不足 
+
+![1605613605097](MicroserviceArchitecture.assets/1605613605097.png)
+
+
+
+##### OAuth 2.0主要角色 
+
+![1605613642775](MicroserviceArchitecture.assets/1605613642775.png)
+
+
+
+##### OAuth术语 
+
+- 客户应用
+- 资源服务器
+- 授权服务器
+- 资源拥有者
+
+![1605613666385](MicroserviceArchitecture.assets/1605613666385.png)
+
+- 客户凭证
+- 令牌
+- 作用域
+
+![1605613680319](MicroserviceArchitecture.assets/1605613680319.png)
+
+
+
+##### OAuth令牌类型 
+
+- 访问令牌
+- 刷新令牌
+- 授权码
+- Bearer Token
+- Proof of Possession (PoP) Token
+
+![1605613737298](MicroserviceArchitecture.assets/1605613737298.png)
+
+
+
+##### OAuth 2.0误解 
+
+- Oauth 2 是一个认证框架，不是认证协议
+
+![1605613816116](MicroserviceArchitecture.assets/1605613816116.png)
+
+
+
+##### 回顾 
+
+- Oauth 本质是，如何获取token和如何使用token
+
+![1605613893211](MicroserviceArchitecture.assets/1605613893211.png)
+
+
+
+#### 典型OAuth Flow和选型 
+
+##### 参考资料
+
+- The OAuth 2.0 Authorization Framework(RFC6749)：https://tools.ietf.org/html/rfc6749
+- 理解OAuth 2.0：http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html
+
+
+
+##### 授权码模式 
+
+> 目前最常用的方式。
+
+![授权码模式](MicroserviceArchitecture.assets/bg2014051204.png)
+
+
+
+##### 简化模式 
+
+> 最容易受到攻击。
+
+![1605621942752](MicroserviceArchitecture.assets/1605621942752.png)
+
+
+
+##### 密码模式
+
+> 只有公司自己内部使用的时候，才可以使用，防止密码泄露！
+
+![1605622004854](MicroserviceArchitecture.assets/1605622004854.png)
+
+
+
+##### 客户端模式
+
+![1605622024246](MicroserviceArchitecture.assets/1605622024246.png)
+
+
+
+##### 刷新令牌
+
+> 使用Token的存活时间，保证不一定每一次授权都走完整个授权流程。
+
+![1605622101821](MicroserviceArchitecture.assets/1605622101821.png)
+
+
+
+##### 授权流程渠道(channels) 
+
+- 前端渠道
+- 后端渠道
+
+![1605622196281](MicroserviceArchitecture.assets/1605622196281.png)
+
+
+
+##### 四种OAuth 2.0授权类型(Flows) 
+
+- 授权码
+- 简化
+- 用户名密码
+- 客户端凭证
+
+![1605622311883](MicroserviceArchitecture.assets/1605622311883.png)
+
+
+
+
+
+##### 授权类型选择~客户应用类型 
+
+- 公开
+- 私密
+
+![1605622270546](MicroserviceArchitecture.assets/1605622270546.png)
+
+
+
+##### 授权类型选择~流程 
+
+> 使用判断流程图，基于不同应用类型，选择不同的授权模式。
+
+![1605622433854](MicroserviceArchitecture.assets/1605622433854.png)
+
+
+
+
+
+#### OAuth2授权服务器和资源服务器案例实操 
+
+##### 授权服务器 
+
+- 授权端点
+- token端点
+- 校验端点
+- 吊销端点
+
+![1605623028201](MicroserviceArchitecture.assets/1605623028201.png)
+
+
+
+
+
+##### Spring Security OAuth2架构 
+
+- OAuth：http://terasolunaorg.github.io/guideline/5.3.0.RELEASE/en/Security/OAuth.html
+
+![1605623066216](MicroserviceArchitecture.assets/1605623066216.png)
+
+
+
+
+
+##### 基于授权码模式+Spring Security OAuth2的最简授权服务器
 
 
 

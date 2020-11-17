@@ -2,19 +2,18 @@
 
 This is my java study Record.
 
+## Tools & Version
 
-
-
-
-
-
-
-
-## Version
-
-JDK 8
-
-Spring Framework 5.2.2
+1. [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
+2. Spring Framework 5.2.2
+3. [Maven](https://maven.apache.org/download.cgi)
+4. [MySQL](https://dev.mysql.com/downloads/)
+5. [Redis for windows](https://github.com/MicrosoftArchive/redis/releases)
+6. [Postman](https://www.getpostman.com/)
+7. Eclipse STS 3.9.5下载1[网盘](https://pan.baidu.com/s/1xqy4G_r9N24WODBBuGlIog) 下载2[国外](https://spring.io/tools)
+8. Android Studio 3.1.2下载1[国内可访问](https://dl.google.com/dl/android/studio/install/3.1.2.0/android-studio-ide-173.4720617-windows.exe) 下载2[网盘](https://pan.baidu.com/s/1xO0jppKszfJAA3GFJ8bxcw) 下载3[国外访问](https://developer.android.com/studio/index.html)
+9. [Firefox Browser 47.0.2](http://ftp.mozilla.org/pub/firefox/releases/47.0.2/win64/zh-CN/)
+10. [NoRedirect Add on for Firefox](https://addons.mozilla.org/en-US/firefox/addon/noredirect/)
 
 
 
@@ -23,6 +22,8 @@ Spring Framework 5.2.2
 ## Book
 
 - 《Spring Boot 编程思想》
+- [《OAuth 2 in Action》](https://www.manning.com/books/oauth-2-in-action)
+- [《OAuth 2.0 Cookbook》](https://www.packtpub.com/product/oauth-2-0-cookbook/9781788295963)
 
 
 
