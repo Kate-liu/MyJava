@@ -749,11 +749,395 @@ OAuth 2.0 Cookbook：https://www.packtpub.com/virtualization-and-cloud/oauth-20-
 
 ##### 基于授权码模式+Spring Security OAuth2的最简授权服务器
 
+- 依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+<!-- for OAuth 2.0 -->
+<dependency>
+    <groupId>org.springframework.security.oauth</groupId>
+    <artifactId>spring-security-oauth2</artifactId>
+</dependency>
+```
+
+- 见示例代码
+- 
+
+##### 基于简化模式+Spring Security OAuth2的最简授权服务器
+
+- 见示例代码
+
+##### 基于密码模式+Spring Security OAuth2的最简授权服务器
+
+- 见示例代码
+
+##### 基于客户端模式+Spring Security OAuth2的最简授权服务器
+
+- 见示例代码
+
+
+
+##### 实验扩展
+
+- 支持刷新令牌Refresh Token 
+- 使用关系数据库存储令牌和客户信息 
+- 使用缓存Cache存储令牌提升性能 
+- 授权服务器和资源服务器拆分 
+- Revoke端点 （吊销端点）
+- Introspection端点 （校验端点）
+
+
+
+#### OAuth2客户端案例实操 
+
+##### 客户端以授权码方式访问OAuth2服务器案例，使用rest template
+
+- 见示例代码
+
+
+
+##### 实验扩展
+
+- 使用Spring Security OAuth2
+- 客户端支持简化/密码/客户端模式 
+- 客户端支持refresh token 
 
 
 
 
 
+#### JWT令牌原理 
+
+##### 访问令牌的类型 
+
+- By reference token（透明令牌）
+- By value token （自包含令牌）
+
+![1605672987753](MicroserviceArchitecture.assets/1605672987753.png)
+
+
+
+
+
+##### JSON Web Token(JWT) 
+
+- 网址：https://jwt.io/
+- 三部分组成：Header.Claims.Signature
+
+![1605673102336](MicroserviceArchitecture.assets/1605673102336.png)
+
+![1605673114533](MicroserviceArchitecture.assets/1605673114533.png)
+
+
+
+##### 令牌签发人和目标接收人 
+
+![1605673146776](MicroserviceArchitecture.assets/1605673146776.png)
+
+
+
+![lingpaiqianfaren](MicroserviceArchitecture.assets/lingpaiqianfaren.png)
+
+
+
+#### JWT案例实操 
+
+##### 基于密码模式+Spring Security OAuth2+JWT的最简授权服务器
+
+- jwt 依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.security</groupId>
+    <artifactId>spring-security-jwt</artifactId>
+</dependency>
+```
+
+- authserver
+- resourceserver
+- 对称签名和校验
+- 见示例代码
+
+
+
+
+
+##### 实验扩展
+
+- 在JWT令牌中增加定制claims
+- JWT令牌的非对称签名和校验
+- 使用JWE加密/解密JWT令牌 
+
+
+
+#### Android无线应用接入OAuth2案例实操 
+
+##### Android对接OAuth2授权服务器（基于Spring Security OAuth2+内存H2数据库）
+
+- 见示例代码
+
+
+
+##### 实验扩展
+
+- 支持用户名密码模式
+- 使用PKCE(RFC7636)增强无线客户使用授权码模式的安全性 
+
+
+
+
+
+#### Angularjs单页应用接入OAuth2案例实操 
+
+##### Angularjs对接OAuth2授权服务器（基于Spring Security OAuth2+Mysql数据库） 
+
+- Spring REST API + OAuth2 + AngularJS：http://www.baeldung.com/rest-api-spring-oauth2-angularjs
+-  AngularJS重点关注`oauth-ng.js`。
+- 见示例代码
+
+
+
+##### 实验扩展
+
+- 支持密码模式
+
+
+
+#### Github社交登录案例实操 
+
+##### Github社交联合登录实验
+
+- Spring Social：https://spring.io/projects/spring-social
+- https://projects.spring.io/spring-social/
+- Connect your Spring application with Software-as-a-Service (SaaS) API providers such as Facebook, Twitter, and LinkedIn.
+
+- 依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.social</groupId>
+    <artifactId>spring-social-config</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.social</groupId>
+    <artifactId>spring-social-core</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.social</groupId>
+    <artifactId>spring-social-web</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.social</groupId>
+    <artifactId>spring-social-github</artifactId>
+    <version>1.0.0.M4</version>
+</dependency>
+```
+
+
+
+##### 实验扩展
+
+- 新浪微博，微信，QQ做对接实验
+- Spring Social 文档学习
+
+
+
+#### OAuth2安全风险和案例实操 
+
+##### 常见OAuth 2.0安全问题 
+
+- 确保HTTPS传输
+- 防止泄露客户密码
+- 很多输入需要验证
+
+![1605679868263](MicroserviceArchitecture.assets/1605679868263.png)
+
+
+
+##### CSRF
+
+> 黑客使用自己的账号和密码，获得授权码；
+>
+> 将授权码给正常使用的用户，让用户点击；
+>
+> 由于Spring social 具有跨站点防伪造安全机制，需要一个state传回去；
+>
+> 此时的点击就是错误的。
+>
+> Possible CSRF detected - state parameter was required but no state could be found
+
+![1605680013856](MicroserviceArchitecture.assets/1605680013856.png)
+
+
+
+#### OpenId Connect简介 
+
+##### OpenID Connect 
+
+- (Identity, Authentication) + OAuth 2.0 = OpenID Connect 
+- 比较新
+
+![1605680304618](MicroserviceArchitecture.assets/1605680304618.png)
+
+
+
+#### 下一代微服务安全架构 
+
+##### 方案一
+
+- 前端使用 Access Token（无意义的字符串）
+- 后端使用 JWT（表征用户信息的有意义）
+- 基于API网关，集中校验，进行Access Token 与 JWT的交换
+
+![1605680684281](MicroserviceArchitecture.assets/1605680684281.png)
+
+
+
+##### 方案二
+
+- 全称加密 JWT
+- API网关，直接进行自校验，不需要去授权服务器校验
+- 不能吊销，只能等待JWT自己过期
+
+![1605680696937](MicroserviceArchitecture.assets/1605680696937.png)
+
+
+
+##### 方案三
+
+- 加入缓存方式
+- 优化方案一
+- 基于API网关，集中校验，进行Access Token 与 JWT的交换
+- 推荐使用，标准参考方案
+
+![1605680830289](MicroserviceArchitecture.assets/1605680830289.png)
+
+
+
+
+
+##### 生产级部署实践 
+
+- 业务指标监控
+- 接口调用性能指标
+- 缓存 Caching
+- HA和水平扩容（高可用，多台）
+
+![1605681023608](MicroserviceArchitecture.assets/1605681023608.png)
+
+
+
+
+
+#### 参考资源和后续课程预览 
+
+##### OAuth2/OIDC开源产品 
+
+Redhat Keycloak（ Java）： http://www.keycloak.org
+
+Apereo CAS（ Java）：https://www.apereo.org/projects/cas
+
+IdentityServer（ C#）：https://identityserver.io/
+
+OpenId-Connect-Java-Spring-Server：https://github.com/mitreid-connect/OpenIDConnect-Java-Spring-Server 
+
+![1605681824013](MicroserviceArchitecture.assets/1605681824013.png)
+
+
+
+
+
+##### Spring Security OAuth2 
+
+- Developer Guide：https://projects.spring.io/spring-security-oauth/docs/oauth2.html
+- OAuth-2.0-Cookbook：
+  - https://www.packtpub.com/product/oauth-2-0-cookbook/9781788295963
+  - https://github.com/PacktPublishing/OAuth-2.0-Cookbook
+
+![1605681867205](MicroserviceArchitecture.assets/1605681867205.png)
+
+
+
+
+
+##### OAuth和OIDC库 
+
+- Google OAuth Client Library
+- ScribeJava
+- Spring Security OAuth
+- Nimbus OAuth SDK
+- 各种语言的服务器和客户端库: https://oauth.net/code/ 
+
+
+
+
+
+##### OAuth2/OIDC SaaS服务 
+
+- okta: https://www.okta.com/
+- Auth0: https://auth0.com/ 
+
+![1605681972850](MicroserviceArchitecture.assets/1605681972850.png)
+
+
+
+##### 规范参考 
+
+- https://oauth.net
+- https://jwt.io
+- https://openid.net
+
+![1605682003540](MicroserviceArchitecture.assets/1605682003540.png)
+
+
+
+##### 参考文章 
+
+- 理解OAuth2: http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html
+- The Simplest Guide To OAuth 2.0：https://darutk.medium.com/the-simplest-guide-to-oauth-2-0-8c71bd9a15bb
+
+
+
+##### 参考开源代码 
+
+- OAuth2全家桶项目 :https://github.com/newnil/oauth2-family-barrel
+- Apache Oltu+Shiro实现OAuth2服务器(李胜钊) :https://github.com/monkeyk/oauth2-shiro
+- Using JWT with Spring Security OAuth :
+  - https://www.baeldung.com/spring-security-oauth-jwt
+  - https://github.com/Baeldung/spring-security-oauth
+
+
+
+##### 课程代码 
+
+- https://github.com/spring2go/oauth2lab
+
+
+
+##### 后续课程预览~模块
+
+- 服务安全
+- 运行时支撑服务
+- 服务容错
+- 服务监控
+- 服务框架
+- 后台服务
+- 服务部署平台
+
+![1605682410410](MicroserviceArchitecture.assets/1605682410410.png)
+
+
+
+##### 后续课程预览~技术体系
+
+![1605682470104](MicroserviceArchitecture.assets/1605682470104.png)
 
 
 
