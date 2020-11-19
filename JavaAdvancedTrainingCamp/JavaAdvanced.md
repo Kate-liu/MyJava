@@ -1320,33 +1320,39 @@ JAVA_OPTS="-agentlib:hprof=cpu=samples,file=cpu.samples.log"
 
 #### JVM 命令行工具 -基本
 
-| 工具 简介                                                    |
-| ------------------------------------------------------------ |
-| java  Java 应用的启动程序                                    |
-| javac JDK 内置的编译工具                                     |
-| javap 反编译 class 文件的工具                                |
-| javadoc 根据 Java 代码和标准注释,自动生成相关的API说明文档   |
-| javah JNI 开发时, 根据 java 代码生成需要的 .h文件。          |
-| extcheck 检查某个 jar 文件和运行时扩展 jar 有没有版本冲突，很少使用 |
-| jdb Java Debugger ; 可以调试本地和远端程序, 属于 JPDA 中的一个 demo 实现, 供 其他调试器参考。开发时很少使用 |
-| jdeps 探测 class 或 jar 包需要的依赖                         |
-| jar 打包工具，可以将文件和目录打包成为 .jar 文件； .jar 文件本质上就是 zip 文件, 只是后缀不同。使用时按顺序对应好选项和参数即可。 |
-| keytool 安全证书和密钥的管理工具; （支持生成、导入、导出等操作） |
-| jarsigner JAR 文件签名和验证工具                             |
-| policytool 实际上这是一款图形界面工具, 管理本机的 Java 安全策略 |
+
+
+| 工具       | 简介                                                         |
+| ---------- | ------------------------------------------------------------ |
+| java       | Java 应用的启动程序                                          |
+| javac      | JDK 内置的编译工具                                           |
+| javap      | 反编译 class 文件的工具                                      |
+| javadoc    | 根据 Java 代码和标准注释,自动生成相关的API说明文档           |
+| javah      | JNI 开发时, 根据 java 代码生成需要的 .h文件。                |
+| extcheck   | 检查某个 jar 文件和运行时扩展 jar 有没有版本冲突，很少使用   |
+| jdb        | Java Debugger ; 可以调试本地和远端程序, 属于 JPDA 中的一个 demo 实现, 供 其他调试器参考。开发时很少使用 |
+| jdeps      | 探测 class 或 jar 包需要的依赖                               |
+| jar        | 打包工具，可以将文件和目录打包成为 .jar 文件； .jar 文件本质上就是 zip 文件, 只是后缀不同。使用时按顺序对应好选项和参数即可。 |
+| keytool    | 安全证书和密钥的管理工具; （支持生成、导入、导出等操作）     |
+| jarsigner  | JAR 文件签名和验证工具                                       |
+| policytool | 实际上这是一款图形界面工具, 管理本机的 Java 安全策略         |
+
+
 
 
 
 #### JVM 命令行工具 -常用
 
-| 工具 简介                              |
-| -------------------------------------- |
-| jps/jinfo 查看 java 进程               |
-| jstat 查看 JVM 内部 gc 相关信息        |
-| jmap 查看 heap 或类占用空间统计        |
-| jstack 查看线程信息                    |
-| jcmd 执行 JVM 相关分析命令（整合命令） |
-| jrunscript/jjs 执行 js 命令            |
+| 工具           | 简介                              |
+| -------------- | --------------------------------- |
+| jps/jinfo      | 查看 java 进程                    |
+| jstat          | 查看 JVM 内部 gc 相关信息         |
+| jmap           | 查看 heap 或类占用空间统计        |
+| jstack         | 查看线程信息                      |
+| jcmd           | 执行 JVM 相关分析命令（整合命令） |
+| jrunscript/jjs | 执行 js 命令                      |
+
+
 
 
 
@@ -1363,6 +1369,13 @@ C:\Users\rmliu>jps
 25460 Launcher
 5668 Jps
 24604 RemoteMavenServer36
+
+C:\Users\rmliu>jps -help
+usage: jps [-help]
+       jps [-q] [-mlvV] [<hostid>]
+
+Definitions:
+    <hostid>:      <hostname>[:<port>]
 ```
 
 - jps -mlv
@@ -1388,19 +1401,36 @@ JVM version is 25.221-b11
 Java System Properties:
 
 java.vendor = Oracle Corporation
-preload.project.path = E:/09-面试/MyJava
-sun.java.launcher = SUN_STANDARD
-idea.config.path = C:\Users\rmliu/.IdeaIC2019.3/config
-sun.management.compiler = HotSpot 64-Bit Tiered Compilers
-sun.nio.ch.bugLevel =
+...
 idea.paths.selector = IdeaIC2019.3
 ```
 
 
 
-#### JVM 命令行工具--jstat* 
+
+
+#### JVM 命令行工具--jstat
+
+- jstat -options
+  - -class 类加载(Class loader)信息统计.
+  - -compiler JIT 即时编译器相关的统计信息。
+  - **-gc** GC 相关的堆内存信息. 用法: jstat -gc -h 10 -t 864 1s 20
+  - -gccapacity 各个内存池分代空间的容量。
+  - -gccause 看上次 GC, 本次 GC（如果正在 GC中）的原因, 其他输出和 -gcutil 选项一致。
+  - -gcnew 年轻代的统计信息. （ New = Young = Eden + S0 + S1）
+  - -gcnewcapacity 年轻代空间大小统计.
+  - -gcold 老年代和元数据区的行为统计。
+  - -gcoldcapacity old 空间大小统计.
+  - -gcmetacapacity meta 区大小统计.
+  - **-gcutil** GC 相关区域的使用率（ utilization）统计。
+  - -printcompilation 打印 JVM 编译统计信息。 
+
+![1605773162049](JavaAdvanced.assets/1605773162049.png)
+
+
 
 - jstat -gc 25460 1000 1000
+- ![1605773289354](JavaAdvanced.assets/1605773289354.png)
 
 ```sh
 # java 内存信息
@@ -1419,15 +1449,14 @@ idea.paths.selector = IdeaIC2019.3
 C:\Users\rmliu>jstat -gc 25460 1000 1000
  S0C    S1C    S0U    S1U      EC       EU        OC         OU       MC     MU    CCSC   CCSU   YGC     YGCT    FGC    FGCT     GCT
 10752.0 10752.0  0.0   5044.1 65024.0  18982.8   173568.0     99.1    16640.0 16185.3 2048.0 1876.4      1    0.017   0      0.000    0.017
-10752.0 10752.0  0.0   5044.1 65024.0  18982.8   173568.0     99.1    16640.0 16185.3 2048.0 1876.4      1    0.017   0      0.000    0.017
-10752.0 10752.0  0.0   5044.1 65024.0  18982.8   173568.0     99.1    16640.0 16185.3 2048.0 1876.4      1    0.017   0      0.000    0.017
-10752.0 10752.0  0.0   5044.1 65024.0  18982.8   173568.0     99.1    16640.0 16185.3 2048.0 1876.4      1    0.017   0      0.000    0.01710752.0 10752.0  0.0   5044.1 65024.0  18982.8   173568.0     99.1    16640.0 16185.3 2048.0 1876.4      1    0.017   0      0.000    0.017
+...
 10752.0 10752.0  0.0   5044.1 65024.0  18982.8   173568.0     99.1    16640.0 16185.3 2048.0 1876.4      1    0.017   0      0.000    0.017
 ```
 
 
 
 - jstat -gcutil 25460 1000 1000
+- ![1605773251515](JavaAdvanced.assets/1605773251515.png)
 
 ```sh
 # 按照百分比展示
@@ -1436,10 +1465,7 @@ C:\Users\rmliu>jstat -gc 25460 1000 1000
 C:\Users\rmliu>jstat -gcutil 25460 1000 1000
   S0     S1     E      O      M     CCS    YGC     YGCT    FGC    FGCT     GCT
   0.00  46.91  29.19   0.06  97.27  91.62      1    0.017     0    0.000    0.017
-  0.00  46.91  29.19   0.06  97.27  91.62      1    0.017     0    0.000    0.017
-  0.00  46.91  29.19   0.06  97.27  91.62      1    0.017     0    0.000    0.017
-  0.00  46.91  29.19   0.06  97.27  91.62      1    0.017     0    0.000    0.017
-  0.00  46.91  29.19   0.06  97.27  91.62      1    0.017     0    0.000    0.017
+
   0.00  46.91  29.19   0.06  97.27  91.62      1    0.017     0    0.000    0.017
   0.00  46.91  29.19   0.06  97.27  91.62      1    0.017     0    0.000    0.017
 ```
@@ -1447,6 +1473,20 @@ C:\Users\rmliu>jstat -gcutil 25460 1000 1000
 
 
 #### JVM 命令行工具--jmap 
+
+常用选项就 3 个：
+
+- -heap 打印堆内存（ /内存池）的配置和使用信息。
+- -histo 看哪些类占用的空间最多, 直方图
+- -dump:format=b,file=xxxx.hprof Dump 堆内存。
+
+演示:
+
+- jmap -heap pid
+- jmap -histo pid
+- jmap -dump:format=b,file=3826.hprof 3826 
+
+
 
 - jmap -histo pid
 
@@ -1544,6 +1584,14 @@ PS Old Generation
 
 #### JVM 命令行工具--jstack 
 
+-F 强制执行 thread dump. 可在 Java 进程卡死（ hung 住）时使用, 此选项可能需要系统权限。
+-m 混合模式(mixed mode),将 Java 帧和 native帧一起输出, 此选项可能需要系统权限。
+-l 长列表模式. 将线程相关的 locks 信息一起输出，比如持有的锁，等待的锁。
+
+演示：jstack pid -l 
+
+
+
 - jstack -l pid
 
 ```sh
@@ -1573,7 +1621,18 @@ Full thread dump Java HotSpot(TM) 64-Bit Server VM (25.221-b11 mixed mode):
 
 
 
-#### JVM 命令行工具--jcmd* 
+#### JVM 命令行工具--jcmd
+
+Jcmd 综合了前面的几个命令
+
+示例：
+jcmd pid VM.version
+jcmd pid VM.flags
+jcmd pid VM.command_line
+jcmd pid VM.system_properties
+jcmd pid Thread.print
+jcmd pid GC.class_histogram
+jcmd pid GC.heap_info 
 
 - jcmd pidhelp
 
@@ -1610,6 +1669,10 @@ JDK 8.0_221
 
 
 #### JVM 命令行工具--jrunscript/jjs 
+
+当curl命令用：jrunscript -e "cat('http://www.baidu.com')"
+执行js脚本片段：jrunscript -e "print('hello,kk.jvm'+1)"
+执行js文件：jrunscript -l js -f /XXX/XXX/test.js 
 
 - jrunscript -e "cat('http://www.baidu.com')"
 
@@ -1657,11 +1720,93 @@ jjs> exit()
 
 
 
+##### jconsole -概览
+
+共有 6 个面板
+
+第一个为概览，四项指标具体为：
+
+堆内存使用量：此处展示的就是前面 Java 内存模型课程中提到的堆内存使用情况，从图上可以看到，堆内存使用了 94MB 左右，并且一直在增长。
+
+线程：展示了 JVM 中活动线程的数量，当前时刻共有 17 个活动线程。
+
+类： JVM 一共加载了 5563 个类，没有卸载类。
+
+CPU 占用率：目前 CPU 使用率为 0.2%，这个数值非常低，且最高的时候也不到 3%，初步判断系统当前并没有什么负载和压力。
+
+有如下几个时间维度可供选择：
+1分钟、 5分钟、 10分钟、 30分钟、 1小时、 2小时、 3小时、 6小时、12小时、 1天、 7天、 1个月、 3个月、 6个月、 1年、全部，一共是16档。
+当我们想关注最近1小时或者1分钟的数据，就可以选择对应的档。旁边的3个标签页(内存、线程、类)，也都支持选择时间范围。 
+
+![1605773735677](JavaAdvanced.assets/1605773735677.png)
+
+
+
+##### jconsole -内存
+
+内存图表包括：
+• 堆内存使用量，主要包括老年代（内存池 “PS Old Gen”）、新生代（ “PS Eden Space”）、存活区
+（ “PS Survivor Space”）；
+• 非堆内存使用量，主要包括内存池“Metaspace”、 “Code Cache”、 “Compressed Class Space”等；
+
+可以分别选择对应的 6 个内存池。
+
+通过内存面板，我们可以看到各个区域的内存使用和变化情况，并且可以：
+1.手动执行 gc，见图上的标号1，点击按钮即可执行JDK 中的 System.gc()
+2.通过图中右下角标号 2 的界面，可以看到各个内存池的百分比使用率，以及堆/非堆空间的汇总使用情况
+3.从左下角标号 3 的界面，可以看到 JVM 使用的垃圾收集器，以及执行垃圾收集的次数，以及相应的时间消耗。 
+
+![1605773820687](JavaAdvanced.assets/1605773820687.png)
+
+
+
+##### jconsole -线程
+
+线程面板展示了线程数变化信息，以及监测到的线程列表。
+
+我们可以常根据名称直接查看线程的状态（运行还是等待中）和调用栈（正在执行什么操作）。
+
+特别地，我们还可以直接点击“检测死锁”按钮来检测死锁，如果没有死锁则会提示“未检测到死锁”。 
+
+![1605773898247](JavaAdvanced.assets/1605773898247.png)
+
+##### jconsole -类
+
+类监控面板，可以直接看到 JVM 加载和卸载的类数量汇总信息，以及随着时间的动态变化。 
+
+![1605773937637](JavaAdvanced.assets/1605773937637.png)
+
+##### jconsole -VM概要
+
+VM 概要的数据有五个部分：
+第一部分是虚拟机的信息；
+第二部分是线程数量，以及类加载的汇总信息；
+第三部分是堆内存和 GC 统计。
+第四部分是操作系统和宿主机的设备信息，比如 CPU 数量、物理内存、虚拟内存等等。
+第五部分是 JVM 启动参数和几个关键路径，这些信息其实跟 jinfo 命令看到的差不多。 
+
+![1605773998108](JavaAdvanced.assets/1605773998108.png)
+
+
+
+
+
 #### JVM 图形化工具--jvisualvm 
 
 - 信息多，更强大
 - 在命令行输入  jvisualvm 即可打开 
 - 使用抽样器，进行数据的dump，进行后续的操作
+- 概述，监控，线程，抽样器，Profiler
+
+![1605774063953](JavaAdvanced.assets/1605774063953.png)
+
+![1605774122184](JavaAdvanced.assets/1605774122184.png)
+
+![1605774200983](JavaAdvanced.assets/1605774200983.png)
+
+![1605774221272](JavaAdvanced.assets/1605774221272.png)
+
+
 
 
 
@@ -1670,7 +1815,7 @@ jjs> exit()
 - 一个插件，idea中安装使用
 - 网格化显示，有意思
 
-
+![1605774243152](JavaAdvanced.assets/1605774243152.png)
 
 
 
@@ -1679,6 +1824,23 @@ jjs> exit()
 - 信息多，更更强大，多用
 - 在命令行输入  jmc 即可打开 
 - 飞行记录器，保证记录的是动态的
+- 一般信息，内存，代码，线程，I/O，系统，事件
+
+![1605774262169](JavaAdvanced.assets/1605774262169.png)
+
+![1605774286796](JavaAdvanced.assets/1605774286796.png)
+
+![1605774306803](JavaAdvanced.assets/1605774306803.png)
+
+![1605774346286](JavaAdvanced.assets/1605774346286.png)
+
+![1605774406426](JavaAdvanced.assets/1605774406426.png)
+
+![1605774421439](JavaAdvanced.assets/1605774421439.png)
+
+![1605774437314](JavaAdvanced.assets/1605774437314.png)
+
+
 
 
 
@@ -1715,19 +1877,16 @@ jjs> exit()
 
 #### 引用计数
 
+- 循环依赖问题
+- 内存泄漏->内存溢出
 
-
-
-
-
-
-
+![1605774549941](JavaAdvanced.assets/1605774549941.png)
 
 
 
 #### 引用跟踪
 
-标记清除算法（ Mark and Sweep）
+**标记清除算法（ Mark and Sweep）**
 
 - Marking（ 标记） : 遍历所有的可达对象，并在本地内存(native)中分门别类记下。
 - Sweeping（ 清除） : 这一步保证了，不可达对象所占用的内存，在之后进行内存分配时可以重用。 
@@ -1743,6 +1902,8 @@ jjs> exit()
 
 答案就是 STW，让全世界停止下来。 （stop the world! 标记照片。）
 
+![1605774627692](JavaAdvanced.assets/1605774627692.png)
+
 
 
 
@@ -1753,15 +1914,15 @@ jjs> exit()
 
 JVM 中年轻代默认使用 **15 代**，如果还没有 GC，就直接放到 老年代
 
-
+![1605774669791](JavaAdvanced.assets/1605774669791.png)
 
 内存池划分
 
 不同类型对象不同区域，不同策略处理。 
 
+**TLAB**，是线程分配缓冲区，给每一个线程一部分内存。
 
-
-TLAB，线程分配缓冲区，给每一个线程一部分内存。
+![1605774679315](JavaAdvanced.assets/1605774679315.png)
 
 
 
@@ -1773,7 +1934,7 @@ TLAB，线程分配缓冲区，给每一个线程一部分内存。
 
 注意：为什么是复制，不是移动？？？大家想想
 
-
+![1605774810526](JavaAdvanced.assets/1605774810526.png)
 
 两个存活区 from 和 to，互换角色。对象存活到一定周期会提升到老年代。 
 
@@ -1796,7 +1957,7 @@ TLAB，线程分配缓冲区，给每一个线程一部分内存。
 
 #### 可以作为 GC Roots 的对象
 
-GC Roots 主要作为标记的根对象使用。
+**GC Roots** 主要作为标记的根对象使用。
 
 - 当前正在执行的方法里的局部变量和输入参数
 - 活动线程（ Active threads）
@@ -1810,17 +1971,31 @@ GC Roots 主要作为标记的根对象使用。
 **Young GC 的 速度快的原因？**
 虽然对象几百万个，但是存活的对象少，剩下的全部清除，所以快！快在标记的数量少。
 
+![1605774948970](JavaAdvanced.assets/1605774948970.png)
+
+
+
+#### 三种算法
+
+- 清除算法
+- 复制算法
+- 整理算法
+
+![1605775033155](JavaAdvanced.assets/1605775033155.png)
+
+
+
 
 
 ### 串行 GC/并行 GC（ Serial GC/Parallel GC） 
 
 #### 串行 GC（ Serial GC） /ParNewGC 
 
--XX： +UseSerialGC 配置串行 GC
+**-XX： +UseSerialGC** 配置串行 GC
 
 串行 GC 对年轻代使用 mark-copy（标记-复制） 算法，对老年代使用 mark-sweep-compact （标记-清除-整理）算法。
 
-两者都是单线程的垃圾收集器，不能进行并行处理，所以都会触发全线暂停（ STW），停止所有的应用线程。
+两者都是**单线程**的垃圾收集器，不能进行并行处理，所以都会触发全线暂停（ STW），停止所有的应用线程。
 
 因此这种 GC 算法不能充分利用多核 CPU。不管有多少 CPU 内核， JVM 在垃圾收集时都只能使用单个核心。
 
@@ -1829,7 +2004,7 @@ CPU 利用率高，暂停时间长。简单粗暴，就像老式的电脑，动�
 该选项只适合几百 MB 堆内存的 JVM，而且是单核 CPU 时比较有用。
 想想 why？
 
--XX： +USeParNewGC 改进版本的 Serial GC，可以配合 CMS 使用。 
+**-XX： +USeParNewGC** 改进版本的 Serial GC，可以配合 CMS 使用。 
 
 
 
@@ -1837,18 +2012,20 @@ CPU 利用率高，暂停时间长。简单粗暴，就像老式的电脑，动�
 
 #### 并行 GC（ Parallel GC）
 
--XX: +UseParallelGC
--XX: +UseParallelOldGC
--XX: +UseParallelGC -XX:+UseParallelOldGC
+**-XX: +UseParallelGC**
+**-XX: +UseParallelOldGC**
+**-XX: +UseParallelGC -XX:+UseParallelOldGC**
 
 年轻代和老年代的垃圾回收都会触发 STW 事件。
 在年轻代使用 标记-复制（ mark-copy）算法，在老年代使用 标记-清除-整理（ mark-sweepcompact）算法。
 -XX： ParallelGCThreads=N 来指定 GC 线程数， 其**默认值为 CPU 核心数**。
 
-并行垃圾收集器适用于多核服务器，主要目标是增加吞吐量。因为对系统资源的有效使用，能达到更高的吞吐量:
+并行垃圾收集器适用于多核服务器，主要目标是增加**吞吐量**。因为对系统资源的有效使用，能达到更高的吞吐量:
 
 - 在 GC 期间，所有 CPU 内核都在并行清理垃圾，所以总暂停时间更短；
 - 在两次 GC 周期的间隔期，没有 GC 线程在运行，不会消耗任何系统资源。 
+
+
 
 
 
@@ -1896,19 +2073,71 @@ CMS GC 的设计目标是避免在老年代垃圾收集时出现长时间的卡�
 
 
 
-#### CMS GC
+#### CMS GC 的处理步骤
 
-##### 六个阶段 1（ STW） 
+#####  1（ STW） -Initial Mark（ 初始标记） 
 
-##### 六个阶段 2
+阶段 1: Initial Mark（ 初始标记） 
 
-##### 六个阶段 3（ STW） 
+这个阶段伴随着 STW 暂停。初始标记的目标是标记所有的根对象，包括根对象直接引用的对象，以及被年轻代中所有存活对象所引用的对象（老年代单独回收）。 
 
-##### 六个阶段 4
+![1605775538782](JavaAdvanced.assets/1605775538782.png)
 
-##### 六个阶段 5
 
-##### 六个阶段 5
+
+#####  2- Concurrent Mark（ 并发标记） 
+
+阶段 2: Concurrent Mark（ 并发标记） 
+
+在此阶段， CMS GC 遍历老年代，标记所有的存活对象，从前一阶段 “Initial Mark” 找到的根对象开始算起。 “并发标记”阶段，就是与应用程序同时运行，不用暂停的阶段。 
+
+![1605775554852](JavaAdvanced.assets/1605775554852.png)
+
+
+
+
+
+##### 3（ STW） -Concurrent Preclean（ 并发预清理）
+
+阶段 3: Concurrent Preclean（ 并发预清理） 
+
+此阶段同样是与应用线程并发执行的，不需要停止应用线程。 因为前一阶段【并发标记】与程序并发运行，可能有一些引用关系已经发生了改变。如果在并发标记过程中引用关系发生了变化， JVM 会通过“Card（卡片） ”的方式将发生了改变的区域标记为“脏”区，这就是所谓的 卡片标记（ Card Marking）。 
+
+![1605775571637](JavaAdvanced.assets/1605775571637.png)
+
+
+
+#####  4- Final Remark（ 最终标记） 
+
+阶段 4: Final Remark（ 最终标记） 
+
+最终标记阶段是此次 GC 事件中的第二次（也是最后一次） STW 停顿。本阶段的目标是完成老年代中所有存活对象的标记. 因为之前的预清理阶段是并发执行的，有可能 GC 线程跟不上应用程序的修改速度。所以需要一次STW 暂停来处理各种复杂的情况。
+
+通常 CMS 会尝试在年轻代尽可能空的情况下执行 FinalRemark 阶段，以免连续触发多次 STW 事件。 
+
+![1605775585169](JavaAdvanced.assets/1605775585169.png)
+
+
+
+#####  5-Concurrent Sweep（ 并发清除） 
+
+阶段 5: Concurrent Sweep（ 并发清除） 
+
+此阶段与应用程序并发执行，不需要 STW 停顿。 JVM 在此阶段删除不再使用的对象，并回收他们占用的内存空间。 
+
+![1605775601152](JavaAdvanced.assets/1605775601152.png)
+
+
+
+#####  6- Concurrent Reset（ 并发重置）
+
+阶段 6: Concurrent Reset（ 并发重置） 
+
+此阶段与应用程序并发执行，重置 CMS 算法相关的内部数据，为下一次 GC 循环做准备。 
+
+CMS 垃圾收集器在减少停顿时间上做了很多复杂而有用的工作，用于垃圾回收的并发线程执行的同时，并不需要暂停应用线程。 当然，CMS 也有一些缺点，其中最大的问题就是老年代内存碎片问题（因为不压缩），在某些情况下 GC 会造成不可预测的暂停时间，特别是堆内存较大的情况下。 
+
+
 
 
 
@@ -1946,11 +2175,13 @@ G1 GC 最主要的设计目标是：将 STW 停顿的时间和分布，变成可
 首先，堆不再分成年轻代和老年代，而是划分为多个（通常是 **2048 个**）可以存放对象的 小块堆区域
 (smaller heap regions)。每个小块，可能一会被定义成 Eden 区，一会被指定为 Survivor区或者Old 区。在逻辑上，所有的 Eden 区和 Survivor区合起来就是年轻代，所有的 Old 区拼在一起那就是老年代
 
+![1605775995381](JavaAdvanced.assets/1605775995381.png)
+
 这样划分之后，使得 G1 不必每次都去收集整个堆空间，而是以增量的方式来进行处理: 每次只处理一部分内存块，称为此次 **GC 的回收集(collection set)**。每次 GC 暂停都会收集所有年轻代的内存块，但一般只包含部分老年代的内存块。
 
 G1 的另一项创新是，在并发阶段估算每个小堆块存活对象的总数。构建回收集的原则是：垃圾最多的小块会被优先收集。这也是 G1 名称的由来。 
 
-
+![1605776039155](JavaAdvanced.assets/1605776039155.png)
 
 
 
@@ -1960,17 +2191,17 @@ G1 的另一项创新是，在并发阶段估算每个小堆块存活对象的�
 
 -XX： +UseG1GC：启用 G1 GC；
 
--XX： G1NewSizePercent：初始年轻代占整个 Java Heap 的大小，默认值为 5%；
+**-XX： G1NewSizePercent**：初始年轻代占整个 Java Heap 的大小，默认值为 5%；
 
--XX： G1MaxNewSizePercent：最大年轻代占整个 Java Heap 的大小，默认值为 60%；
+**-XX： G1MaxNewSizePercent**：最大年轻代占整个 Java Heap 的大小，默认值为 60%；
 
--XX： G1HeapRegionSize：设置每个 Region 的大小，单位 MB，需要为 1， 2， 4， 8， 16， 32 中的某个值，默认是堆内存的 1/2000。如果这个值设置比较大，那么大对象就可以进入 Region 了。
+**-XX： G1HeapRegionSize**：设置每个 Region 的大小，单位 MB，需要为 1， 2， 4， 8， 16， 32 中的某个值，默认是堆内存的 1/2000。如果这个值设置比较大，那么大对象就可以进入 Region 了。
 
 -XX： ConcGCThreads：与 Java 应用一起执行的 GC 线程数量，默认是 Java 线程的 **1/4**，减少这个参数的数值可能会提升并行回收的效率，提高系统内部吞吐量。如果这个数值过低，参与回收垃圾的线程不足，也会导致并行回收机制耗时加长。
 
--XX： +InitiatingHeapOccupancyPercent（简称 IHOP）： G1 内部并行回收循环启动的阈值，默认为 Java Heap的 45%。这个可以理解为老年代使用大于等于 **45%** 的时候， JVM 会启动垃圾回收。这个值非常重要，它决定了在什么时间启动老年代的并行回收。
+**-XX： +InitiatingHeapOccupancyPercent**（简称 IHOP）： G1 内部并行回收循环启动的阈值，默认为 Java Heap的 45%。这个可以理解为老年代使用大于等于 **45%** 的时候， JVM 会启动垃圾回收。这个值非常重要，它决定了在什么时间启动老年代的并行回收。
 
--XX： G1HeapWastePercent： G1停止回收的最小内存大小，默认是堆大小的 5%。 GC 会收集所有的 Region 中的对象，但是如果下降到了 5%，就会停下来不再收集了。就是说，不必每次回收就把所有的垃圾都处理完，可以遗留少量的下次处理，这样也降低了单次消耗的时间。
+**-XX： G1HeapWastePercent**： G1停止回收的最小内存大小，默认是堆大小的 5%。 GC 会收集所有的 Region 中的对象，但是如果下降到了 5%，就会停下来不再收集了。就是说，不必每次回收就把所有的垃圾都处理完，可以遗留少量的下次处理，这样也降低了单次消耗的时间。
 
 -XX： G1MixedGCCountTarget：设置并行循环之后需要有多少个混合 GC 启动，默认值是 8 个。老年代 Regions的回收时间通常比年轻代的收集时间要长一些。所以如果混合收集器比较多，可以允许 G1 延长老年代的收集时间。 
 
@@ -1982,11 +2213,11 @@ G1 的另一项创新是，在并发阶段估算每个小堆块存活对象的�
 
 -XX： +G1TraceConcRefinement：这个也是一个 VM 的调试信息，如果启用，并行回收阶段的日志就会被详细打印出来。
 
--XX： +GCTimeRatio：这个参数就是计算花在 Java 应用线程上和花在 GC 线程上的时间比率，默认是 9，跟新生代内存的分配比例一致。这个参数主要的目的是让用户可以控制花在应用上的时间， G1 的计算公式是 100/（ 1+GCTimeRatio）。这样如果参数设置为 9，则最多 10% 的时间会花在 GC 工作上面。 Parallel GC 的默认值是 99，表示 1% 的时间被用在 GC 上面，这是因为 Parallel GC 贯穿整个 GC，而 G1 则根据 Region 来进行划分，不需要全局性扫描整个内存堆。
+**-XX： +GCTimeRatio**：这个参数就是计算花在 Java 应用线程上和花在 GC 线程上的时间比率，默认是 9，跟新生代内存的分配比例一致。这个参数主要的目的是让用户可以控制花在应用上的时间， G1 的计算公式是 100/（ 1+GCTimeRatio）。这样如果参数设置为 9，则最多 10% 的时间会花在 GC 工作上面。 Parallel GC 的默认值是 99，表示 1% 的时间被用在 GC 上面，这是因为 Parallel GC 贯穿整个 GC，而 G1 则根据 Region 来进行划分，不需要全局性扫描整个内存堆。
 
 -XX： +UseStringDeduplication：手动开启 Java String 对象的去重工作，这个是 JDK8u20 版本之后新增的参数，主要用于相同 String 避免重复申请内存，节约 Region 的使用。
 
--XX： MaxGCPauseMills：预期 G1 每次执行 GC 操作的暂停时间，单位是毫秒，默认值是 200 毫秒， G1 会尽量保证控制在这个范围内。 
+**-XX： MaxGCPauseMills**：预期 G1 每次执行 GC 操作的暂停时间，单位是毫秒，默认值是 200 毫秒， G1 会尽量保证控制在这个范围内。 
 
 
 
@@ -2073,9 +2304,13 @@ c) 也可以通过增加 –XX： ConcGCThreads 选项的值来**增加并行标
 
 
 
+### GC 对比与组合选择
+
+#### 各个 GC 对比 
+
+![1605776531900](JavaAdvanced.assets/1605776531900.png)
 
 
-### 各个 GC 对比 
 
 
 
@@ -2085,6 +2320,8 @@ c) 也可以通过增加 –XX： ConcGCThreads 选项的值来**增加并行标
 （ 1） Serial+Serial Old 实现单线程的低延迟垃圾回收机制；
 （ 2） ParNew+CMS，实现多线程的低延迟垃圾回收机制；
 （ 3） Parallel Scavenge和ParallelScavenge Old，实现多线程的高吞吐量垃圾回收机制； 
+
+![1605776570035](JavaAdvanced.assets/1605776570035.png)
 
 
 
@@ -2105,6 +2342,8 @@ JDK9， JDK10， JDK11…等等默认的是 GC 是什么？
 
 
 
+
+
 ### ZGC/Shenandoah GC 
 
 #### ZGC 介绍 
@@ -2120,8 +2359,14 @@ ZGC 最主要的特点包括:
 
 技术点：
 
-- 状态指针
+- 着色(状态)指针
 - 读屏障（挪老对象的时候，放一个新对象的引用，访问对象的时候，从老对象导到新的对象）
+
+![1605776760927](JavaAdvanced.assets/1605776760927.png)
+
+![1605776781180](JavaAdvanced.assets/1605776781180.png)
+
+
 
 
 
@@ -2133,11 +2378,17 @@ Shenandoah GC 立项比 ZGC 更早，设计为GC 线程与应用线程并发执�
 
 Shenandoah 团队对外宣称 ShenandoahGC 的暂停时间与堆大小无关，无论是 200MB 还是 200 GB的堆内存，都可以保障具有很低的暂停时间（注意:并不像 ZGC 那样保证暂停时间在 10ms 以内）。 
 
+![1605776843030](JavaAdvanced.assets/1605776843030.png)
+
 
 
 
 
 #### ShennandoahGC 与其他 GC 的 STW 比较 
+
+![1605776872282](JavaAdvanced.assets/1605776872282.png)
+
+
 
 
 
