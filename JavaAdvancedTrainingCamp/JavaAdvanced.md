@@ -1070,6 +1070,12 @@ CCS, Compressed Class Space, 存放 class 信息的，和 Metaspace 有交叉。
 
 Code Cache, 存放 JIT 编译器编译后的本地机器代码。 
 
+注意：
+
+- 新生代 占1/3，老年代 占2/3，新生代：老年代 = 85MB : 170MB
+- Eden 区 占8/10，S0 区 占 1/10，S1 区 占 1/10，Eden：S0：S1  = 65MB : 10MB: 10MB
+- 使用 jmap -heap pid 查看
+
 ![1605600429216](JavaAdvanced.assets/1605600429216.png)
 
 
@@ -1310,12 +1316,256 @@ JAVA_OPTS="-agentlib:hprof=cpu=samples,file=cpu.samples.log"
 
 ## JVM 核心技术--工具与 GC 策略 
 
+### JDK 内置命令行工具 
+
+#### JVM 命令行工具 -基本
+
+| 工具 简介                                                    |
+| ------------------------------------------------------------ |
+| java  Java 应用的启动程序                                    |
+| javac JDK 内置的编译工具                                     |
+| javap 反编译 class 文件的工具                                |
+| javadoc 根据 Java 代码和标准注释,自动生成相关的API说明文档   |
+| javah JNI 开发时, 根据 java 代码生成需要的 .h文件。          |
+| extcheck 检查某个 jar 文件和运行时扩展 jar 有没有版本冲突，很少使用 |
+| jdb Java Debugger ; 可以调试本地和远端程序, 属于 JPDA 中的一个 demo 实现, 供 其他调试器参考。开发时很少使用 |
+| jdeps 探测 class 或 jar 包需要的依赖                         |
+| jar 打包工具，可以将文件和目录打包成为 .jar 文件； .jar 文件本质上就是 zip 文件, 只是后缀不同。使用时按顺序对应好选项和参数即可。 |
+| keytool 安全证书和密钥的管理工具; （支持生成、导入、导出等操作） |
+| jarsigner JAR 文件签名和验证工具                             |
+| policytool 实际上这是一款图形界面工具, 管理本机的 Java 安全策略 |
+
+
+
+#### JVM 命令行工具 -常用
+
+| 工具 简介                              |
+| -------------------------------------- |
+| jps/jinfo 查看 java 进程               |
+| jstat 查看 JVM 内部 gc 相关信息        |
+| jmap 查看 heap 或类占用空间统计        |
+| jstack 查看线程信息                    |
+| jcmd 执行 JVM 相关分析命令（整合命令） |
+| jrunscript/jjs 执行 js 命令            |
+
 
+
+#### JVM 命令行工具--jps/jinfo 
 
+- 看单个进程，jvm的配置
+
+- jps
+
+```sh
+# 查看java进程信息，但是有的进程只有进程号，内容看不到
+C:\Users\rmliu>jps
+10580
+25460 Launcher
+5668 Jps
+24604 RemoteMavenServer36
+```
+
+- jps -mlv
+
+```sh
+# 查看更详细的java进程信息
+C:\Users\rmliu>jps -mlv
+20336 sun.tools.jps.Jps -mlv -Dapplication.home=D:\java1.8 -Xms8m
+10580  exit -Xms128m -Xmx2028m -XX:ReservedCodeCacheSize=240m -XX:+UseConcMarkSweepGC -XX:SoftRefLRUPolicyMSPerMB=50 -ea -XX:CICompilerCount=2 ...
+24604 org.jetbrains.idea.maven.server.RemoteMavenServer36 ...
+```
+
+- jinfo 10680
+
+```sh
+# 查看某一个 java 进程的信息，看进程中 JVM 信息，各种系统设置属性，
+# 如果没有权限，会挂载不上去
+C:\Users\rmliu>jinfo 25460
+Attaching to process ID 25460, please wait...
+Debugger attached successfully.
+Server compiler detected.
+JVM version is 25.221-b11
+Java System Properties:
+
+java.vendor = Oracle Corporation
+preload.project.path = E:/09-面试/MyJava
+sun.java.launcher = SUN_STANDARD
+idea.config.path = C:\Users\rmliu/.IdeaIC2019.3/config
+sun.management.compiler = HotSpot 64-Bit Tiered Compilers
+sun.nio.ch.bugLevel =
+idea.paths.selector = IdeaIC2019.3
+```
+
+
+
+#### JVM 命令行工具--jstat* 
+
+- jstat -gc 25460 1000 1000
+
+```sh
+# java 内存信息
+# 按照字节展示
+# S0C    S1C  表示两个存活区 S0和S1的容量，两个容量是一样的
+# S0U    S1U  表示 S0的使用
+# EC 表示 Eden 区容量
+# OC 表示 Old 区容量
+# MC 表示 元数据区 meta区容量
+# CCSC   CCSU 表示压缩 class区，MC     MU    CCSC   CCSU 表示非堆区
+#  YGC     YGCT 表示 young GC 的次数和使用时间(s)
+# FGC    FGCT 表示 Full GC 的次数和使用时间(s)
+# GCT 表示所有的 GC 时间
+
+
+C:\Users\rmliu>jstat -gc 25460 1000 1000
+ S0C    S1C    S0U    S1U      EC       EU        OC         OU       MC     MU    CCSC   CCSU   YGC     YGCT    FGC    FGCT     GCT
+10752.0 10752.0  0.0   5044.1 65024.0  18982.8   173568.0     99.1    16640.0 16185.3 2048.0 1876.4      1    0.017   0      0.000    0.017
+10752.0 10752.0  0.0   5044.1 65024.0  18982.8   173568.0     99.1    16640.0 16185.3 2048.0 1876.4      1    0.017   0      0.000    0.017
+10752.0 10752.0  0.0   5044.1 65024.0  18982.8   173568.0     99.1    16640.0 16185.3 2048.0 1876.4      1    0.017   0      0.000    0.017
+10752.0 10752.0  0.0   5044.1 65024.0  18982.8   173568.0     99.1    16640.0 16185.3 2048.0 1876.4      1    0.017   0      0.000    0.01710752.0 10752.0  0.0   5044.1 65024.0  18982.8   173568.0     99.1    16640.0 16185.3 2048.0 1876.4      1    0.017   0      0.000    0.017
+10752.0 10752.0  0.0   5044.1 65024.0  18982.8   173568.0     99.1    16640.0 16185.3 2048.0 1876.4      1    0.017   0      0.000    0.017
+```
+
+
+
+- jstat -gcutil 25460 1000 1000
+
+```sh
+# 按照百分比展示
+# 表示 -gcutil GC 相关区域的使用率（ utilization）统计。
+
+C:\Users\rmliu>jstat -gcutil 25460 1000 1000
+  S0     S1     E      O      M     CCS    YGC     YGCT    FGC    FGCT     GCT
+  0.00  46.91  29.19   0.06  97.27  91.62      1    0.017     0    0.000    0.017
+  0.00  46.91  29.19   0.06  97.27  91.62      1    0.017     0    0.000    0.017
+  0.00  46.91  29.19   0.06  97.27  91.62      1    0.017     0    0.000    0.017
+  0.00  46.91  29.19   0.06  97.27  91.62      1    0.017     0    0.000    0.017
+  0.00  46.91  29.19   0.06  97.27  91.62      1    0.017     0    0.000    0.017
+  0.00  46.91  29.19   0.06  97.27  91.62      1    0.017     0    0.000    0.017
+  0.00  46.91  29.19   0.06  97.27  91.62      1    0.017     0    0.000    0.017
+```
+
+
+
+#### JVM 命令行工具--jmap 
+
+- jmap -histo pid
+
+```sh
+# java 内存堆信息
+# -histo 看哪些类占用的空间最多, 直方图
+# B 字节
+# I int
+# [ 数组
+# L 对象
+# JVM 的堆，管理了 数十万，数百万的对象示例
+
+C:\Users\rmliu>jmap -histo 17120
+
+ num     #instances         #bytes  class name
+----------------------------------------------
+   1:         26403       10219528  [B
+   2:         46894        6076392  [C
+   3:          3015        2987192  [I
+   4:         28297         679128  java.lang.String
+   5:          6405         565864  [Ljava.lang.Object;
+   6:          3676         409752  java.lang.Class
+   7:          7240         231680  java.util.concurrent.ConcurrentHashMap$Node
+   8:          2072         165296  [S
+   9:          1955         109480  java.util.zip.ZipFile$ZipFileInputStream
+  10:          6681         106896  java.lang.Object
+  ....
+  1546:             1             16  sun.util.resources.LocaleData
+  1547:             1             16  sun.util.resources.LocaleData$LocaleDataResourceBundleControl
+Total        177303       23426792
+```
+
+- jmap -heap pid
+
+```sh
+# -heap 打印堆内存（ /内存池）的配置和使用信息
+# Parallel GC with 6 thread(s)， 并行 GC，使用6个线程
+# 堆内存信息
+# Young Generation：
+    # Eden Space
+    # From Space
+    # To Space
+# Old Generation
+
+C:\Users\rmliu>jmap -heap 17120
+Attaching to process ID 17120, please wait...
+Debugger attached successfully.
+Server compiler detected.
+JVM version is 25.221-b11
+
+using thread-local object allocation.
+Parallel GC with 6 thread(s)
+
+Heap Configuration:
+   MinHeapFreeRatio         = 0
+   MaxHeapFreeRatio         = 100
+   MaxHeapSize              = 734003200 (700.0MB)
+   NewSize                  = 88604672 (84.5MB)
+   MaxNewSize               = 244318208 (233.0MB)
+   OldSize                  = 177733632 (169.5MB)
+   NewRatio                 = 2
+   SurvivorRatio            = 8
+   MetaspaceSize            = 21807104 (20.796875MB)
+   CompressedClassSpaceSize = 1073741824 (1024.0MB)
+   MaxMetaspaceSize         = 17592186044415 MB
+   G1HeapRegionSize         = 0 (0.0MB)
+
+Heap Usage:
+PS Young Generation
+Eden Space:
+   capacity = 66584576 (63.5MB)
+   used     = 18207160 (17.36370086669922MB)
+   free     = 48377416 (46.13629913330078MB)
+   27.344410813699557% used
+From Space:
+   capacity = 11010048 (10.5MB)
+   used     = 5048528 (4.8146514892578125MB)
+   free     = 5961520 (5.6853485107421875MB)
+   45.85382370721726% used
+To Space:
+   capacity = 11010048 (10.5MB)
+   used     = 0 (0.0MB)
+   free     = 11010048 (10.5MB)
+   0.0% used
+PS Old Generation
+   capacity = 177733632 (169.5MB)
+   used     = 171104 (0.163177490234375MB)
+   free     = 177562528 (169.33682250976562MB)
+   0.0962699057429941% used
+
+5616 interned Strings occupying 497904 bytes.
+```
+
+
+
+#### JVM 命令行工具--jstack 
+
+- jstack -l pid
+
+```sh
+# 线程信息
+# runnable，waiting...
+# 打出锁的信息，看一下是不是死锁
+# linux 下可以使用，kill -3 pid，在启动进程的窗口显示堆栈
 
+C:\Users\rmliu>jstack -l 17120
+2020-11-19 10:06:56
+Full thread dump Java HotSpot(TM) 64-Bit Server VM (25.221-b11 mixed mode):
 
+"DestroyJavaVM" #17 prio=5 os_prio=0 tid=0x00000000047c6000 nid=0x5408 waiting on condition [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
 
+   Locked ownable synchronizers:
+        - None
 
+"JPS event loop" #10 prio=5 os_prio=0 tid=0x0000000018fcc000 nid=0x2b70 runnable [0x000000001957e000]
+   java.lang.Thread.State: RUNNABLE
+   ...
+```
 
 
 
@@ -1323,50 +1573,128 @@ JAVA_OPTS="-agentlib:hprof=cpu=samples,file=cpu.samples.log"
 
 
 
+#### JVM 命令行工具--jcmd* 
 
+- jcmd pidhelp
 
+```sh
+# 查看当前进程，可以使用查看的 所有命令
+# jVM, gc, 线程等命令的整合
 
+C:\Users\rmliu>jcmd 17120 help
+17120:
+The following commands are available:
+JFR.stop
+...
+VM.dynlibs
+VM.flags
+VM.system_properties
+VM.command_line
+VM.version
+help
 
+For more information about a specific command use 'help <command>'.
+```
 
+- jcmd pid VM.version
 
+```sh
+C:\Users\rmliu>jcmd 17120 VM.version
+17120:
+Java HotSpot(TM) 64-Bit Server VM version 25.221-b11
+JDK 8.0_221
+```
 
 
 
 
 
+#### JVM 命令行工具--jrunscript/jjs 
 
+- jrunscript -e "cat('http://www.baidu.com')"
 
+```sh
+# 模拟 curl 命令，访问百度
 
+C:\Users\rmliu>jrunscript -e "cat('http://www.baidu.com')"
+<!DOCTYPE html>
+<!--STATUS OK--><html> <head><meta http-equiv=content-type content=text/html;charset=utf-8><meta http-equiv=X-UA-Compatible content=IE=Edge><meta content=always n
+...
+```
 
 
 
+- jjs
 
+```sh
+# 进行交互的执行命令
+# 可以执行算数，函数等
+C:\Users\rmliu>jjs
+jjs> 11
+11
+jjs> 12+11
+23
+jjs> function a(b){return b+1;}
+function a(b){return b+1;}
+jjs>
+jjs> a(2)
+3
+jjs> exit()
+```
 
 
 
 
 
+###  JDK 内置图形化工具 
 
+#### JVM 图形化工具--jconsole 
 
+- 信息少
+- 在命令行输入 jconsole 即可打开 
+- 本地 JVM 可以直接选择
+- 远程 JVM 可以通过 JMX 方式连接 
 
 
 
+#### JVM 图形化工具--jvisualvm 
 
+- 信息多，更强大
+- 在命令行输入  jvisualvm 即可打开 
+- 使用抽样器，进行数据的dump，进行后续的操作
 
 
 
+#### JVM 图形化工具--VisualGC 
 
+- 一个插件，idea中安装使用
+- 网格化显示，有意思
 
 
 
 
 
+#### JVM 图形化工具--jmc 
 
+- 信息多，更更强大，多用
+- 在命令行输入  jmc 即可打开 
+- 飞行记录器，保证记录的是动态的
 
 
 
+### JVM 工具总结 
 
+- jps/jinfo
+- jstat
+- jmap
+- jstack
+- jcmd
+- jrunscript/jjs 
 
+- jsonsole
+- jvisualvm
+- visualGC
+- jmc 
 
 
 
@@ -1374,11 +1702,18 @@ JAVA_OPTS="-agentlib:hprof=cpu=samples,file=cpu.samples.log"
 
 
 
+### GC 的背景与一般原理 
 
+#### GC 的背景与一般原理 
 
+- 为什么会有 GC
+- 本质上是内存资源的有限性
+- 因此需要大家共享使用，手工申请，手动释放。
+- 下面我们举个例子 
 
 
 
+#### 引用计数
 
 
 
@@ -1390,75 +1725,473 @@ JAVA_OPTS="-agentlib:hprof=cpu=samples,file=cpu.samples.log"
 
 
 
+#### 引用跟踪
 
+标记清除算法（ Mark and Sweep）
 
+- Marking（ 标记） : 遍历所有的可达对象，并在本地内存(native)中分门别类记下。
+- Sweeping（ 清除） : 这一步保证了，不可达对象所占用的内存，在之后进行内存分配时可以重用。 
+- +压缩，整理
 
+并行 GC 和 CMS 的基本原理。
 
+优势：可以处理循环依赖，只扫描部分对象
 
+除了清除，还要做压缩。
 
+怎么才能标记和清除清楚上百万对象呢？
 
+答案就是 STW，让全世界停止下来。 （stop the world! 标记照片。）
 
 
 
 
 
+#### 分代假设
 
+分代假设：大部分新生对象很快无用；存活较长时间的对象，可能存活更长时间。 
 
+JVM 中年轻代默认使用 **15 代**，如果还没有 GC，就直接放到 老年代
 
 
 
+内存池划分
 
+不同类型对象不同区域，不同策略处理。 
 
 
 
+TLAB，线程分配缓冲区，给每一个线程一部分内存。
 
 
 
 
 
+#### 对象在GC中的转移
 
+对象分配在新生代的 Eden 区，标记阶段 Eden 区存活的对象就会**复制**到存活区；
 
+注意：为什么是复制，不是移动？？？大家想想
 
 
 
+两个存活区 from 和 to，互换角色。对象存活到一定周期会提升到老年代。 
 
+由如下参数控制提升**阈值**：-XX： +MaxTenuringThreshold=15
 
+老年代默认都是存活对象，采用**移动**方式：
 
+- 标记所有通过 GC roots 可达的对象；
+- 删除所有不可达对象；
+- 整理老年代空间中的内容，方法是将所有的存活对象复制，从老年代空间开始的地方依次存放。
 
+持久代/元数据区
 
+- java 1.8 之前 -XX:MaxPermSize=256m
+- java 1.8 之后 -XX:MaxMetaspaceSize=256m ，1.8后Metaspace 放到了非堆的内存中。
 
 
 
 
 
+#### 可以作为 GC Roots 的对象
 
+GC Roots 主要作为标记的根对象使用。
 
+- 当前正在执行的方法里的局部变量和输入参数
+- 活动线程（ Active threads）
+- 所有类的静态字段（ static field）
+- JNI 引用（外部容器，连接内部区）
 
+此阶段暂停的时间，与堆内存大小,对象的总数没有直接关系，而是由存活对象（ alive objects）的数量来决定。所以增加堆内存的大小并不会直接影响标记阶段占用的时间。 
 
+引用关系**跨代**，需要单独的集合，使用 RSet
 
+**Young GC 的 速度快的原因？**
+虽然对象几百万个，但是存活的对象少，剩下的全部清除，所以快！快在标记的数量少。
 
 
 
+### 串行 GC/并行 GC（ Serial GC/Parallel GC） 
 
+#### 串行 GC（ Serial GC） /ParNewGC 
 
+-XX： +UseSerialGC 配置串行 GC
 
+串行 GC 对年轻代使用 mark-copy（标记-复制） 算法，对老年代使用 mark-sweep-compact （标记-清除-整理）算法。
 
+两者都是单线程的垃圾收集器，不能进行并行处理，所以都会触发全线暂停（ STW），停止所有的应用线程。
 
+因此这种 GC 算法不能充分利用多核 CPU。不管有多少 CPU 内核， JVM 在垃圾收集时都只能使用单个核心。
 
+CPU 利用率高，暂停时间长。简单粗暴，就像老式的电脑，动不动就卡死。
 
+该选项只适合几百 MB 堆内存的 JVM，而且是单核 CPU 时比较有用。
+想想 why？
 
+-XX： +USeParNewGC 改进版本的 Serial GC，可以配合 CMS 使用。 
 
 
 
 
 
+#### 并行 GC（ Parallel GC）
 
+-XX: +UseParallelGC
+-XX: +UseParallelOldGC
+-XX: +UseParallelGC -XX:+UseParallelOldGC
 
+年轻代和老年代的垃圾回收都会触发 STW 事件。
+在年轻代使用 标记-复制（ mark-copy）算法，在老年代使用 标记-清除-整理（ mark-sweepcompact）算法。
+-XX： ParallelGCThreads=N 来指定 GC 线程数， 其**默认值为 CPU 核心数**。
 
+并行垃圾收集器适用于多核服务器，主要目标是增加吞吐量。因为对系统资源的有效使用，能达到更高的吞吐量:
 
+- 在 GC 期间，所有 CPU 内核都在并行清理垃圾，所以总暂停时间更短；
+- 在两次 GC 周期的间隔期，没有 GC 线程在运行，不会消耗任何系统资源。 
 
 
 
+#### 演示：并行 GC，常用参数以及其内存分配 
+
+- java -jar -XX: +UseParallelGC -XX:+UseParallelOldGC target/xxx.jar
+- jmap -heap 13664
+
+结果：
+
+- MaxHeapSize 大小为 物理内存的 1/4
+- NewSize 大小文 物理内存的 1/64
+- MaxNewSize 只在并行GC中有效
+
+java 8 的 默认GC是什么？8之前的默认GC是什么？ 都是 并行GC。
+
+java 9 的 默认GC是什么？9之后的默认GC是什么？都是G1。
+
+
+
+
+
+
+
+### CMS GC/G1 GC 
+
+#### CMS GC（ Mostly Concurrent Mark and Sweep Garbage Collector）
+
+-XX: +UseConcMarkSweepGC
+其对年轻代采用**并行** STW 方式的 mark-copy (标记-复制)算法，对老年代主要使用**并发** mark-sweep (标记-清除)算法。
+
+CMS GC 的设计目标是避免在老年代垃圾收集时出现长时间的卡顿，主要通过两种手段来达成此目标：
+
+1. 不对老年代进行整理，而是使用**空闲列表（ free-lists）** 来管理内存空间的回收。
+2. 在 mark-and-sweep （ 标记-清除） 阶段的大部分工作和应用线程一起并发执行。
+
+也就是说，在这些阶段并没有明显的应用线程暂停。但值得注意的是，它仍然和应用线程争抢CPU 时间。默认情况下， CMS 使用的并发线程数等于 **CPU 核心数的 1/4**。
+
+如果服务器是多核 CPU，并且主要调优目标是降低 GC 停顿导致的系统延迟，那么使用 CMS 是个很明智的选择。进行老年代的并发回收时，可能会伴随着多次年轻代的 minor GC。
+
+思考：并行 Parallel 与并发 Concurrent 的区别？ 
+（并发，表示处理的时候业务线程还在工作。并行，表示处理的时候业务线程不工作。）
+
+
+
+
+
+#### CMS GC
+
+##### 六个阶段 1（ STW） 
+
+##### 六个阶段 2
+
+##### 六个阶段 3（ STW） 
+
+##### 六个阶段 4
+
+##### 六个阶段 5
+
+##### 六个阶段 5
+
+
+
+#### 演示： CMS GC，常用参数以及其内存分配
+
+（注意跟 ParallelGC 有什么差异） 
+
+提醒：
+
+- 使用java 11，ZGC 在 Mac 上是不能使用的，没有Mac的版本，只有其他的linux版本，才可以使用ZGC
+- 使用 jdk 15, 才可以用起来ZGC
+
+演示：
+
+- java -jar -xx: +UseConcMarkSweepGC target/xxx.jar
+- jmap -heap 13664
+- MaxNewSize ，是 64 * 4*13 /10 = 332.8。（4是CPU的核心数，不同核心不同）
+- 其他都和并行GC一样
+
+
+
+#### G1 GC 
+
+G1 的全称是 Garbage-First，意为垃圾优先，哪一块的垃圾最多就优先清理它。
+
+G1 GC 最主要的设计目标是：将 STW 停顿的时间和分布，变成可预期且可配置的。
+
+事实上， G1 GC 是一款软**实时**垃圾收集器，可以为其设置某项特定的性能指标。为了达成可预期停顿
+时间的指标， G1 GC 有一些独特的实现。
+
+-XX: +UseG1GC -XX:MaxGCPauseMillis=50 
+
+(MaxGCPauseMillis默认值是200)
+
+首先，堆不再分成年轻代和老年代，而是划分为多个（通常是 **2048 个**）可以存放对象的 小块堆区域
+(smaller heap regions)。每个小块，可能一会被定义成 Eden 区，一会被指定为 Survivor区或者Old 区。在逻辑上，所有的 Eden 区和 Survivor区合起来就是年轻代，所有的 Old 区拼在一起那就是老年代
+
+这样划分之后，使得 G1 不必每次都去收集整个堆空间，而是以增量的方式来进行处理: 每次只处理一部分内存块，称为此次 **GC 的回收集(collection set)**。每次 GC 暂停都会收集所有年轻代的内存块，但一般只包含部分老年代的内存块。
+
+G1 的另一项创新是，在并发阶段估算每个小堆块存活对象的总数。构建回收集的原则是：垃圾最多的小块会被优先收集。这也是 G1 名称的由来。 
+
+
+
+
+
+
+
+#### G1 GC--配置参数
+
+-XX： +UseG1GC：启用 G1 GC；
+
+-XX： G1NewSizePercent：初始年轻代占整个 Java Heap 的大小，默认值为 5%；
+
+-XX： G1MaxNewSizePercent：最大年轻代占整个 Java Heap 的大小，默认值为 60%；
+
+-XX： G1HeapRegionSize：设置每个 Region 的大小，单位 MB，需要为 1， 2， 4， 8， 16， 32 中的某个值，默认是堆内存的 1/2000。如果这个值设置比较大，那么大对象就可以进入 Region 了。
+
+-XX： ConcGCThreads：与 Java 应用一起执行的 GC 线程数量，默认是 Java 线程的 **1/4**，减少这个参数的数值可能会提升并行回收的效率，提高系统内部吞吐量。如果这个数值过低，参与回收垃圾的线程不足，也会导致并行回收机制耗时加长。
+
+-XX： +InitiatingHeapOccupancyPercent（简称 IHOP）： G1 内部并行回收循环启动的阈值，默认为 Java Heap的 45%。这个可以理解为老年代使用大于等于 **45%** 的时候， JVM 会启动垃圾回收。这个值非常重要，它决定了在什么时间启动老年代的并行回收。
+
+-XX： G1HeapWastePercent： G1停止回收的最小内存大小，默认是堆大小的 5%。 GC 会收集所有的 Region 中的对象，但是如果下降到了 5%，就会停下来不再收集了。就是说，不必每次回收就把所有的垃圾都处理完，可以遗留少量的下次处理，这样也降低了单次消耗的时间。
+
+-XX： G1MixedGCCountTarget：设置并行循环之后需要有多少个混合 GC 启动，默认值是 8 个。老年代 Regions的回收时间通常比年轻代的收集时间要长一些。所以如果混合收集器比较多，可以允许 G1 延长老年代的收集时间。 
+
+-XX： +G1PrintRegionLivenessInfo：这个参数需要和 -XX:+UnlockDiagnosticVMOptions 配合启动，打印 JVM 的调试信息，每个 Region 里的对象存活信息。
+
+-XX： G1ReservePercent： G1 为了保留一些空间用于年代之间的提升，默认值是堆空间的 10%。因为大量执行回收的地方在年轻代（存活时间较短），所以如果你的应用里面有比较大的堆内存空间、比较多的大对象存活，这里需要保留一些内存。
+
+-XX： +G1SummarizeRSetStats：这也是一个 VM 的调试信息。如果启用，会在 VM 退出的时候打印出 Rsets 的详细总结信息。如果启用 -XX:G1SummaryRSetStatsPeriod 参数，就会阶段性地打印 Rsets 信息。
+
+-XX： +G1TraceConcRefinement：这个也是一个 VM 的调试信息，如果启用，并行回收阶段的日志就会被详细打印出来。
+
+-XX： +GCTimeRatio：这个参数就是计算花在 Java 应用线程上和花在 GC 线程上的时间比率，默认是 9，跟新生代内存的分配比例一致。这个参数主要的目的是让用户可以控制花在应用上的时间， G1 的计算公式是 100/（ 1+GCTimeRatio）。这样如果参数设置为 9，则最多 10% 的时间会花在 GC 工作上面。 Parallel GC 的默认值是 99，表示 1% 的时间被用在 GC 上面，这是因为 Parallel GC 贯穿整个 GC，而 G1 则根据 Region 来进行划分，不需要全局性扫描整个内存堆。
+
+-XX： +UseStringDeduplication：手动开启 Java String 对象的去重工作，这个是 JDK8u20 版本之后新增的参数，主要用于相同 String 避免重复申请内存，节约 Region 的使用。
+
+-XX： MaxGCPauseMills：预期 G1 每次执行 GC 操作的暂停时间，单位是毫秒，默认值是 200 毫秒， G1 会尽量保证控制在这个范围内。 
+
+
+
+#### G1 GC 的处理步骤 
+
+##### 1、 年轻代模式转移暂停（ Evacuation Pause）
+
+G1 GC 会通过前面一段时间的运行情况来不断的调整自己的回收策略和行为，以此来比较稳定地控制暂停时间。在应用程序刚启动时， G1 还没有采集到什么足够的信息，这时候就处于初始的 fullyyoung 模式。当年轻代空间用满后，应用线程会被暂停，年轻代内存块中的存活对象被拷贝到存活区。如果还没有存活区，则任意选择一部分空闲的内存块作为存活区。
+
+拷贝的过程称为转移（ Evacuation)，这和前面介绍的其他年轻代收集器是一样的工作原理。 
+
+
+
+##### 2、 并发标记（ Concurrent Marking）
+
+同时我们也可以看到， G1 GC 的很多概念建立在 CMS 的基础上，所以下面的内容需要对 CMS 有一定的理解。
+
+G1 并发标记的过程与 CMS 基本上是一样的。 G1 的并发标记通过 Snapshot-At-The-Beginning（ 起始快照） 的方式，在标记阶段开始时记下所有的存活对象。即使在标记的同时又有一些变成了垃圾。通过对象的存活信息，可以构建出每个小堆块的存活状态，以便回收集能高效地进行选择。
+
+这些信息在接下来的阶段会用来执行老年代区域的垃圾收集。
+
+有两种情况是可以完全并发执行的：
+一、如果在标记阶段确定某个小堆块中没有存活对象，只包含垃圾；
+二、在 STW 转移暂停期间，同时包含垃圾和存活对象的老年代小堆块。
+
+当堆内存的总体使用比例达到一定数值，就会触发并发标记。这个默认比例是 45%，但也可以通过 JVM参数 InitiatingHeapOccupancyPercent 来设置。和 CMS 一样， G1 的并发标记也是由多个阶段组成，其中一些阶段是完全并发的，还有一些阶段则会暂停应用线程。 
+
+
+
+阶段 1: Initial Mark（ 初始标记）
+此阶段标记所有从 GC 根对象直接可达的对象。
+
+阶段 2: Root Region Scan（ Root区扫描）
+此阶段标记所有从 "根区域" 可达的存活对象。根区域包括：非空的区域，以及在标记过程中不得不收集的区域。
+
+阶段 3: Concurrent Mark（ 并发标记）
+此阶段和 CMS 的并发标记阶段非常类似：只遍历对象图，并在一个特殊的位图中标记能访问到的对象。
+
+阶段 4: Remark（ 再次标记）
+和 CMS 类似，这是一次 STW 停顿(因为不是并发的阶段)，以完成标记过程。 G1 收集器会短暂地停止应用线程，停止并发更新信息的写入，处理其中的少量信息，并标记所有在并发标记开始时未被标记的存活对象。
+
+阶段 5: Cleanup（ 清理）
+最后这个清理阶段为即将到来的转移阶段做准备，统计小堆块中所有存活的对象，并将小堆块进行排序，以提升GC 的效率，维护并发标记的内部状态。 所有不包含存活对象的小堆块在此阶段都被回收了。有一部分任务是并发的：例如空堆区的回收，还有大部分的存活率计算。此阶段也需要一个短暂的 STW 暂停。 
+
+
+
+##### 3、 转移暂停: 混合模式（ Evacuation Pause (mixed)）
+
+并发标记完成之后， G1将执行一次混合收集（ mixed collection），就是不只清理年轻代，还将一部分老年代区域也加入到 回收集 中。混合模式的转移暂停不一定紧跟并发标记阶段。有很多规则和历史数据会影响混合模式的启动时机。比如，假若在老年代中可以并发地腾出很多的小堆块，就没有必要启动混合模式。
+
+因此，在并发标记与混合转移暂停之间，很可能会存在多次 young 模式的转移暂停。
+
+具体添加到回收集的老年代小堆块的大小及顺序，也是基于许多规则来判定的。其中包括指定的软实时性能指标，存活性，以及在并发标记期间收集的 GC 效率等数据，外加一些可配置的 JVM 选项。混合收集的过程，很大程度上和前面的 fully-young gc 是一样的。 
+
+
+
+#### G1 GC 的注意事项
+
+特别需要注意的是， 某些情况下 G1 触发了 Full GC，这时 G1 会**退化**使用 Serial 收集器来完成垃圾的清理工作，它仅仅使用单线程来完成 GC 工作， GC 暂停时间将达到秒级别的。
+
+1.并发模式失败
+G1 启动标记周期，但在 Mix GC 之前，老年代就被填满，这时候 G1 会放弃标记周期。解决办法：增加堆大小，或者调整周期（例如增加线程数-XX： ConcGCThreads 等）。
+
+2.晋升失败
+没有足够的内存供存活对象或晋升对象使用，由此触发了 Full GC(to-space exhausted/to-space overflow）。
+解决办法：
+a) 增加 –XX： G1ReservePercent 选项的值（并相应增加总的堆大小）增加预留内存量。
+b) 通过减少 –XX： InitiatingHeapOccupancyPercent 提前启动标记周期。
+c) 也可以通过增加 –XX： ConcGCThreads 选项的值来**增加并行标记线程的数目**。
+
+3.巨型对象分配失败
+当巨型对象找不到合适的空间进行分配时，就会启动 Full GC，来释放空间。解决办法：增加内存或者增大 -XX： G1HeapRegionSize 
+
+
+
+
+
+#### 演示： G1 GC，常用参数以及其内存分配
+
+（注意跟 CMS/ParallelGC 有什么差异） 
+
+- java -jar -XX: +UseG1GC -XX:MaxGCPauseMillis=50 
+- gmap -heap pid
+
+
+
+
+
+### 各个 GC 对比 
+
+
+
+#### 常用的 GC 组合（重点） 
+
+常用的组合为：
+（ 1） Serial+Serial Old 实现单线程的低延迟垃圾回收机制；
+（ 2） ParNew+CMS，实现多线程的低延迟垃圾回收机制；
+（ 3） Parallel Scavenge和ParallelScavenge Old，实现多线程的高吞吐量垃圾回收机制； 
+
+
+
+#### GC 如何选择 
+
+选择正确的 GC 算法，唯一可行的方式就是去尝试，一般性的指导原则：
+1. 如果系统考虑吞吐优先， CPU 资源都用来最大程度处理业务，用 Parallel GC；
+2. 如果系统考虑低延迟有限，每次 GC 时间尽量短，用 CMS GC；
+3. 如果系统内存堆较大，同时希望整体来看平均 GC 时间可控，使用 G1 GC。
+
+对于内存大小的考量：
+
+1. 一般 4G 以上，算是比较大，用 G1 的性价比较高。
+2. 一般超过 8G，比如 16G-64G 内存，非常推荐使用 G1 GC。
+
+最后讨论一个很多开发者经常忽视的问题，也是面试大厂常问的问题： JDK8 的默认 GC 是什么？
+JDK9， JDK10， JDK11…等等默认的是 GC 是什么？ 
+
+
+
+### ZGC/Shenandoah GC 
+
+#### ZGC 介绍 
+
+-XX： +UnlockExperimentalVMOptions -XX:+UseZGC -Xmx16g
+
+ZGC 最主要的特点包括:
+
+1. GC 最大停顿时间不超过 10ms
+2. 堆内存支持范围广，小至几百 MB 的堆空间，大至 4TB 的超大堆内存（ JDK13 升至 16TB）
+3. 与 G1 相比，应用吞吐量下降不超过 15%
+4. 当前只支持 Linux/x64 位平台， JDK15 后支持 MacOS 和Windows 系统 
+
+技术点：
+
+- 状态指针
+- 读屏障（挪老对象的时候，放一个新对象的引用，访问对象的时候，从老对象导到新的对象）
+
+
+
+#### ShennandoahGC 介绍
+
+-XX： +UnlockExperimentalVMOptions -XX:+UseShenandoahGC -Xmx16g
+
+Shenandoah GC 立项比 ZGC 更早，设计为GC 线程与应用线程并发执行的方式，通过实现垃圾回收过程的并发处理，改善停顿时间，使得 GC 执行线程能够在业务处理线程运行过程中进行堆压缩、标记和整理，从而消除了绝大部分的暂停时间。
+
+Shenandoah 团队对外宣称 ShenandoahGC 的暂停时间与堆大小无关，无论是 200MB 还是 200 GB的堆内存，都可以保障具有很低的暂停时间（注意:并不像 ZGC 那样保证暂停时间在 10ms 以内）。 
+
+
+
+
+
+#### ShennandoahGC 与其他 GC 的 STW 比较 
+
+
+
+### GC 总结
+
+到目前为止，我们一共了解了 Java 目前支持的所有 GC 算法，一共有 7 类:
+
+1. 串行 GC（Serial GC）: 单线程执行，应用需要暂停；
+2. 并行 GC（ParNew、Parallel Scavenge、Parallel Old）: 多线程并行地执行垃圾回收，关注与高吞吐；
+3. CMS（Concurrent Mark-Sweep）: 多线程并发标记和清除，关注与降低延迟；
+4. G1（G First）: 通过划分多个内存区域做增量整理和回收，进一步降低延迟；
+5. ZGC（Z Garbage Collector）: 通过着色指针和读屏障，实现几乎全部的并发执行，几毫秒级别的延迟，线性可扩展；
+6. Epsilon: 实验性的 GC，供性能分析使用；
+7. Shenandoah: G1 的改进版本，跟 ZGC 类似。 
+
+可以看出 GC 算法和实现的演进路线:
+1. 串行 -> 并行: 重复利用多核 CPU 的优势，大幅降低 GC 暂停时间，提升吞吐量。
+2. 并行 -> 并发： 不只开多个 GC 线程并行回收，还将GC操作拆分为多个步骤，让很多繁重的任务和应用线程一起并
+发执行，减少了单次 GC 暂停持续的时间，这能有效降低业务系统的延迟。
+3. CMS -> G1： G1 可以说是在 CMS 基础上进行迭代和优化开发出来的，划分为多个小堆块进行增量回收，这样就更
+进一步地降低了单次 GC 暂停的时间
+4. G1 -> ZGC:： ZGC 号称无停顿垃圾收集器，这又是一次极大的改进。 ZGC 和 G1 有一些相似的地方，但是底层的算法和思想又有了全新的突破。
+
+脱离场景谈性能都是耍流氓”。
+
+目前绝大部分 Java 应用系统，堆内存并不大比如 2G-4G 以内，而且对 10ms 这种低延迟的 GC 暂停不敏感，也就是说处理一个业务步骤，大概几百毫秒都是可以接受的， GC 暂停 100ms 还是 10ms 没多大区别。另一方面，系统的吞吐量反而往往是我们追求的重点，这时候就需要考虑采用并行 GC。
+
+如果堆内存再大一些，可以考虑 G1 GC。如果内存非常大（比如超过 16G，甚至是 64G、 128G），或者是对延迟非常敏感（比如高频量化交易系统），就需要考虑使用本节提到的新 GC（ ZGC/Shenandoah）。 
+
+
+
+### 总结回顾与作业实践 
+
+#### 总结回顾
+
+工具有哪些？
+
+GC 有哪些？
+
+都有什么特点？ 
+
+
+
+#### 作业实践 
+
+1、本机使用 G1 GC 启动一个程序，仿照课上案例分析一下 JVM 情况 
+
+
+
+
+
+
+
+## JVM核心技术--调优分析与面试经验 
 
 
 
