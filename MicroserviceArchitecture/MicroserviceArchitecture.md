@@ -1149,7 +1149,389 @@ OpenId-Connect-Java-Spring-Server：https://github.com/mitreid-connect/OpenIDCon
 
 
 
-### 微服务网关Zuul架构和实践
+### Zuul 和 微服务网关架构
+
+#### 课程概述 
+
+- Netflix开源网关Zuul深度剖析
+- 面向业务场景、架构和微服务
+- Zuul核心源码分析
+- Zuul定制扩展和集成
+- 结合案例和实操
+- 结合生产最佳实践
+- Spring Cloud Zuul 简介 
+
+##### 架构和技术栈预览 
+
+![1605605823773](MicroserviceArchitecture.assets/1605605823773.png)
+
+
+
+#### Zuul网关和基本应用场景 
+
+##### API网关是如何演化出来的？ 
+
+- 单体应用
+- 微服务
+
+![1605883047086](MicroserviceArchitecture.assets/1605883047086.png)
+
+
+
+
+
+##### API网关基本功能 
+
+- 单点入口
+- 路由转发
+- 限流熔断
+- 日志监控
+- 安全认证
+
+![1605883131672](MicroserviceArchitecture.assets/1605883131672.png)
+
+
+
+##### Netflix Zuul网关 
+
+Netflix于2012年初开源
+
+- https://github.com/Netflix/zuul
+- Zuul is an edge service that provides dynamic routing, monitoring, resiliency, security, and more
+
+亮点：可动态发布的过滤器机制
+
+- Zuul在英文中是怪兽的意思，寓意看门神兽
+- 2014年被Pivotal集成入Spring Cloud 体系 
+
+Netflix前总架构师Adrian Cockcroft评价
+“One of our most powerful mechanisms and somewhat overlooked NetflixOSS projects is the Zuul gateway service. ”
+
+
+
+##### Netflix架构体系和Zuul 
+
+- ELB 做负载均衡
+- Zuul 网关
+
+![1605883357510](MicroserviceArchitecture.assets/1605883357510.png)
+
+
+
+##### Netflix使用情况2017 
+
+![1605883440030](MicroserviceArchitecture.assets/1605883440030.png)
+
+
+
+##### 国内公司落地案例 
+
+- 携程
+- 拍拍贷
+
+![1605883510577](MicroserviceArchitecture.assets/1605883510577.png)
+
+
+
+
+
+#### Zuul网关高级应用场景 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
