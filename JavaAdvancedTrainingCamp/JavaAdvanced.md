@@ -2472,6 +2472,8 @@ GC 有哪些？
 - 分别使用 512m,1024m,2048m,4086m,观察 GC 信息的不同 
   - 内存小的时候，GC的频率比较高
   - 随着内存的变大，生成对象的次数变大，300MB的时候和1024MB的时候，生成的对象变多
+- 如何最快的方式实现程序的OOM? 
+  - 直接调小堆内存即可。
 
 
 
@@ -2507,6 +2509,7 @@ GC 有哪些？
 - java -XX:+UseParallelGC -Xms128m  -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis
 - 观察 Young GC 与 Full GC
 - 思考：如果不配置 Xms 会怎么样？ 
+- 一般并行GC适合，大的吞吐量，多线程工作，STW明显。
 
 
 
@@ -2570,6 +2573,8 @@ GC 有哪些？
 
 - 4g 内存下跟 cms gc 相比呢？ 
 
+  - 4G 内存时的 G1，完全不一样 
+
 - G1 GC 的步骤：
 
   - ```sh
@@ -2598,36 +2603,77 @@ GC 有哪些？
 
 
 
+#### 一个退化时的例子 
+
+![1605838248280](JavaAdvanced.assets/1605838248280.png)
+
+
+
+#### GCEasy
+
+网址：https://gceasy.io/
+
+![1605838444187](JavaAdvanced.assets/1605838444187.png)
+
+
+
+#### GCViewer
+
+https://github.com/chewiebug/GCViewer
+
+http://www.javaperformancetuning.com/tools/gcviewer/index.shtml
+
+![GCviews](JavaAdvanced.assets/GCviews.png)
+
+
+
+#### 总结
+
+如何查看/分析不同 GC 配置下的日志信息？
+
+各种 GC 有什么特点和使用场景？ 
+
+
+
+
+
 ### JVM 线程堆栈数据分析 
 
 #### JVM 线程模型示意图
+
+- JVM的线程与操作系统的线程是一一对应的关系，所以线程的操作比较重
+- 线程设计三层的内容：Java层面，JVM层面，OS层面
+
+![1605838862649](JavaAdvanced.assets/1605838862649.png)
 
 
 
 #### JVM 内部线程 
 
 JVM 内部线程主要分为以下几种：
-• VM 线程：单例的 VMThread 对象，负责执行 VM 操作，下文将对此进行讨论;
-• 定时任务线程：单例的 WatcherThread 对象， 模拟在VM 中执行定时操作的计时器中断；
-• GC 线程：垃圾收集器中，用于支持并行和并发垃圾回收的线程;
-• 编译器线程： 将字节码编译为本地机器代码;
-• 信号分发线程：等待进程指示的信号，并将其分配给Java级别的信号处理方法 
+
+- VM 线程：单例的 VMThread 对象，负责执行 VM 操作，下文将对此进行讨论;
+- 定时任务线程：单例的 WatcherThread 对象， 模拟在VM 中执行定时操作的计时器中断；
+- GC 线程：垃圾收集器中，用于支持并行和并发垃圾回收的线程;
+- 编译器线程： 将字节码编译为本地机器代码（JNI线程）;
+- 信号分发线程：等待进程指示的信号，并将其分配给Java级别的信号处理方法 
 
 
 
 #### 安全点
 
 1. 方法代码中被植入的安全点检测入口；
-2. 线程处于安全点状态：线程暂停执行，这个时候线
-  程栈不再发生改变；
+2. 线程处于安全点状态：线程暂停执行，这个时候线程栈不再发生改变；
 3. JVM 的安全点状态：所有线程都处于安全点状态。
+
+
+
+#### 线程转储
 
 JVM 支持多种方式来进行线程转储：
 
-1. JDK 工具, 包括: jstack 工具, jcmd 工具, jconsole,
-   jvisualvm, Java Mission Control 等；
-2. Shell 命令或者系统控制台, 比如 Linux 的 kill -3,
-   Windows 的 Ctrl + Break 等；
+1. JDK 工具, 包括: jstack 工具, jcmd 工具, jconsole, jvisualvm, Java Mission Control 等；
+2. Shell 命令或者系统控制台, 比如 Linux 的 kill -3, Windows 的 Ctrl + Break 等；
 3. JMX 技术， 主要是使用 ThreadMxBean。 
 
 
@@ -2641,6 +2687,11 @@ JVM 支持多种方式来进行线程转储：
   - 设置超时，解锁
   - 强制杀掉线程
 - fastthread 线程分析 ：https://fastthread.io/
+- jconsole
+
+![1605839080642](JavaAdvanced.assets/1605839080642.png)
+
+![1605839219587](JavaAdvanced.assets/1605839219587.png)
 
 
 
@@ -2651,8 +2702,9 @@ JVM 支持多种方式来进行线程转储：
 #### 思考题
 
 请思考一个问题：
-一个对象具有100个属性，与100个对象每个具有1个属性，
-哪个占用的内存空间更大？ 
+一个对象具有100个属性，与100个对象每个具有1个属性，哪个占用的内存空间更大？ 
+
+答案：100个对象每个具有1个属性 大。（类比书柜和书的道理）
 
 
 
@@ -2668,9 +2720,13 @@ JOL (Java Object Layout) 可以用来查看对象内存布局。
 
 java 会进行对象内部的补齐，所以精确的对象大小，不好计算！
 
+![1605839352512](JavaAdvanced.assets/1605839352512.png)
 
 
-对象头和对象引用
+
+
+
+#### 对象头和对象引用
 
 在64位 JVM 中，对象头占据的空间是 12-byte(=96bit=64+32)，但是以8字节对齐，所以一
 个空类的实例至少占用16字节。
@@ -2678,39 +2734,41 @@ java 会进行对象内部的补齐，所以精确的对象大小，不好计算
 在32位 JVM 中，对象头占8个字节，以4的倍数对齐(32=4*8)。
 所以 new 出来很多简单对象，甚至是 new Object()，都会占用不少内容哈。
 
-通常在32位 JVM，以及内存小于 -Xmx32G 的64位JVM 上(默认开启指针压缩)，一个引用占的内存默
+通常在32位 JVM，以及内存小于 -Xmx32G 的64位JVM 上(默认开启**指针压缩**)，一个引用占的内存默
 认是4个字节。
 
 因此，64位 JVM 一般需要多消耗堆内存。 
 
 
 
-包装类型
+#### 包装类型
 
 比原生数据类型消耗的内存要多，详情可以参考JavaWorld ：
-Integer：占用16字节(8+4=12+补齐)，因为 int 部分占4个字节。 所以使用 Integer 比原生类型 int 要多消
+
+**Integer**：占用16字节(8+4=12+补齐)，因为 int 部分占4个字节。 所以使用 Integer 比原生类型 int 要多消
 耗 300% 的内存。
-Long：一般占用16个字节(8+8=16)，当然，对象的实际大小由底层平台的内存对齐确定，具体由特定 CPU
+
+**Long**：一般占用16个字节(8+8=16)，当然，对象的实际大小由底层平台的内存对齐确定，具体由特定 CPU
 平台的 JVM 实现决定。 看起来一个 Long 类型的对象，比起原生类型 long 多占用了8个字节（也多消耗了100%）。 
 
-
-
-多维数组：在二维数组 int[dim1]\[dim2] 中，每个嵌套的数组 int[dim2] 都是一个单独的 Object，会
+**多维数组**：在二维数组 int[dim1]\[dim2] 中，每个嵌套的数组 int[dim2] 都是一个单独的 Object，会
 额外占用16字节的空间。当数组维度更大时，这种开销特别明显。
 
 int[128]\[2] 实例占用3600字节。 而 int[256] 实例则只占用1040字节。里面的有效存储空间是一样
-的，3600 比起1040多了246%的额外开销。在极端情况下，byte[256][1]，额外开销的比例是19倍!
+的，3600 比起1040多了246%的额外开销。在极端情况下，byte[256]\[1]，额外开销的比例是19倍!
 
-
-
-String: String 对象的空间随着内部字符数组的增长而增长。当然，String 类的对象有24个字节的额外开销。
+**String**: String 对象的空间随着内部字符数组的增长而增长。当然，String 类的对象有24个字节的额外开销。
 对于10字符以内的非空 String，增加的开销比起有效载荷（每个字符2字节 + 4 个字节的 length），多占用了100% 到 400% 的内存。 
 
 
 
-对齐是绕不过去的问题
+#### 对齐是绕不过去的问题
 
 我们可能会认为，一个 X 类的实例占用17字节的空间。但是由于需要对齐(padding)，JVM 分配的内存是8字节的整数倍，所以占用的空间不是17字节,而是24字节。 
+
+![1605839770736](JavaAdvanced.assets/1605839770736.png)
+
+
 
 
 
@@ -2719,7 +2777,7 @@ String: String 对象的空间随着内部字符数组的增长而增长。当�
 - while 死循环，后面执行的时候由于key是不等的，没法判断之前的对象是不是在HashMap中
 - 此时就会 OOM
 
-
+![1605839797653](JavaAdvanced.assets/1605839797653.png)
 
 
 
@@ -2731,7 +2789,7 @@ String: String 对象的空间随着内部字符数组的增长而增长。当�
 
 产生的原因，很多时候就类似于将 XXL 号的对象，往 S 号的 Java heap space 里面塞。其实清楚了原因，问题就很容易解决了：只要增加堆内存的大小，程序就能正常运行。
 
-另外还有一些情况是由代码问题导致的：
+另外还有一些情况是由**代码问题**导致的：
 
 • 超出预期的访问量/数据量：应用系统设计时，一般是有 “容量” 定义的，部署这么多机器，用来处理一定流量的数据/业务。 如果访问量突然飙升，超过预期的阈值，类似于时间坐标系中针尖形状的图谱。那么在峰值所在的时间段，程序很可能就会卡死、并触发java.lang.OutOfMemoryError: Java heap space错误。
 
@@ -2741,8 +2799,7 @@ String: String 对象的空间随着内部字符数组的增长而增长。当�
 
 ##### OutOfMemoryError: PermGen space/OutOfMemoryError: Metaspace
 
-java.lang.OutOfMemoryError: PermGen space 的主要原因，是加载到内存中的
-class 数量太多或体积太大，超过了 PermGen 区的大小。
+java.lang.OutOfMemoryError: PermGen space 的主要原因，是加载到内存中的 class 数量太多或体积太大，超过了 PermGen 区的大小。
 
 解决办法：增大 PermGen/Metaspace
 -XX:MaxPermSize=512m
@@ -2774,6 +2831,12 @@ java.lang.OutOfMemoryError: Unable to create new native thread 错误是程序�
 
 留给大家自己研究 
 
+![1605840004677](JavaAdvanced.assets/1605840004677.png)
+
+
+
+
+
 
 
 ### JVM 问题分析调优经验 
@@ -2788,7 +2851,9 @@ java.lang.OutOfMemoryError: Unable to create new native thread 错误是程序�
 内存泄漏：分配速率 持续大于 回收速率 -> OOM
 性能劣化：分配速率较高 ~ 回收速率 -> 压健康 
 
+![1605840122783](JavaAdvanced.assets/1605840122783.png)
 
+![1605840181224](JavaAdvanced.assets/1605840181224.png)
 
 JVM 启动之后 291ms，共创建了 33,280 KB 的对象。第一次 Minor GC（小型GC) 完成后，年轻代中还有 5,088 KB 的对象存活。
 在启动之后 446 ms，年轻代的使用量增加到38,368 KB，触发第二次 GC，完成后年轻代的使用量减少到 5,120 KB。
@@ -2820,16 +2885,16 @@ JVM 会将长时间存活的对象从年轻代提升到老年代。根据分代�
 
 major GC 不是为频繁回收而设计的，但 major GC 现在也要清理这些生命短暂的对象，就会导致 GC 暂停时间过长。这会严重影响系统的吞吐量。 
 
+![1605840122783](JavaAdvanced.assets/1605840122783.png)
 
+![1605840339122](JavaAdvanced.assets/1605840339122.png)
 
 GC 之前和之后的年轻代使用量以及堆内存使用量。这样就可以通过差值算出老年代的使用量。
 
-和分配速率一样，提升速率也会影响 GC 暂停的频率。但分配速率主要影响 minor GC，而提升速率
-则影响 major GC 的频率。
+和分配速率一样，提升速率也会影响 GC 暂停的频率。但**分配速率主要影响 minor GC，而提升速率**
+**则影响 major GC 的频率**。
 
 有大量的对象提升，自然很快将老年代填满。老年代填充的越快，则 major GC 事件的频率就会越高。 
-
-
 
 一般来说过早提升的症状表现为以下形式：
 1. 短时间内频繁地执行 full GC
@@ -2839,7 +2904,7 @@ GC 之前和之后的年轻代使用量以及堆内存使用量。这样就可�
 要演示这种情况稍微有点麻烦，所以我们使用特殊手段，让对象提升到老年代的年龄比默认情况小很
 多。指定 GC 参数 -Xmx24m -XX:NewSize=16m-XX:MaxTenuringThreshold=1，运行程序之后，可以看到下面的 GC 日志。 
 
-
+![1605840492003](JavaAdvanced.assets/1605840492003.png)
 
 解决这类问题，需要让年轻代存放得下暂存的数据，有两种简单的方法：
 
@@ -2852,9 +2917,13 @@ GC 之前和之后的年轻代使用量以及堆内存使用量。这样就可�
 
 
 
+
+
 ### GC 疑难情况问题分析 
 
 #### Arthas 诊断分析工具 
+
+![1605840615590](JavaAdvanced.assets/1605840615590.png)
 
 
 
@@ -2893,19 +2962,24 @@ DUMP 线程\内存；
 
 
 
+
+
 #### 一个真实的案例分析 
 
+- 文档：[GC问题排查实战案例 ](./GCProblemTrainingCase.md)
 - 并行 GC 暂停太高
 - G1 GC 暂停还是太高
 - 找到问题，最终优化 
 - 有容器存在，不知道JVM看到的数据，是不是真实的配置数据，可能直接看到的是物理机的信息
 - 注意：JVM参数需要明确指定
 
+![1605840698306](JavaAdvanced.assets/1605840698306.png)
+
 
 
 ### JVM 常见面试问题汇总 
 
-
+- 文档：[VM 常见面试问题汇总 ](./JVMInterviewQuestion.md)
 
 
 
@@ -2913,7 +2987,59 @@ DUMP 线程\内存；
 
 ### 本地环境压测测试
 
+#### 压测程序
 
+1.可以从github获取
+git clone https://github.com/kimmking/atlantis
+cd atlantis\gateway-server
+mvn clean package
+然后在target目录可以找到gateway-server-0.0.1-SNAPSHOT.jar
+
+2.也可以从此处下载已经编译好的：
+链接：https://pan.baidu.com/s/1NbpYX4M3YKLYM1JJeIzgSQ 
+提取码：sp85 
+
+3.启动程序
+java -jar -Xmx512m -Xms512m gateway-server-0.0.1-SNAPSHOT.jar
+java -jar -Xmx1024m -Xms1024m gateway-server-0.0.1-SNAPSHOT.jar
+
+
+
+#### Windows
+
+1.管理员身份打开powershell
+
+2.运行
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+
+3.执行choco install superbenchmarker
+
+4.输入 sb
+
+5.执行 sb -u http://localhost:8088/api/hello -c 20 -N 60
+
+
+
+#### Mac
+
+1.执行brew install wrk
+如果显式brew update很慢，可以ctrl+C打断更新
+
+2.输入 wrk
+
+执行 wrk -t8 -c40 -d60s http://localhost:8088/api/hello
+
+
+
+#### jmc
+
+1.控制台输入：jmc
+
+2.在JVM浏览器中，找到对应的进程，开启飞行记录，设置默认1分钟记录
+
+3.启动程序，并且压测
+
+注意：使用jmc进行飞行记录的挂载，对于原系统的性能会有严重影响。
 
 
 
@@ -2944,7 +3070,7 @@ DUMP 线程\内存；
 
 
 
-
+## NIO 模型与 Netty 入门 
 
 
 
