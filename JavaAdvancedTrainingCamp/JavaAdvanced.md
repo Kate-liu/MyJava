@@ -3918,6 +3918,10 @@ Netty 应用组成:
 > HTTP 发送大文件的时候，使用 chunk机制，进行 大小指定与数据发送 形式。
 >
 > HTTP 断点续传机制，并发下载的时候，第一个线程取数据的第一段，第二个线程取第二段，最后拼接，完成并发任务。使用 HTTP 的 Range 命令。（FTP也存在Range命令）
+>
+> 粘包，只有TCP有，是全双工的，互相发消息没有影响，UDP是一片一片的，单向的，不存在粘包。
+>
+> QQ是 UDP，在UDP的基础上封装一层，保证数据的顺序与总个数，确保数据丢失可以确定是哪一个，重新发。
 
 都是人为问题
 
@@ -3969,46 +3973,126 @@ MSS: Maxitum Segment Size 最大分段大小（1460 Byte ）（大于这个数�
 
 1、不要阻塞 EventLoop
 
-2、系统参数优化
-ulimit -a /proc/sys/net/ipv4/tcp_fin_timeout, TcpTimedWaitDelay
+2、系统参数优化(让系统的Tcp回收时间更快)
+ulimit -a /proc/sys/net/ipv4/tcp_fin_timeout (linux), TcpTimedWaitDelay(Windows)
 
 3、缓冲区优化
-SO_RCVBUF/SO_SNDBUF/SO_BACKLOG/ REUSEXXX
+SO_RCVBUF/SO_SNDBUF/SO_BACKLOG/ REUSEXXX（重用端口和连接）
 
 4、心跳周期优化
-心跳机制与短线重连
+心跳机制（发送空的数据包，数据库中使用定时给数据库发送一个语句SELECT 1;jdbc4之后，使用isvoid直接进行检测）与断线重连
 
-5、内存与 ByteBuffer 优化
-DirectBuffer与HeapBuffer
+5、内存与 ByteBuffer 优化（零拷贝技术）
+DirectBuffer（堆外内存，直接共享，都可以操作）与HeapBuffer
 
 6、其他优化
 
-- ioRatio
-- Watermark
-- TrafficShaping 
+- ioRatio（io比例，50：50）
+- Watermark（缓冲区写满，水位，低水位，高水位）
+- TrafficShaping （流控机制，削峰填谷）
 
 
 
-02:01：20
+### 典型应用：API 网关
 
+#### 典型应用：API 网关
 
+网关的结构和功能？
 
-
-
-
-
-
-
-
-
-
-
-
+- 类似于政府大院，门卫登记，鉴权，认证
+- 请求接入
+- 业务聚合
+- 中介策略
+- 统一管理
 
 
 
 
 
+#### 网关的分类
+
+- 流量网关
+  - Nginx，俄罗斯人写的，难懂，****的指针。
+- 业务网关
+  - Zuul，Zuul 2.0，Spring Cloud
+
+
+
+#### Zuul(BIO)
+
+Zuul 是 Netflix 开源的 API 网关系统，它的主要设计目标是动态路由、监控、弹性和安全。
+
+Zuul 的内部原理可以简单看做是很多不同功能 filter 的集合，最主要的就是 pre、routing、post 这三种过滤器，分别作用于调用业务服务 API 之前的请求处理、直接响应、调用业务服务 API 之后的响应处理。
+
+
+
+#### Zuul 2.0(NIO)
+
+Zuul 2.x 是基于 Netty 内核重构的版本。
+
+核心功能：
+1.Service Discovery
+2.Load Balancing
+3.Connection Pooling
+4.Status Categories
+5.Retries
+6.Request Passport
+7.Request Attempts
+8.Origin Concurrency Protection
+9.HTTP/2
+10.Mutual TLS
+11.Proxy Protocol
+12.GZip
+13.WebSockets
+
+
+
+#### Spring Cloud Gateway
+
+- 基于 Webflex 底层实现
+- 早于 Zuul 2.0
+
+
+
+#### 网关对比
+
+- Nginx, OpenResty, Kong
+- Spring Cloud Gateway, Zuul 2.0
+- 现在的网关都是不带控制台的，需求：带控制台的网关
+
+
+
+
+
+### 自己动手实现 API 网关
+
+#### 最简单的网关--gateway 1.0
+
+- 网关类似于代理，Proxy
+- HttpServer + 可以请求数据的程序 + 后端业务程序
+
+
+
+#### 最简单的网关--gateway 2.0
+
+- 添加过滤器，网关中最重要的是过滤器
+- Netty 中的 Handler，InBound,OutBound
+
+
+
+
+
+#### 最简单的网关--gateway 3.0
+
+- 添加 Router
+
+
+
+#### 架构设计
+
+设计：技术复杂度与业务复杂度
+抽象：概念理清、正确命名
+组合：组件之间的相互关系
 
 
 
@@ -4016,24 +4100,25 @@ DirectBuffer与HeapBuffer
 
 
 
+### 总结回顾与作业实践 
+
+#### 总结回顾
+
+再谈谈什么是高性能
+Netty 如何实现高性能
+Netty 网络程序优化
+典型应用：API 网关
+自己动手实现 API 网关
 
 
 
+#### 作业实践
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+1、按今天的课程要求，实现一个网关，基础代码可以 fork：https://github.com/kimmking/JavaCourseCodes    02nio/nio02 文件夹下实现以后，代码提交到 Github。
+1）周四作业：整合你上次作业的httpclient/okhttp；
+2）周四作业（可选）:使用 netty 实现后端 http 访问（代替上一步骤）；
+3）周六作业：实现过滤器
+4）周六作业（可选）：实现路由
 
 
 
