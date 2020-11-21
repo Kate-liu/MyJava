@@ -1161,6 +1161,8 @@ OpenId-Connect-Java-Spring-Server：https://github.com/mitreid-connect/OpenIDCon
 - 结合生产最佳实践
 - Spring Cloud Zuul 简介 
 
+
+
 ##### 架构和技术栈预览 
 
 ![1605605823773](MicroserviceArchitecture.assets/1605605823773.png)
@@ -1237,275 +1239,518 @@ Netflix前总架构师Adrian Cockcroft评价
 
 #### Zuul网关高级应用场景 
 
+##### 红绿部署 
 
+- 发布的时候，发布新的 V2 版本
+- 通过网关，将生产流量从 V1 缓慢切换到 V2,，如果出现问题，直接切回到 V1
 
+![1605920975274](MicroserviceArchitecture.assets/1605920975274.png)
 
 
 
+##### 开发者测试分支 
 
+- 网关判断是开发者测试流量，就将其 导到 开发者测试集群中
 
+![1605921069455](MicroserviceArchitecture.assets/1605921069455.png)
 
 
 
+##### 埋点测试 
 
+- 太多的埋点，直接上线，对于系统会有性能影响
+- 但是有需要一些埋点，进行跟踪，就可以使用网关将流量导到埋点测试中
 
+![1605921135043](MicroserviceArchitecture.assets/1605921135043.png)
 
 
 
+##### 压力测试 
 
+![1605921273372](MicroserviceArchitecture.assets/1605921273372.png)
 
 
 
+##### 调试路由 
 
+- 开发者，添加特殊的 header，进行调试
+- 有些问题，本地测不出来，需要去生产环境
 
+![1605921299558](MicroserviceArchitecture.assets/1605921299558.png)
 
 
 
+##### 金丝雀测试 
 
+![1605921413571](MicroserviceArchitecture.assets/1605921413571.png)
 
 
 
+##### 粘性金丝雀 
 
+- 根据用户的 IP信息，保证用户的访问一直都是这个集群
+- 不会让用户的请求，到处跳
 
+![1605921438065](MicroserviceArchitecture.assets/1605921438065.png)
 
 
 
+##### 失败注入测试 
 
+![1605921567694](MicroserviceArchitecture.assets/1605921567694.png)
 
 
 
+##### 降级测试 
 
+![1605921584987](MicroserviceArchitecture.assets/1605921584987.png)
 
 
 
+##### Netflix持续交付流水线 
 
+![1605921634623](MicroserviceArchitecture.assets/1605921634623.png)
 
 
 
+##### 跨区域高可用 
 
+- 当某一部分出现问题后，会自动切换至其他集群
 
+![1605921673145](MicroserviceArchitecture.assets/1605921673145.png)
 
 
 
+##### 防爬防攻击 
 
+![1605921703212](MicroserviceArchitecture.assets/1605921703212.png)
 
 
 
 
 
+##### 健康检查和屏蔽坏节点 
 
+![1605921735942](MicroserviceArchitecture.assets/1605921735942.png)
 
 
 
+#### Zuul网关架构剖析 
 
+##### Zuul网关架构 
 
+- 过滤器管理模块
+- 过滤器加载模块
+- 网关过滤器运行时模块
 
+![1605921857483](MicroserviceArchitecture.assets/1605921857483.png)
 
 
 
+##### 请求处理生命周期 
 
+![1605922090409](MicroserviceArchitecture.assets/1605922090409.png)
 
 
 
+##### 过滤器关键概念
 
+| 类型Type                             |
+| ------------------------------------ |
+| 定义在路由流程中，过滤器被应用的阶段 |
 
+| 执行顺序Execution Order              |
+| ------------------------------------ |
+| 在同一个Type中，定义过滤器执行的顺序 |
 
+| 条件Criteria               |
+| -------------------------- |
+| 过滤器被执行必须满足的条件 |
 
+| 动作Action                           |
+| ------------------------------------ |
+| 如果条件满足，过滤器中将被执行的动作 |
 
 
 
+##### 标准过滤器类型 
 
+- Pre
+- Routing
+- Post
+- Error
 
+![1605922308350](MicroserviceArchitecture.assets/1605922308350.png)
 
 
 
+##### 过滤器样例 
 
+![1605922517462](MicroserviceArchitecture.assets/1605922517462.png)
 
 
 
+##### Filter管理 
 
+![1605922558154](MicroserviceArchitecture.assets/1605922558154.png)
 
 
 
+#### Zuul网关代码剖析(Code Review) 
 
+- 网关是微服务架构的核心
+- 网址：https://github.com/spring2go/s2g-zuul
+- io.spring2go.zuul.servlet.InitializeServletListener
+- io.spring2go.zuul.servlet.SyncZuulServlet
+- io.spring2go.zuul.servlet.AsyncZuulServlet
 
 
 
+#### Zuul过滤器管理工具(Code Review) 
 
+- 使用 MySQL的类，io.spring2go.zuul.filters.JDBCZuulFilterDao
+- 数据表：src/main/resources/db/schema.sql
+- 使用 HTTP 的类，io.spring2go.zuul.filters.HttpZuulFilterDao
+- 过滤器管理 类，io.spring2go.zuul.filters.FilterScriptManagerServlet
+- 客户端管理页面，src/main/webapp/admin/filterLoader.jsp
 
 
 
+#### 过滤器实验~前置过滤器
 
+- pre
 
 
 
+#### 过滤器实验~路由过滤器 
 
+- route
+- s2g-zuul-mobile/src/scripts/pre/TestRoute.groovy
+- s2g-zuul-mobile/src/scripts/route/ExecuteRoute.groovy
 
 
 
+#### 过滤器实验~后置过滤器 
 
+- post
+- s2g-zuul-mobile/src/scripts/post/DebugHeader.groovy
+- s2g-zuul-mobile/src/scripts/post/SendResponse.groovy
+- s2g-zuul-mobile/src/scripts/post/DebugResponse.groovy
 
 
 
 
 
+#### Zuul网关对接Apollo 
 
+##### Netflix Archaius 
 
+- 进行对接Apollo ，是一个变色龙
+- Archaius 是一个组合配置，分层级配置，上级覆盖下级
 
+![1605934614906](MicroserviceArchitecture.assets/1605934614906.png)
 
 
 
+##### Zuul对接Apollo 
 
+- 网址：https://github.com/netflix/archaius
+- Apollo 支持与 Archaius 对接
+- 使用Apollo 的配置作为最高级配置，将本地的Zuul配置覆盖，本地配置不生效
+- Archaius 配置，不是实时生效，而是轮循的去拉，大概是30秒
+- InfoBoard工具，看网关配置的值
 
+![1605937650281](MicroserviceArchitecture.assets/1605937650281.png)
 
 
 
+#### Zuul网关生产部署实践 
 
+##### 参考部署架构案例 
 
+- 负载均衡器：F5+Nginx
+- Zuul网关，分集群部署，对应域名
+- 集中式过滤器管理站点
 
+![1605937742324](MicroserviceArchitecture.assets/1605937742324.png)
 
 
 
+##### 分集群过滤器管理 
 
+![1605937938067](MicroserviceArchitecture.assets/1605937938067.png)
 
 
 
+##### 网关生产级部署实践 
 
+- 授权认证中心
+- 配置中心
+- 熔断（Hystric, Turbine, Eureka）
+- 防爬虫系统
+- 监控，Cat
+- 日志，ELK
+- 监控，时序数据库，KairosDB
 
+![1605937970580](MicroserviceArchitecture.assets/1605937970580.png)
 
 
 
+##### Zuul网关集成Hystrix实时监控 
 
+![1605938248915](MicroserviceArchitecture.assets/1605938248915.png)
 
 
 
+#### Zuul网关路由管理实践 
 
+##### 基于Eureka自发现(Netflix做法) 
 
+- 路由表在  Eureka 上，结合 Ribbon ，既可以自己发现路由表
+- 根据表，得到对应的服务的 IP
 
+![1605938421549](MicroserviceArchitecture.assets/1605938421549.png)
 
 
 
+##### 基于域名做法 
 
+- 大部分使用的方式
+- 使用服务治理中心，后期定期拉取路由
 
+![1605938484680](MicroserviceArchitecture.assets/1605938484680.png)
 
 
 
+##### 简单基于Apollo做法 
 
+- 实验与 Apollo 对接的时候，使用这种方式
+- 网关配置在 Apollo 配置中心
+- 网关定期拉取配置，更新配置
 
+![1605938599290](MicroserviceArchitecture.assets/1605938599290.png)
 
 
 
+#### 基于网关的两层路由体系 
 
+##### 内网Nginx静态配置做法 
 
+- 两层集群
+- 路由配置在服务治理中心，网关定期拉取路由表
 
+![1605938714887](MicroserviceArchitecture.assets/1605938714887.png)
 
 
 
+##### 内网Zuul动态配置做法 
 
+- 使用Zuul，内部实现服务自注册，自发现
+- 两层Zuul，性能会比较差
+- Nginx使用c，Zuul是使用 JVM
 
+![1605938850024](MicroserviceArchitecture.assets/1605938850024.png)
 
 
 
+##### 内网kong动态配置做法 
 
+- 使用 Kong 网关，提升 Zuul 的性能问题
 
+![1605938967827](MicroserviceArchitecture.assets/1605938967827.png)
 
 
 
+#### Spring Cloud Zuul 
 
+##### Spring Cloud Zuul简介 
 
+Spring Cloud Zuul = Netflix Zuul内核+Spring Boot
 
+EnableZuulProxy标注 ，就可以启用 Zuul
 
+**去掉了动态过滤器加载**！
 
+建议：生产项目，直接使用Netflix Zuul，动态过滤器是一个好的特性。
 
 
 
+#### Zuul 2.0简介 
 
+##### Zuul 1.0~阻塞多线程模式 
 
+- 请求进来，一次一个 Servlet 处理
 
+![1605941342644](MicroserviceArchitecture.assets/1605941342644.png)
 
 
 
+##### 阻塞同步模式优劣 
 
+- 适用: 计算密集型(CPU bound)场景 
 
+![1605941474308](MicroserviceArchitecture.assets/1605941474308.png)
 
 
 
+##### Zuul 2.0 ~ 非阻塞异步模式 
 
+- 通过总线，队列，每个 Core 上一个事件环
+- 前面发布事件，后面回调
 
+![1605941556987](MicroserviceArchitecture.assets/1605941556987.png)
 
 
 
+##### 非阻塞异步模式优劣 
 
+- 适用: IO密集型(IO bound)场景 
 
+![1605945953257](MicroserviceArchitecture.assets/1605945953257.png)
 
 
 
+##### 性能比对 
 
+- https://github.com/strangeloop/StrangeLoop2017/blob/master/slides/ArthurGonigberg-ZuulsJourneyToNonBlocking.pdf
 
+![1605946065085](MicroserviceArchitecture.assets/1605946065085.png)
 
 
 
+##### Zuul 2额外功能亮点 
 
+- 服务器协议
+- 弹性
+- 运维
 
+![1605946111133](MicroserviceArchitecture.assets/1605946111133.png)
 
 
 
 
 
+##### Zuul 2架构概览 
 
+- 使用 Netty
+- Inbound Filters
+- Endpoint Filter
+- Outbound Filters
 
+![1605941723417](MicroserviceArchitecture.assets/1605941723417.png)
 
 
 
 
 
+##### 个人建议 
 
+- 生产使用 Zuul 1.0
+- 关注和实验 Zuul 2.0
 
+![1605941819239](MicroserviceArchitecture.assets/1605941819239.png)
 
 
 
+#### Zuul网关生产最佳实践 
 
+##### Zuul网关最佳实践 (1.0版本)
 
+- 异步AsyncServlet优化连接数（1.0本质是同步模式，使用Servlet）
+- Apollo配置中心集成动态配置（不能经常部署网关和关闭启停）
+- Hystrix熔断限流
+  - 信号量隔离（不要使用线程隔离）
+- 连接池管理
+- CAT和Hystrix监控
+- 过滤器调试技巧（直接先写成.java文件，然后调试完成，更改后缀为.groovy文件，上传文件之后就可以直接编译使用）
+- 网关无业务逻辑
+- 自助路由(需定制扩展) 
 
 
 
 
 
+#### 参考资源和后续课程预览 
 
+##### 参考文章
 
+Announcing zuul edge service in the cloud
+https://medium.com/netflix-techblog/announcing-zuul-edge-service-in-thecloud-ab3af5be08ee
 
+Zuul 2 : The Netflix Journey to Asynchronous, Non-blocking Systems
+https://medium.com/netflix-techblog/zuul-2-the-netflix-journey-toasynchronous-non-blocking-systems-45947377fb5c
 
+Open Souring Zuul 2
+https://medium.com/netflix-techblog/open-sourcing-zuul-2-82ea476cb2b3
 
+Spring Cloud Zuul 
+https://cloud.spring.io/spring-cloud-netflix/1.4.x/multi/multi__router_and_filter_zuul.html
 
 
 
+##### 参考ppt
 
+| Netflix’s Global Edge Architecture                           |
+| ------------------------------------------------------------ |
+| • https://www.slideshare.net/MikeyCohen1/edge-architecture-ieeeinternational-conference-on-cloud-engineering-32240 |
 
+| Zuul @ Netflix                                               |
+| ------------------------------------------------------------ |
+| • https://www.slideshare.net/MikeyCohen1/zuul-netflix-springone-platform |
 
+| Zuul’s Journey to Non-Blocking                               |
+| ------------------------------------------------------------ |
+| • https://github.com/strangeloop/StrangeLoop2017/blob/master/slides/ArthurGonigberg-ZuulsJourneyToNonBlocking.pdf |
 
 
 
 
 
+##### 源码
 
+Netflix Zuul
+https://github.com/Netflix/zuul
 
+Spring2go定制版Zuul 
+https://github.com/spring2go/s2g-zuul
 
 
 
+##### 其它开源网关产品
 
+Kong(核心开源)
+https://github.com/Kong/kong
 
+Tyk(核心开源)
+https://github.com/TykTechnologies/tyk
 
+悟空API网关(部分开源+商业支持)
+https://github.com/eolinker/GoKu-API-Gateway
 
+小豹API网关(商业)
+http://www.xbgateway.com/ 
 
+![1605943159519](MicroserviceArchitecture.assets/1605943159519.png)
 
 
 
+##### 后续课程预览~模块
 
+- 服务安全
+- 运行时支撑服务
+- 服务容错
+- 服务监控
+- 服务框架
+- 后台服务
+- 服务部署平台
 
+![1605682410410](./MicroserviceArchitecture.assets/1605682410410.png)
 
 
 
+##### 后续课程预览~技术体系
 
+![1605682470104](./MicroserviceArchitecture.assets/1605682470104.png)
 
 
 
@@ -1513,25 +1758,7 @@ Netflix前总架构师Adrian Cockcroft评价
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### CAT 和 微服务调用链监控架构
 
 
 
