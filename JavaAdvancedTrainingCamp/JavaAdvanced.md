@@ -3081,7 +3081,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 - IP（对应计算机）
 - 端口（对应计算机的进程）
 
-
+![1605947015349](JavaAdvanced.assets/1605947015349.png)
 
 
 
@@ -3093,6 +3093,46 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 4. sleep 20ms，模拟业务操作(IO)
 5. 模拟输出 HTTP 报文头和 hello
 6. 关闭 socket
+
+```java
+package java0.nio01;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+public class HttpServer01 {
+    public static void main(String[] args) throws IOException{
+        ServerSocket serverSocket = new ServerSocket(8801);
+        while (true) {  // 死循环
+            try {
+                Socket socket = serverSocket.accept();  // 阻塞
+                service(socket);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    private static void service(Socket socket) {
+        try {
+            Thread.sleep(20);
+            PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
+            printWriter.println("HTTP/1.1 200 OK");
+            printWriter.println("Content-Type:text/html;charset=utf-8");
+            String body = "hello,nio";
+            printWriter.println("Content-Length:" + body.getBytes().length);
+            printWriter.println();
+            printWriter.write(body);
+            printWriter.close();
+            socket.close();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
 
 可以浏览器访问 http://localhost:8801思考一下有什么问题？ 
 
@@ -3137,6 +3177,48 @@ Avg: 825.3ms
 #### Java 实现一个最简的 HTTP 服务器-02 
 
 改进一下，绑定8802端口
+
+```java
+package java0.nio01;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+public class HttpServer02 {
+    public static void main(String[] args) throws IOException {
+        ServerSocket serverSocket = new ServerSocket(8802);
+        while (true) {
+            try {
+                final Socket socket = serverSocket.accept();
+                new Thread(() -> {  // 一个线程处理一个请求
+                    service(socket);
+                }).start();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static void service(Socket socket) {
+        try {
+            Thread.sleep(20);
+            PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
+            printWriter.println("HTTP/1.1 200 OK");
+            printWriter.println("Content-Type:text/html;charset=utf-8");
+            String body = "hello,nio";
+            printWriter.println("Content-Length:" + body.getBytes().length);
+            printWriter.println();
+            printWriter.write(body);
+            printWriter.close();
+            socket.close();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
 
 每个客户端请求进来时创建一个线程有什么问题？ 
 
@@ -3184,6 +3266,49 @@ Avg: 23.1ms
 #### Java 实现一个最简的 HTTP 服务器-03
 
 再改进一下，绑定8803端口
+
+```java
+package java0.nio01;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class HttpServer03 {
+    public static void main(String[] args) throws IOException{
+        ExecutorService executorService = Executors.newFixedThreadPool(40);
+        final ServerSocket serverSocket = new ServerSocket(8803);
+        while (true) {
+            try {
+                final Socket socket = serverSocket.accept();
+                executorService.execute(() -> service(socket));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    private static void service(Socket socket) {
+        try {
+            Thread.sleep(20);
+            PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
+            printWriter.println("HTTP/1.1 200 OK");
+            printWriter.println("Content-Type:text/html;charset=utf-8");
+            String body = "hello,nio";
+            printWriter.println("Content-Length:" + body.getBytes().length);
+            printWriter.println();
+            printWriter.write(body);
+            printWriter.close();
+            socket.close();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
 
 创建一个固定大小的线程池来处理
 
@@ -3235,6 +3360,8 @@ Avg: 21.3ms
 
 #### 服务器通信过程分析 
 
+![1605947015349](JavaAdvanced.assets/1605947015349.png)
+
 仔细分析一下，这个过程中，存在两种类型操作：
 
 - CPU 计算/业务处理
@@ -3245,7 +3372,9 @@ Avg: 21.3ms
 - 线程在处理的时候，会Sleep，此时就会有空闲的时间；
 - 保证CPU最高效的吃饱
 
-对于一个 IO 相关应用来说，例如通过网络访问，服务器端读取本地文件，再返回给客户端（如左图）。
+![1605947712533](JavaAdvanced.assets/1605947712533.png)
+
+对于一个 IO 相关应用来说，例如通过网络访问，服务器端读取本地文件，再返回给客户端（如上图）。
 
 这种情况下，大部分 CPU 等资源，可能就被浪费了 ，怎么优化？
 
@@ -3253,7 +3382,9 @@ Avg: 21.3ms
 
 #### 再深入一层的看问题 
 
-不仅面临线程 /CPU 的问题，
+![1605947773360](JavaAdvanced.assets/1605947773360.png)
+
+不仅面临 线程/CPU 的问题，
 
 还要面对数据来回复制的问题。(数据从用户态，拷贝到内核态，然后发送出去，并且中间还有一个缓冲区。)
 
@@ -3266,7 +3397,7 @@ Avg: 21.3ms
 
 ### NIO 模型与相关概念 
 
-#### 信模型 
+#### 通信模型 
 
 考虑一下：
 
@@ -3286,13 +3417,19 @@ Avg: 21.3ms
 
 基本上都是同步的 
 
+![1605947860084](JavaAdvanced.assets/1605947860084.png)
+
 
 
 #### IO 模型-01 -阻塞式 IO、BIO
 
 阻塞式 IO、BIO
 
-一般通过在 while(true) 循环中服务端会调用 accept() 方法等待接收客户端的连接的方式监听请求，请求一旦接收到一个连接请求，就可以建立通信套接字在这个通信套接字上进行读写操作，此时不能再接收其他客户端连接请求，只能等待同当前连接的客户端的操作执行完成， 不过可以通过多线程来支持多个客户端的连接 
+![1605947963276](JavaAdvanced.assets/1605947963276.png)
+
+![1605948008520](JavaAdvanced.assets/1605948008520.png)
+
+一般通过在 while(true) 循环中服务端会调用 accept() 方法等待接收客户端的连接的方式监听请求，请求一旦接收到一个连接请求，就可以建立通信套接字在这个通信套接字上进行读写操作，此时不能再接收其他客户端连接请求，只能等待当前连接的客户端的操作执行完成， 不过可以通过多线程来支持多个客户端的连接 
 
 
 
@@ -3300,13 +3437,19 @@ Avg: 21.3ms
 
 非阻塞式 IO
 
+![1605948087573](JavaAdvanced.assets/1605948087573.png)
+
+![1605948143215](JavaAdvanced.assets/1605948143215.png)
+
 和阻塞 IO 类比，内核会立即返回，返回后获得足够的 CPU 时间继续做其它的事情。
 
 用户进程第一个阶段不是阻塞的,需要不断的主动询问 kernel 数据好了没有；第二个阶段依然总是阻塞的。 
 
 
 
-#### IO 模型-03 -IO 多路复用(IO multiplexing)
+#### IO 模型-03 -IO 多路复用(IO multiplexing)（Reactor）（epoll）
+
+![1605948253112](JavaAdvanced.assets/1605948253112.png)
 
 IO 多路复用(IO multiplexing)，也称事件驱动 IO(event-driven IO)，就是在单个线程里同时监控多个套接字，通过select 或 poll 轮询所负责的所有socket，当某个 socket 有数据到达了，就通知用户进程。
 
@@ -3314,7 +3457,9 @@ IO 复用同非阻塞 IO 本质一样，不过利用了新的 select 系统调�
 
 进程先是阻塞在 select/poll 上，再是阻塞在读操作的第二个阶段上。 
 
+![1605948305943](JavaAdvanced.assets/1605948305943.png)
 
+![1605948457120](JavaAdvanced.assets/1605948457120.png)
 
 select/poll 的几大缺点：
 （1）每次调用 select，都需要把 fd 集合从用户态拷贝到内核态，这个开销在 fd 很多时会很大
@@ -3334,25 +3479,37 @@ epoll（Linux 2.5.44内核中引入,2.6内核正式引入,可被用于代替 POS
 
 信号驱动 I/O
 
+![1605948549775](JavaAdvanced.assets/1605948549775.png)
+
 信号驱动 IO 与 BIO 和 NIO 最大的区别就在于，在 IO 执行的数据准备阶段，不会阻塞用户进程。
 
 如图所示：当用户进程需要等待数据的时候，会向内核发送一个信号，告诉内核我要什么数据，然后用户进程就继续做别的事情去了，而当内核中的数据准备好之后，内核立马发给用户进程一个信号，说”数据准备好了，快来查收“，用户进程收到信号之后，立马调用 recvfrom，去查收数据。 
 
 
 
-#### IO 模型-05 -异步式 IO
+#### IO 模型-05 -异步式 IO（IOCP）（Proactor）
 
 异步式 IO
 
-异步 IO 真正实现了 IO 全流程的非阻塞。用户进程发出系统调用后立即返回，内核等待数据准备完成，然后将数据拷贝到用户进程缓冲区，然后发送信号告诉用户进程 IO 操作执行完毕（与 SIGIO 相比，一个是发送信号告诉用户进程数据准备完毕，一个是 IO执行完毕）。
+![1605948719813](JavaAdvanced.assets/1605948719813.png)
 
-windows 的 IOCP 模型 
+异步 IO 真正实现了 IO 全流程的非阻塞。
+
+用户进程发出系统调用后立即返回，内核等待数据准备完成，然后将数据拷贝到用户进程缓冲区，然后发送信号告诉用户进程 IO 操作执行完毕（与 SIG IO 相比，一个是发送信号告诉用户进程数据准备完毕，一个是 IO执行完毕）。
+
+windows 的 IOCP 模型 。
+
+![1605948906549](JavaAdvanced.assets/1605948906549.png)
+
+注意：这个模式，数据是内核复制到用户进程中的，只有复制好之后，才会通知数据，通知的是数据复制好了，而不是数据来了。此时，就可以直接读取了。
 
 
 
 
 
 #### 总结
+
+![1605948924341](JavaAdvanced.assets/1605948924341.png)
 
 一个场景，去打印店打印文件。
 
@@ -3373,6 +3530,8 @@ Proactor（异步I/O）
 
 #### Netty 概览
 
+官网：https://netty.io/
+
 网络应用开发框架
 
 1. 异步
@@ -3382,7 +3541,9 @@ Proactor（异步I/O）
 适用于:
 • 服务端
 • 客户端
-• TCP/UDP （QQ使用最多，交易所的数据推）
+• TCP/UDP （QQ使用最多，交易所的数据推，Zuul 2.0 网关底层）
+
+![1605949065337](JavaAdvanced.assets/1605949065337.png)
 
 
 
@@ -3405,7 +3566,7 @@ Proactor（异步I/O）
 JDK 兼容性:
 • Netty 3.x: JDK5
 • Netty 4.x: JDK6
-• Netty 5.x: 已废弃
+• Netty 5.x: 已废弃（思想超前，性能不足，抛弃了）
 
 协议兼容性:
 • 兼容大部分通用协议
@@ -3460,11 +3621,6 @@ Java 的 Future 接口，只能查询操作的完成情况, 或者阻塞当前�
 • 写入数据
 • 刷新数据
 
-Netty 应用组成:
-• 网络事件
-• 应用程序逻辑事件
-• 事件处理程序
-
 事件处理程序接口:
 • ChannelHandler
 • ChannelOutboundHandler
@@ -3474,15 +3630,26 @@ Netty 应用组成:
 • ChannelInboundHandlerAdapter
 • ChannelOutboundHandlerAdapter 
 
+Netty 应用组成:
+• 网络事件
+• 应用程序逻辑事件
+• 事件处理程序
+
 
 
 ### Netty 使用示例 
 
+#### Demo
+
+网址：https://github.com/kimmking/atlantis/tree/master/netty-server
+
+
+
+
+
 #### Netty 简单例子
 
-使用 Netty 改写
-
-最开始的例子
+使用 Netty 改写，最开始的例子
 
 然后，压测一下效果如何。 
 
