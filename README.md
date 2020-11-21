@@ -7,13 +7,15 @@ This is my java study Record.
 1. [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
 2. Spring Framework 5.2.2
 3. [Maven](https://maven.apache.org/download.cgi)
-4. [MySQL](https://dev.mysql.com/downloads/)
-5. [Redis for windows](https://github.com/MicrosoftArchive/redis/releases)
-6. [Postman](https://www.getpostman.com/)
-7. Eclipse STS 3.9.5下载1[网盘](https://pan.baidu.com/s/1xqy4G_r9N24WODBBuGlIog) 下载2[国外](https://spring.io/tools)
-8. Android Studio 3.1.2下载1[国内可访问](https://dl.google.com/dl/android/studio/install/3.1.2.0/android-studio-ide-173.4720617-windows.exe) 下载2[网盘](https://pan.baidu.com/s/1xO0jppKszfJAA3GFJ8bxcw) 下载3[国外访问](https://developer.android.com/studio/index.html)
-9. [Firefox Browser 47.0.2](http://ftp.mozilla.org/pub/firefox/releases/47.0.2/win64/zh-CN/)
-10. [NoRedirect Add on for Firefox](https://addons.thunderbird.net/en-us/firefox/addon/noredirect/)
+4. [Tomcat 8.5](https://tomcat.apache.org/)
+5. [MySQL+Workbench](https://dev.mysql.com/downloads/)
+6. [Redis for windows](https://github.com/MicrosoftArchive/redis/releases)
+7. [Git for Windows](https://gitforwindows.org/)
+8. [Postman](https://www.getpostman.com/)
+9. Eclipse STS 3.9.5下载1[网盘](https://pan.baidu.com/s/1xqy4G_r9N24WODBBuGlIog) 下载2[国外](https://spring.io/tools)
+10. Android Studio 3.1.2下载1[国内可访问](https://dl.google.com/dl/android/studio/install/3.1.2.0/android-studio-ide-173.4720617-windows.exe) 下载2[网盘](https://pan.baidu.com/s/1xO0jppKszfJAA3GFJ8bxcw) 下载3[国外访问](https://developer.android.com/studio/index.html)
+11. [Firefox Browser 47.0.2](http://ftp.mozilla.org/pub/firefox/releases/47.0.2/win64/zh-CN/)
+12. [NoRedirect Add on for Firefox](https://addons.thunderbird.net/en-us/firefox/addon/noredirect/)
 
 
 
