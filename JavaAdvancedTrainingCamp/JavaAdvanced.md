@@ -1,5 +1,3 @@
-
-
 # Java Advanced
 
 
@@ -3713,7 +3711,285 @@ Github。
 
 ## Netty 原理与 API 网关 
 
+### 再谈谈什么是高性能 
 
+#### 什么是高性能？
+
+大家思考一下，什么是高性能？
+
+- 高并发用户（Concurrent Users）（QPS）(业务指标)
+- 高吞吐量（Throughout）（TPS）（技术指标）
+- 低延迟（Latency） （技术指标）
+
+高并发用户（Concurrent Users） 
+
+> 压测的时候，设置的  -c 参数，就是并发数
+
+高吞吐量（Throughout） 
+
+> 水库装水，容量大小
+
+低延迟（Latency） 
+
+> 延迟：是系统内部的，到达系统的时间 与 离开系统的时间 差。
+>
+> 响应时间：客户发送请求的时间 与 客户收到响应的时间 差。
+>
+> Latency Distribution：使用百分数衡量延迟，50% 在3ms 完成，P 50 = 3ms。
+>
+> 一般看系统的 P50 和 P99，保证请求的绝大多数都回去了。
+
+
+
+#### 高性能的另一面
+
+如果实现了高性能，有什么副作用呢？
+
+系统复杂度 x10以上（淘宝，几千人，做了很多年，复杂）
+
+建设与维护成本++++
+
+故障或 BUG 导致的破坏性 x10以上 （坏了太难受，修复难）
+
+
+
+#### 应对策略
+
+稳定性建设（混沌工程）：
+
+1、容量（量化下来，到底容量多少）
+2、爆炸半径（微服务，降低半径，就一块的问题）
+3、工程方面积累与改进 
+
+> 一天 86400秒
+>
+> 系统，1000 TPS
+>
+> 则，一天总共 8600 万请求。
+>
+> 淘宝一天的请求量是 3000万左右，平均的 TPS 是 300 ~ 400.
+>
+> 美团等，二级梯度的 请求量是 1000~2000万左右
+>
+> 双十一活动，将所有的淘宝，天猫流量导入到 支付宝，做到了国内目前最大的并发，50万 TPS
+>
+> 前几年，12306 可能并发回达到 10 万 TPS
+
+云厂商，亚马逊（AWS），微软（Awre），阿里（阿里云）；做活动的机器多，其他时间有剩余，需要多赚钱！
+
+
+
+
+
+### Netty 如何实现高性能 
+
+#### Netty 概览
+
+网络应用开发框架
+
+1. 异步
+2. 事件驱动
+3. 基于 NIO
+
+适用于:
+• 服务端
+• 客户端
+• TCP/UDP 
+
+> 对编程，实现了模型的统一，写什么代码都差不多
+
+
+
+#### 回顾一下事件处理机制 
+
+- 类比吃饭去饭馆，拿到号码，等待桌子用餐 
+
+
+
+#### 从事件处理机制到 Reactor 模型 
+
+Reactor 模式首先是事件驱动的，有一个或者多个并发输入源，有一个 Service Handler和多个EventHandlers。
+
+这个 Service Handler 会同步的将输入的请求多路复用的分发给相应的 Event Handler。 
+
+
+
+#### 从 Reactor 模型到 Netty NIO--01 
+
+Reactor 单线程模型 
+
+
+
+
+
+#### 从 Reactor 模型到 Netty NIO--02
+
+Reactor 多线程模型 
+
+
+
+#### 从 Reactor 模型到 Netty NIO--03 
+
+Reactor 主从模型 
+
+
+
+#### Netty 启动和处理流程 
+
+
+
+#### Netty 线程模式 
+
+
+
+
+
+#### Netty 核心对象 
+
+
+
+
+
+#### Netty 运行原理 
+
+
+
+
+
+#### 关键对象 
+
+- Bootstrap: 启动线程，开启 socket
+- EventLoopGroup
+- EventLoop
+- SocketChannel: 连接
+- ChannelInitializer: 初始化
+- ChannelPipeline: 处理器链
+- ChannelHandler: 处理器 
+
+
+
+#### ChannelPipeline 
+
+- ChannelIndoundHandler，类比 Request
+- ChannelOutboundhandler，类似 Response
+
+
+
+#### Event & Handler 
+
+入站事件：
+• 通道激活和停用
+• 读操作事件
+• 异常事件
+• 用户事件
+
+出站事件：
+• 打开连接
+• 关闭连接
+• 写入数据
+• 刷新数据
+
+事件处理程序接口:
+• ChannelHandler
+• ChannelOutboundHandler
+• ChannelInboundHandler
+
+适配器（空实现，需要继承使用）：
+• ChannelInboundHandlerAdapter
+• ChannelOutboundHandlerAdapter 
+
+Netty 应用组成:
+• 网络事件
+• 应用程序逻辑事件
+• 事件处理程序
+
+
+
+
+
+### Netty 网络程序优化 
+
+#### 粘包与拆包
+
+> 操作系统有个缓冲区，没有指定长度读取数据。
+>
+> 需要提前定义接受方式的规则，与TCP没有关系。需要保证数字一直与个数完整。
+>
+> HTTP 发送大文件的时候，使用 chunk机制，进行 大小指定与数据发送 形式。
+>
+> HTTP 断点续传机制，并发下载的时候，第一个线程取数据的第一段，第二个线程取第二段，最后拼接，完成并发任务。使用 HTTP 的 Range 命令。（FTP也存在Range命令）
+
+都是人为问题
+
+ByteToMessageDecoder 提供的一些常见的实现类：
+
+1.FixedLengthFrameDecoder：定长协议解码器，我们可以指定固定的字节数算一个完整的报文
+
+2.LineBasedFrameDecoder：行分隔符解码器，遇到\n 或者\r\n，则认为是一个完整的报文
+
+3.DelimiterBasedFrameDecoder：分隔符解码器，分隔符可以自己指定（@!__!@）
+
+4.LengthFieldBasedFrameDecoder：长度编码解码器，将报文划分为报文头/报文体
+
+5.JsonObjectDecoder：json 格式解码器，当检测到匹配数量的“{” 、”}”或”[””]”时，则认为是一个完整的 json 对象或者 json 数组 
+
+
+
+#### Nagle 与 TCP_NODELAY 
+
+> 写soket 的程序中，使用的 send，只是将数据从用户发送给操作系统内核，并没有直接发送到网络上。
+>
+> 至于什么时候发送到网络上，是由操作系统完成的，取决于是否缓存区满了，是否大道理超时时间。
+
+网络上的数据包：
+MTU: Maxitum Transmission Unit最大传输单元（1500 Byte）
+MSS: Maxitum Segment Size 最大分段大小（1460 Byte ）（大于这个数据，需要分包发送，在这个上下的数据，测试会有很大的差距）
+
+网络拥堵与 Nagle 算法优化：TCP_NODELAY
+
+优化条件：
+
+- 缓冲区满
+- 达到超时 （200ms）
+
+
+
+#### 连接优化 
+
+- 注意 TCP 与 UDP 区别 
+- 用三次握手建立 TCP 连接 的各状态
+  - 如果客户端给服务器发送 ACK的时候，服务器没收到，然后怎么办？然后客户端的发送请求就会连接超时，报错喽！类似于服务器宕机了。
+- TCP连接必须经过时间 2 MSL 后才真正释放掉。
+  - MSL 是周期，windows 默认1分钟，linux默认两分钟。
+  - 查看本机的TCP连接状态：netstat -anot
+
+
+
+#### Netty 优化 
+
+1、不要阻塞 EventLoop
+
+2、系统参数优化
+ulimit -a /proc/sys/net/ipv4/tcp_fin_timeout, TcpTimedWaitDelay
+
+3、缓冲区优化
+SO_RCVBUF/SO_SNDBUF/SO_BACKLOG/ REUSEXXX
+
+4、心跳周期优化
+心跳机制与短线重连
+
+5、内存与 ByteBuffer 优化
+DirectBuffer与HeapBuffer
+
+6、其他优化
+
+- ioRatio
+- Watermark
+- TrafficShaping 
+
+
+
+02:01：20
 
 
 
