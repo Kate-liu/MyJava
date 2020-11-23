@@ -3852,6 +3852,8 @@ Doug lea 《Scalable IO in Java》
 
 Reactor 多线程模型 
 
+默认线程数，是CPU核心的两倍。
+
 ![1606054870209](JavaAdvanced.assets/1606054870209.png)
 
 ![1606054888578](JavaAdvanced.assets/1606054888578.png)
@@ -3861,6 +3863,8 @@ Reactor 多线程模型
 #### 从 Reactor 模型到 Netty NIO--03 
 
 Reactor 主从模型 
+
+> 下图画错了！
 
 ![1606054974090](JavaAdvanced.assets/1606054974090.png)
 
@@ -3888,6 +3892,10 @@ Reactor 主从模型
 
 #### Netty 线程模式 
 
+- 单线程不断地轮询，进行高效处理
+- 注意：单线程模型，不能进行被堵住
+- Redis 也是单线程，高效的处理（适合查询，不适合范围查询操作）
+
 ![1606055219834](JavaAdvanced.assets/1606055219834.png)
 
 
@@ -3895,12 +3903,18 @@ Reactor 主从模型
 #### Netty 核心对象 
 
 - 到底什么是 EventLoop 
+- 一个 EventLoop 挂 多个 Channel
+- Channel 负责 IO 事件的流通
+- 核心对象：BECH（bootstrap, eventloop, chinnel, handler）
 
 ![1606055276322](JavaAdvanced.assets/1606055276322.png)
 
 
 
 #### Netty 运行原理 
+
+- Boss Group 配置 1个
+- WorkGroup 配置 CPU核心的2倍
 
 ![1606055334955](JavaAdvanced.assets/1606055334955.png)
 
@@ -4170,7 +4184,9 @@ Zuul 2.x 是基于 Netty 内核重构的版本。几万行代码中，大部分�
 抽象：概念理清、正确命名
 组合：组件之间的相互关系
 
-
+> DSL，领域特定语言
+>
+> 广义：你懂我的黑话。（自己的语言）
 
 
 
@@ -4202,43 +4218,148 @@ Netty 网络程序优化
 
 ## Java 并发编程 
 
+### 多线程基础 
+
+#### 为什么会有多线程 
+
+本质原因是摩尔定律失效 -> 多核+分布式时代的来临。(仙童公司，Intel，时间与空间的局限性)
+
+JVM、NIO 是不是都因为这个问题变复杂？
+
+后面讲的分布式系统，也是这个原因。 
+
+
+
+> SMP VS NUMA（非一致内存访问）
+>
+> M是对称一致内存
+
+多 CPU 核心意味着同时操作系统有更多的并行计算资源可以使用。
+操作系统以线程作为基本的调度单元。
+
+单线程是最好处理不过的。
+线程越多，管理复杂度越高。
+
+跟我们程序员都喜欢自己单干一样。
+《人月神话》里说加人可能干得更慢。
+
+可见多核时代的编程更有挑战。 
+
+
+
+#### Java 线程的创建过程 
+
+线程与进程的区别是什么？ 
+
+> 在linux中，Nginx 启动5个进程，内部使用5个线程，单线程操作，每一个进程之间具有父子进程关系。可以保证，5个进程，同时监听80一个端口。
+
+
+
+### Java 多线程
+
+#### Thread 使用示例 
+
+• 守护线程
+• 启动方式
+
+思考:
+
+1. 输出结果是什么?
+2. 为什么?
+3. 有哪些方式可以修改? 
+
+```java
+public static void main(String[] args) {
+    Runnable task = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Thread t = Thread.currentThread();
+            System.out.println("当前线程:" + t.getName());
+    	}
+	};
+    Thread thread = new Thread(task);
+    thread.setName("test-thread-1");
+    thread.setDaemon(true);
+    thread.start();
+}
+```
+
+
+
+#### 基础接口 - Runnable 
+
+辨析:
+Thread#start():创建新线程
+Thread#run() : 本线程调用 
+
+
+
+#### 线程状态 
+
+- 线程 start() 之后，会变成 Runable状态，至于什么时候 Running ，不知道，需要看 CPU什么时候调用
+- 类似于 NIO 中，send 消息，是到操作系统的缓存区中，至于什么时候发送，不知道
+- sleep() 函数，没法精确的控制时间，有太多因素影响，绝对时间都是有误差的
+- Windows 中，创建文件的时间，精确值到分钟，有太多误差，会导致时间不一致
+
+
+
+#### Thread 类 
+
+| 重要属性/方法                          | 说明                                   |
+| -------------------------------------- | -------------------------------------- |
+| volatile String name;                  | 线程名称 – 诊断分析使用                |
+| boolean daemon = false;                | 后台守护线程标志 – 决定JVM优雅关闭     |
+| Runnable target;                       | 任务(只能通过构造函数传入)             |
+| synchronized void start()              | 【协作】启动新线程并自动执行           |
+| void join()                            | 【协作】等待某个线程执行完毕（来汇合） |
+| static native Thread currentThread();  | 静态方法: 获取当前线程信息             |
+| static native void sleep(long millis); | 静态方法: 线程睡眠并让出CPU时间片      |
+
+
+
+#### wait & notify 
+
+| Object# 方法                       | 说明                                                         |
+| ---------------------------------- | ------------------------------------------------------------ |
+| void wait()                        | 放弃锁+等待0ms+尝试获取锁;                                   |
+| void wait(long timeout, int nanos) | 放弃锁 + wait + 到时间自动唤醒/中途唤醒 (精度: nanos>0则 timeout++) |
+| native void wait(long timeout);    | 放弃锁+ wait + 到时间自动唤醒/中途被唤醒 (唤醒之后需要自动获取锁) |
+| native void notify();              | 发送信号通知1个等待线程                                      |
+| native void notifyAll();           | 发送信号通知所有等待线程                                     |
+
+辨析:
+• Thread.sleep: 释放 CPU
+• Object#wait : 释放锁 
+
+
+
+#### Thread 的状态改变操作 
+
+1. Thread.sleep(long millis)，一定是当前线程调用此方法，当前线程进入 TIMED_WAITING 状态，但不释放对象锁，millis 后线程自动苏醒进入就绪状态。作用：给其它线程执行机会的最佳方式。
+2. Thread.yield()，一定是当前线程调用此方法，当前线程放弃获取的 CPU 时间片，但不释放锁资源，由运行状态变为就绪状态，让 OS 再次选择线程。作用：让相同优先级的线程轮流执行，但并不保证一定会轮流执行。实际中无法保证yield() 达到让步目的，因为让步的线程还有可能被线程调度程序再次选中。Thread.yield() 不会导致阻塞。该方法与sleep() 类似，只是不能由用户指定暂停多长时间。
+3. t.join()/t.join(long millis)，当前线程里调用其它线程 t 的 join 方法，当前线程进入WAITING/TIMED_WAITING 状态，当前线程不会释放已经持有的对象锁。线程t执行完毕或者 millis 时间到，当前线程进入就绪状态。
+4. obj.wait()，当前线程调用对象的 wait() 方法，当前线程释放对象锁，进入等待队列。依靠 notify()/notifyAll() 唤醒或者 wait(long timeout) timeout 时间到自动唤醒。
+5. obj.notify() 唤醒在此对象监视器上等待的单个线程，选择是任意性的。notifyAll() 唤醒在此对象监视器上等待的所有线程。 
+
+
+
+#### Thread 的中断与异常处理
+
+1. 线程内部自己处理异常，不溢出到外层。
+2. 如果线程被 Object.wait, Thread.join 和 Thread.sleep 三种方法之一阻塞，此时调用该线程的interrupt() 方法，那么该线程将抛出一个 InterruptedException 中断异常（该线程必须事先预备好处理此异常），从而提早地终结被阻塞状态。如果线程没有被阻塞，这时调用interrupt() 将不起作用，直到执行到 wait(),sleep(),join() 时,才马上会抛出InterruptedException。
+3. 如果是计算密集型的操作怎么办？
+分段处理，每个片段检查一下状态，是不是要终止。 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+2:18
 
 
 
