@@ -1,0 +1,79 @@
+package org.copydays.thinking.java.concurrent.core.technology.middle;
+
+public class WaitAndNotify {
+    public static void main(String[] args) {
+        MethodClass methodClass = new MethodClass();
+
+        Thread t1 = new Thread(() -> {
+            try {
+                methodClass.product();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }, "t1");
+
+        Thread t2 = new Thread(() -> {
+            try {
+                methodClass.customer();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }, "t2");
+
+        Thread t3 = new Thread(() -> {
+            try {
+                methodClass.customer();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }, "t3");
+
+        t1.start();
+        t2.start();
+        t3.start();
+
+    }
+}
+
+class MethodClass {
+    // 定义生产最大量
+    private final static int MAX_COUNT = 20;
+
+    int productCount = 0;
+
+    public synchronized void product() throws InterruptedException {
+        while (true) {
+            System.out.println(Thread.currentThread().getName() + ":::run:::" + productCount);
+            Thread.sleep(10);
+
+            if (productCount >= MAX_COUNT) {
+                System.out.println("货舱已满,,.不必再生产");
+
+                wait();
+            } else {
+                productCount++;
+            }
+
+            notifyAll();  // 注意：只要货仓有一个，就可以被消费了，所以就可以唤醒其他线程了
+        }
+    }
+
+    public synchronized void customer() throws InterruptedException {
+        while (true) {
+            System.out.println(Thread.currentThread().getName() + ":::run:::" + productCount);
+            Thread.sleep(10);
+
+            if (productCount <= 0) {
+                System.out.println("货舱已无货...无法消费");
+                wait();
+            } else {
+                productCount--;
+            }
+
+            notifyAll();  // 注意：只要货仓有一个消费了，也就是有一个空缺了，就可以生产了，所以就可以唤醒其他线程了
+        }
+    }
+}
