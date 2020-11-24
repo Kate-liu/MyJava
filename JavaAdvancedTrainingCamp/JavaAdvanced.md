@@ -1,4 +1,4 @@
-# Java Advanced
+Java Advanced
 
 
 
@@ -4216,7 +4216,7 @@ Netty 网络程序优化
 
 
 
-## Java 并发编程 
+## Java 并发编程 -线程
 
 ### 多线程基础 
 
@@ -4537,7 +4537,377 @@ Java 里的常量替换。写代码最大化用 final 是个好习惯。
 1. Excutor: 执行者 – 顶层接口
 2. ExcutorService: 接口 API
 3. ThreadFactory: 线程工厂
-4. Excutors: 工具类 
+4. Excutors: 工具类 （线程池工厂）
+
+
+
+####  Executor – 执行者 
+
+线程池从功能上看，就是一个**任务执行器**
+
+submit 方法 -> 有返回值，用 Future 封装
+execute 方法 -> 无返回值
+
+submit 方法的异常可以在主线程中 catch 到。
+execute 方法执行任务是捕捉不到异常的。 
+
+
+
+#### ExecutorService 
+
+| 重要方法                                       | 说明                                     |
+| ---------------------------------------------- | ---------------------------------------- |
+| void execute(Runnable command);                | 执行可运行的任务                         |
+| void shutdown();                               | 关闭线程池                               |
+| List<Runnable> shutdownNow();                  | 立即关闭                                 |
+| Future<?> submit(Runnable task);               | 提交任务; 允许获取执行结果               |
+| <T> Future<T> submit(Runnable task, T result); | 提交任务（指定结果）; 控制\|获取执行结果 |
+| <T> Future<T> submit(Callable<T> task);        | 提交任务; 允许控制任务和获取执行结果     |
+
+shutdown()：停止接收新任务，原来的任务继续执行
+shutdownNow()：停止接收新任务，原来的任务停止执行
+awaitTermination(long timeOut, TimeUnit unit)：当前线程阻塞 
+
+
+
+####  ThreadFactory
+
+| 重要方法                      | 说明       |
+| ----------------------------- | ---------- |
+| Thread newThread(Runnable r); | 创建新线程 |
+
+ThreadPoolExecutor 提交任务逻辑:
+
+1. 判断 corePoolSize 【创建】
+2. 加入 workQueue
+3. 判断 maximumPoolSize 【创建】
+4. 执行拒绝策略处理器 
+
+注意：一开始没有线程，来任务创建核心线程；然后将任务加到队列中缓一缓，再接着创建非核心线程，最后执行拒绝策略。
+
+
+
+#### 线程池参数
+
+缓冲队列
+
+**BlockingQueue** 是双缓冲队列。BlockingQueue 内部使用两条队列，允许两个线程同
+时向队列一个存储，一个取出操作。在保证并发安全的同时，提高了队列的存取效率。
+
+1. ArrayBlockingQueue:规定大小的 BlockingQueue，其构造必须指定大小。其所含的对象是 FIFO 顺序排序的。
+2. LinkedBlockingQueue:大小不固定的 BlockingQueue，若其构造时指定大小，生成的 BlockingQueue 有大小限制，不指定大小，其大小有 Integer.MAX_VALUE 来决定。其所含的对象是 FIFO 顺序排序的。
+3. PriorityBlockingQueue:类似于 LinkedBlockingQueue，但是其所含对象的排序不是 FIFO，而是依据对象的自然顺序或者构造函数的 Comparator 决定。
+4. SynchronizedQueue:特殊的 BlockingQueue，对其的操作必须是放和取交替完成。 
+
+ 
+
+拒绝策略
+1. ThreadPoolExecutor.AbortPolicy:丢弃任务并抛出 RejectedExecutionException异常。（默认策略，很常见）
+2. ThreadPoolExecutor.DiscardPolicy：丢弃任务，但是不抛出异常。（没有异常，不好，没法做补偿措施）
+3. ThreadPoolExecutor.DiscardOldestPolicy：丢弃队列最前面的任务，然后重新提交被拒绝的任务
+4. ThreadPoolExecutor.CallerRunsPolicy：由调用线程（提交任务的线程）处理该任务 （很常见，让提交任务的线程来直接执行任务，此时就不会再丢任务了）
+
+
+
+#### ThreadFactory 示例 
+
+ 
+
+#### ThreadPoolExecutor 
+
+| 重要属性/方法                      | 说明           |
+| ---------------------------------- | -------------- |
+| int corePoolSize;                  | 核心线程数     |
+| int maximumPoolSize;               | 最大线程数     |
+| ThreadFactory threadFactory;       | 线程创建工厂   |
+| BlockingQueue<Runnable> workQueue; | 工作队列       |
+| RejectedExecutionHandler handler;  | 拒绝策略处理器 |
+| void execute(Runnable command)     | 执行           |
+| Future<?> submit(Runnable task)    | 提交任务       |
+| submit(Runnable task, T result)    | 提交任务       |
+| submit(Callable<T> task)           | 提交任务       |
+
+execute 与 submit 的区别，一个是有返回值，一个是没有返回值。（对应于java 语言设计的时候，需要针对这两种情况，分开设计不同的抽象）
+
+
+
+#### ThreadPoolExecutor 示例 
+
+ 
+
+
+
+####  创建线程池方法
+
+1. newSingleThreadExecutor（串行GC，一个线程跑）
+创建一个单线程的线程池。这个线程池只有一个线程在工作，也就是相当于单线程串行执行所有任务。如果这个唯一的线程因为异常结束，那么会有一个新的线程来替代它。此线程池保证所有任务的执行顺序按照任务的提交顺序执行。
+
+2. newFixedThreadPool（HTTP程序3中的固定大小线程池）
+  创建固定大小的线程池。每次提交一个任务就创建一个线程，直到线程达到线程池的最大大小。线程池的大小一旦达到最大值就会保持不变，如果某个线程因为执行异常而结束，那么线程池会补充
+  一个新线程。
+
+  坑：默认 LinkedQueue，没有固定大小
+
+3. newCachedThreadPool（HTTP程序2中每一个请求new一个新的线程）
+  创建一个可缓存的线程池。如果线程池的大小超过了处理任务所需要的线程，那么就会回收部分空闲（60秒不执行任务）的线程，当任务数增加时，此线程池又可以智能的添加新线程来处理任务。此线程池不会对线程池大小做限制，线程池大小完全依赖于操作系统（或者说JVM）能够创建的最大线程大小。
+
+  坑：线程数默认无穷大，太多了，CPU切换成本高
+
+4. newScheduledThreadPool
+  创建一个大小无限的线程池。此线程池支持定时以及周期性执行任务的需求。 
+
+
+
+#### 创建固定线程池经验
+
+不是越大越好，太小肯定也不好：
+假设核心数为 N，
+
+1、如果是CPU密集型应用，则线程池大小设置为N或者 N+1
+
+2、如果是IO密集型应用，则线程池大小设置为2N或2N+2
+
+
+
+#### Callable – 基础接口
+
+| 重要方法                   | 说明     |
+| -------------------------- | -------- |
+| V call() throws Exception; | 调用执行 |
+
+对比:
+• Runnable#run()没有返回值
+• Callable#call()方法有返回值 
+
+
+
+#### Future – 基础接口 
+
+| 重要方法                                                     | 说明                        |
+| ------------------------------------------------------------ | --------------------------- |
+| boolean cancel(boolean mayInterruptIfRunning);               | 取消任务 （执行时是否打断） |
+| boolean isCancelled();                                       | 是否被取消                  |
+| boolean isDone();                                            | 是否执行完毕                |
+| V get() throws InterruptedException, ExecutionException;     | 获取执行结果                |
+| V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException; | 限时获取执行结果            |
+
+注意：等待执行结果的时候，使用 Future 实现，最后使用 get 方法获得结果，设置一个超时时间，防止干等待，被阻塞。
+
+ 
+
+
+
+### 总结回顾与作业实践 
+
+#### 总结回顾
+
+1.多线程基础
+2.Java 多线程*
+3.线程安全*
+4.线程池原理与应用* 
+
+ 
+
+#### 作业实践 
+
+1、（可选）跑一跑课上的各个例子，加深对多线程的理解
+2、（可选）完善网关的例子，试着调整其中的线程池参数 
+
+
+
+ 
+
+## Java 并发编程 -并发
+
+### Java 并发包 
+
+#### JDK 核心库的包 
+
+
+
+
+
+#### Java.util.concurrency 
+
+ 
+
+锁机制类 Locks : Lock, Condition, ReadWriteLock
+原子操作类 Atomic : AtomicInteger
+线程池相关类 Executer : Future, Callable, Executor
+信号量三组工具类 Tools : CountDownLatch, CyclicBarrier, Semaphore
+并发集合类 Collections : CopyOnWriteArrayList, ConcurrentMap 
+
+ 
+
+### 到底什么是锁 
+
+#### 为什么需要显式的 Lock
+
+回忆一下，上节课讲过的，synchronized 可以加锁，wait/notify 可以看做加锁和解锁。
+
+那为什么还需要一个显式的锁呢？ 
+
+synchronized 方式的问题：
+1、同步块的阻塞无法中断（不能 Interruptibly）
+2、同步块的阻塞无法控制超时（无法自动解锁）
+3、同步块无法异步处理锁（即不能立即知道是否可以拿到锁）
+4、同步块无法根据条件灵活的加锁解锁（即只能跟同步块范围一致） 
+
+
+
+
+
+#### 更自由的锁: Lock
+
+1. 使用方式灵活可控
+2. 性能开销小
+3. 锁工具包: java.util.concurrent.locks
+
+ 思考: Lock 的性能比 synchronized 高吗？ 
+
+Lock 接口设计：
+// 1.支持中断的 API
+void lockInterruptibly() throws InterruptedException;
+// 2.支持超时的 API
+boolean tryLock(long time, TimeUnit unit) throws InterruptedException;
+// 3.支持非阻塞获取锁的 API
+boolean tryLock(); 
+
+
+
+#### 基础接口 - Lock 
+
+| 重要方法                                                     | 说明                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| void lock();                                                 | 获取锁; 类比 synchronized (lock)                             |
+| void lockInterruptibly() throws InterruptedException;        | 获取锁; 允许打断;                                            |
+| boolean tryLock(long time, TimeUnit unit) throws InterruptedException; | 尝试获取锁; 成功则返回 true; 超时则退出                      |
+| boolean tryLock();                                           | 尝试【无等待】获取锁; 成功则返回 true                        |
+| void unlock();                                               | 解锁；要求当前线程已获得锁; 类比同步块结束                   |
+| Condition newCondition();                                    | 新增一个绑定到当前Lock的条件； <br />示例: （类比: Object monitor） <br />final Lock lock = new ReentrantLock(); <br />final Condition notFull = lock.newCondition(); final Condition notEmpty = lock.newCondition(); |
+
+
+
+
+
+#### Lock 示例 
+
+思考:
+什么是可重入锁?
+-- 第二次进入时是否阻塞。
+
+什么是公平锁？
+-- 公平锁意味着排队靠前的优先。
+-- 非公平锁则是都是同样机会。 
+
+
+
+
+
+#### 读写锁 – 接口与实现 
+
+| 重要方法          | 说明                         |
+| ----------------- | ---------------------------- |
+| Lock readLock();  | 获取读锁; 共享锁             |
+| Lock writeLock(); | 获取写锁; 独占锁(也排斥读锁) |
+
+注意：ReadWriteLock 管理一组锁，一个读锁，一个写锁。
+读锁可以在没有写锁的时候被多个线程同时持有，写锁是独占的。
+
+所有读写锁的实现必须确保写操作对读操作的内存影响。每次只能有一个写线程，但是同时可以有多个线程并发地读数据。ReadWriteLock 适用于读多写少的并发情况。 
+
+
+
+#### 基础接口 - Condition
+
+| 重要方法                                                     | 说明                                                |
+| ------------------------------------------------------------ | --------------------------------------------------- |
+| void await() throws InterruptedException;                    | 等待信号; 类比 Object#wait()                        |
+| void awaitUninterruptibly();                                 | 等待信号;                                           |
+| boolean await(long time, TimeUnit unit) throws InterruptedException; | 等待信号; 超时则返回 false                          |
+| boolean awaitUntil(Date deadline) throws InterruptedException; | 等待信号; 超时则返回 false                          |
+| void signal();                                               | 给一个等待线程发送唤醒信号; 类比 Object#notify ()   |
+| void signalAll();                                            | 给所有等待线程发送唤醒信号; 类比 Object#notifyAll() |
+
+ 通过 Lock.newCondition()创建。
+
+可以看做是 Lock 对象上的信号。类似于 Object 中的 wait/notify。 
+
+
+
+#### LockSupport--锁当前线程 
+
+LockSupport 类似于 Thread 类的静态方法，专门处理（执行这个代码的）本线程的。
+
+思考：为什么 unpark 需要加一个线程作为参数？
+因为一个 park 的线程，无法自己唤醒自己，所以需要其他线程来唤醒。 
+
+
+
+#### 用锁的最佳实践
+
+Doug Lea《Java 并发编程：设计原则与模式》一书中，推荐的三个用锁的最佳实践，它们分别是：
+
+1. 永远只在更新对象的成员变量时加锁
+2. 永远只在访问可变的成员变量时加锁
+3. 永远不在调用其他对象的方法时加锁
+
+KK总结-最小使用锁：
+1、降低锁范围：锁定代码的范围/作用域
+2、细分锁粒度：讲一个大锁，拆分成多个小锁 
+
+ 
+
+### 并发原子类 
+
+#### Atomic 工具类
+
+1. 原子类工具包:
+java.util.concurrent.atomic 
+
+对比前面讲的，int sum，sum++线程不安全的例子。 
+
+ 
+
+#### 无锁技术 – Atomic 工具类 
+
+2. 无锁技术的底层实现原理
+• Unsafe API - Compare-And-Swap
+• CPU 硬件指令支持: CAS 指令 
+
+核心实现原理：
+1、volatile 保证读写操作都可见（注意不保证原子）；
+2、使用 CAS 指令，作为乐观锁实现，通过自旋重试保证写入。 
+
+ 
+
+#### 锁与无锁之争
+
+3. 思考一下，到底是有锁好，还是无锁好？
+什么情况下有锁好
+什么情况下无锁好
+乐观锁、悲观锁
+数据库事务锁 
+
+CAS 本质上没有使用锁。
+并发压力跟锁性能的关系：
+1、压力非常小，性能本身要求就不高；
+2、压力一般的情况下，无锁更快，大部分都一次写入；
+3、压力非常大时，自旋导致重试过多，资源消耗很大。 
+
+
+
+#### LongAdder 对 AtomicLong 的改进
+
+通过分段思想改进原子类，大家想想，还有哪些是用这个思想？
+
+多路归并的思想：
+
+- 快排
+- G1 GC
+- ConcurrentHashMap
+
+ 还记得我们讲的爬山，做一个大项目，都需要加里程碑，也是分段 
 
  
 
@@ -4545,167 +4915,7 @@ Java 里的常量替换。写代码最大化用 final 是个好习惯。
 
 
 
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
- 
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
- 
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
- 
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
- 
-
- 
-
-
-
-
-
-
+### 并发工具类 
 
 
 
