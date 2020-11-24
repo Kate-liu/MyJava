@@ -4474,7 +4474,7 @@ volatile 并不能保证原子性。
 
 #### synchronized 的实现
 
-1. 使用对象头标记字(Object monitor)
+1. 使用对象头标记字(Object monitor)（使用锁标志位，实现加解锁）
 2. Synchronized 方法优化
 3. 偏向锁: BiaseLock
 
@@ -4539,9 +4539,15 @@ Java 里的常量替换。写代码最大化用 final 是个好习惯。
 3. ThreadFactory: 线程工厂
 4. Excutors: 工具类 （线程池工厂）
 
+![1606206998119](JavaAdvanced.assets/1606206998119.png)
+
 
 
 ####  Executor – 执行者 
+
+| 重要方法                        | 说明             |
+| ------------------------------- | ---------------- |
+| void execute(Runnable command); | 执行可运行的任务 |
 
 线程池从功能上看，就是一个**任务执行器**
 
@@ -4550,6 +4556,10 @@ execute 方法 -> 无返回值
 
 submit 方法的异常可以在主线程中 catch 到。
 execute 方法执行任务是捕捉不到异常的。 
+
+![1606207176284](JavaAdvanced.assets/1606207176284.png)
+
+
 
 
 
@@ -4564,8 +4574,8 @@ execute 方法执行任务是捕捉不到异常的。
 | <T> Future<T> submit(Runnable task, T result); | 提交任务（指定结果）; 控制\|获取执行结果 |
 | <T> Future<T> submit(Callable<T> task);        | 提交任务; 允许控制任务和获取执行结果     |
 
-shutdown()：停止接收新任务，原来的任务继续执行
-shutdownNow()：停止接收新任务，原来的任务停止执行
+shutdown()：停止接收新任务，原来的任务**继续**执行
+shutdownNow()：停止接收新任务，原来的任务**停止**执行
 awaitTermination(long timeOut, TimeUnit unit)：当前线程阻塞 
 
 
@@ -4585,11 +4595,34 @@ ThreadPoolExecutor 提交任务逻辑:
 
 注意：一开始没有线程，来任务创建核心线程；然后将任务加到队列中缓一缓，再接着创建非核心线程，最后执行拒绝策略。
 
+```sh
+/*
+* Proceed in 3 steps:
+*
+* 1. If fewer than corePoolSize threads are running, try to
+* start a new thread with the given command as its first
+* task.  The call to addWorker atomically checks runState and
+* workerCount, and so prevents false alarms that would add
+* threads when it shouldn't, by returning false.
+*
+* 2. If a task can be successfully queued, then we still need
+* to double-check whether we should have added a thread
+* (because existing ones died since last checking) or that
+* the pool shut down since entry into this method. So we
+* recheck state and if necessary roll back the enqueuing if
+* stopped, or start a new thread if there are none.
+*
+* 3. If we cannot queue task, then we try to add a new
+* thread.  If it fails, we know we are shut down or saturated
+* and so reject the task.
+*/
+```
+
+![1606207725748](JavaAdvanced.assets/1606207725748.png)
 
 
-#### 线程池参数
 
-缓冲队列
+#### 线程池参数-缓冲队列
 
 **BlockingQueue** 是双缓冲队列。BlockingQueue 内部使用两条队列，允许两个线程同
 时向队列一个存储，一个取出操作。在保证并发安全的同时，提高了队列的存取效率。
@@ -4601,7 +4634,8 @@ ThreadPoolExecutor 提交任务逻辑:
 
  
 
-拒绝策略
+#### 线程池参数-拒绝策略
+
 1. ThreadPoolExecutor.AbortPolicy:丢弃任务并抛出 RejectedExecutionException异常。（默认策略，很常见）
 2. ThreadPoolExecutor.DiscardPolicy：丢弃任务，但是不抛出异常。（没有异常，不好，没法做补偿措施）
 3. ThreadPoolExecutor.DiscardOldestPolicy：丢弃队列最前面的任务，然后重新提交被拒绝的任务
@@ -4611,7 +4645,9 @@ ThreadPoolExecutor 提交任务逻辑:
 
 #### ThreadFactory 示例 
 
- 
+ ![1606208472314](JavaAdvanced.assets/1606208472314.png)
+
+
 
 #### ThreadPoolExecutor 
 
@@ -4633,7 +4669,7 @@ execute 与 submit 的区别，一个是有返回值，一个是没有返回值�
 
 #### ThreadPoolExecutor 示例 
 
- 
+![1606208897459](JavaAdvanced.assets/1606208897459.png)
 
 
 
@@ -4679,6 +4715,8 @@ execute 与 submit 的区别，一个是有返回值，一个是没有返回值�
 • Runnable#run()没有返回值
 • Callable#call()方法有返回值 
 
+![1606209565735](JavaAdvanced.assets/1606209565735.png)
+
 
 
 #### Future – 基础接口 
@@ -4693,7 +4731,7 @@ execute 与 submit 的区别，一个是有返回值，一个是没有返回值�
 
 注意：等待执行结果的时候，使用 Future 实现，最后使用 get 方法获得结果，设置一个超时时间，防止干等待，被阻塞。
 
- 
+![1606209642140](JavaAdvanced.assets/1606209642140.png)
 
 
 
@@ -4723,13 +4761,13 @@ execute 与 submit 的区别，一个是有返回值，一个是没有返回值�
 
 #### JDK 核心库的包 
 
-
+![1606209810351](JavaAdvanced.assets/1606209810351.png)
 
 
 
 #### Java.util.concurrency 
 
- 
+ ![1606209855221](JavaAdvanced.assets/1606209855221.png)
 
 锁机制类 Locks : Lock, Condition, ReadWriteLock
 原子操作类 Atomic : AtomicInteger
@@ -4763,8 +4801,11 @@ synchronized 方式的问题：
 2. 性能开销小
 3. 锁工具包: java.util.concurrent.locks
 
+![1606210086731](JavaAdvanced.assets/1606210086731.png)
+
  思考: Lock 的性能比 synchronized 高吗？ 
 
+```java
 Lock 接口设计：
 // 1.支持中断的 API
 void lockInterruptibly() throws InterruptedException;
@@ -4772,6 +4813,7 @@ void lockInterruptibly() throws InterruptedException;
 boolean tryLock(long time, TimeUnit unit) throws InterruptedException;
 // 3.支持非阻塞获取锁的 API
 boolean tryLock(); 
+```
 
 
 
@@ -4793,12 +4835,14 @@ boolean tryLock();
 #### Lock 示例 
 
 思考:
-什么是可重入锁?
+什么是可重入锁? (ReentrantLock, 默认是非公平锁)
 -- 第二次进入时是否阻塞。
 
 什么是公平锁？
 -- 公平锁意味着排队靠前的优先。
 -- 非公平锁则是都是同样机会。 
+
+![1606210400043](JavaAdvanced.assets/1606210400043.png)
 
 
 
@@ -4810,6 +4854,8 @@ boolean tryLock();
 | ----------------- | ---------------------------- |
 | Lock readLock();  | 获取读锁; 共享锁             |
 | Lock writeLock(); | 获取写锁; 独占锁(也排斥读锁) |
+
+![1606210694040](JavaAdvanced.assets/1606210694040.png)
 
 注意：ReadWriteLock 管理一组锁，一个读锁，一个写锁。
 读锁可以在没有写锁的时候被多个线程同时持有，写锁是独占的。
@@ -4837,6 +4883,8 @@ boolean tryLock();
 
 #### LockSupport--锁当前线程 
 
+![1606213728438](JavaAdvanced.assets/1606213728438.png)
+
 LockSupport 类似于 Thread 类的静态方法，专门处理（执行这个代码的）本线程的。
 
 思考：为什么 unpark 需要加一个线程作为参数？
@@ -4854,7 +4902,7 @@ Doug Lea《Java 并发编程：设计原则与模式》一书中，推荐的三�
 
 KK总结-最小使用锁：
 1、降低锁范围：锁定代码的范围/作用域
-2、细分锁粒度：讲一个大锁，拆分成多个小锁 
+2、细分锁粒度：将一个大锁，拆分成多个小锁 
 
  
 
@@ -4865,6 +4913,8 @@ KK总结-最小使用锁：
 1. 原子类工具包:
 java.util.concurrent.atomic 
 
+![1606214446472](JavaAdvanced.assets/1606214446472.png)
+
 对比前面讲的，int sum，sum++线程不安全的例子。 
 
  
@@ -4872,24 +4922,28 @@ java.util.concurrent.atomic
 #### 无锁技术 – Atomic 工具类 
 
 2. 无锁技术的底层实现原理
-• Unsafe API - Compare-And-Swap
+• Unsafe API ---> Compare-And-Swap
 • CPU 硬件指令支持: CAS 指令 
+
+![1606214700155](JavaAdvanced.assets/1606214700155.png)
 
 核心实现原理：
 1、volatile 保证读写操作都可见（注意不保证原子）；
-2、使用 CAS 指令，作为乐观锁实现，通过自旋重试保证写入。 
+2、使用 CAS 指令，作为**乐观锁**实现，通过自旋重试保证写入。 
 
  
 
 #### 锁与无锁之争
 
 3. 思考一下，到底是有锁好，还是无锁好？
-什么情况下有锁好
-什么情况下无锁好
-乐观锁、悲观锁
-数据库事务锁 
+  什么情况下有锁好
+  什么情况下无锁好
+
+  乐观锁、悲观锁
+  数据库事务锁 
 
 CAS 本质上没有使用锁。
+
 并发压力跟锁性能的关系：
 1、压力非常小，性能本身要求就不高；
 2、压力一般的情况下，无锁更快，大部分都一次写入；
@@ -4901,7 +4955,7 @@ CAS 本质上没有使用锁。
 
 通过分段思想改进原子类，大家想想，还有哪些是用这个思想？
 
-多路归并的思想：
+多路**归并**的思想：
 
 - 快排
 - G1 GC
@@ -4909,7 +4963,10 @@ CAS 本质上没有使用锁。
 
  还记得我们讲的爬山，做一个大项目，都需要加里程碑，也是分段 
 
- 
+ LongAdder 的改进思路：
+1、AtomicInteger 和 AtomicLong 里的 value 是所有线程竞争读写的热点数据；
+2、将单个 value 拆分成跟线程一样多的数组 Cell[]；
+3、每个线程写自己的 Cell[i]++，最后对数组求和。 
 
 
 
@@ -4917,7 +4974,17 @@ CAS 本质上没有使用锁。
 
 ### 并发工具类 
 
+#### 什么是并发工具类
 
+思考一下：
+多个线程之间怎么相互协作？
+
+前面讲到的：
+1、wait/notify，
+2、Lock/Condition,
+可以作为简单的协作机制。
+
+但是更复杂的，需要这些线程满足某些条件（数量，时间，）。 
 
 
 
