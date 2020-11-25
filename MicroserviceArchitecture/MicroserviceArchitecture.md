@@ -1173,21 +1173,23 @@ OpenId-Connect-Java-Spring-Server：https://github.com/mitreid-connect/OpenIDCon
 
 -  小D 每个用户限购10个！ 
 
-
+![1606295232335](MicroserviceArchitecture.assets/1606295232335.png)
 
 - 小D 每人限购2个！ 
 
-
+![1606295244811](MicroserviceArchitecture.assets/1606295244811.png)
 
 -  小S 每个用户限购10个！ 
 
-
+![1606295257182](MicroserviceArchitecture.assets/1606295257182.png)
 
 - 小S 每人限购2个！ 
 
-
+![1606295280006](MicroserviceArchitecture.assets/1606295280006.png)
 
 - 为什么要配置中心 
+
+![1606295313124](MicroserviceArchitecture.assets/1606295313124.png)
 
 
 
@@ -1234,6 +1236,8 @@ OpenId-Connect-Java-Spring-Server：https://github.com/mitreid-connect/OpenIDCon
 - 实时性
 - 治理
 
+![1606295425528](MicroserviceArchitecture.assets/1606295425528.png)
+
 
 
 ##### 公司案例和产品 
@@ -1243,6 +1247,8 @@ OpenId-Connect-Java-Spring-Server：https://github.com/mitreid-connect/OpenIDCon
 - Gatekeeper
 - Disconf(开源)
 - Apollo(开源)
+
+![1606295445713](MicroserviceArchitecture.assets/1606295445713.png)
 
 
 
@@ -1283,6 +1289,8 @@ OpenId-Connect-Java-Spring-Server：https://github.com/mitreid-connect/OpenIDCon
   - 应用配置
   - 功能开关
   - 业务配置
+
+![1606295511182](MicroserviceArchitecture.assets/1606295511182.png)
 
 
 
@@ -1385,6 +1393,8 @@ OpenId-Connect-Java-Spring-Server：https://github.com/mitreid-connect/OpenIDCon
 
 ##### TBD & CD 
 
+- Continuous Delivery
+
 ![1606228790751](MicroserviceArchitecture.assets/1606228790751.png)
 
 
@@ -1443,9 +1453,9 @@ OpenId-Connect-Java-Spring-Server：https://github.com/mitreid-connect/OpenIDCon
 
 
 
-##### Apollo核心概念 
+#### Apollo核心概念 
 
-###### 核心概念~应用(application) 
+##### 核心概念~应用(application) 
 
 唯一的appid 
 
@@ -1453,7 +1463,7 @@ OpenId-Connect-Java-Spring-Server：https://github.com/mitreid-connect/OpenIDCon
 
 
 
-###### 核心概念~环境(environment) 
+##### 核心概念~环境(environment) 
 
 DEV, FAT, UAT, PRO 
 
@@ -1463,7 +1473,7 @@ DEV, FAT, UAT, PRO
 
 
 
-###### 核心概念~集群(cluster) 
+##### 核心概念~集群(cluster) 
 
 默认数据中心作为cluster 
 
@@ -1473,7 +1483,7 @@ DEV, FAT, UAT, PRO
 
 
 
-###### 核心概念~名字空间(namespace) 
+##### 核心概念~名字空间(namespace) 
 
 - 一个应用下不同配置的分组 
 - 应用默认有自己的配置 
@@ -1484,7 +1494,7 @@ DEV, FAT, UAT, PRO
 
 
 
-###### 名字空间类型 
+##### 名字空间类型 
 
 - 私有(Private)类型
 - 公有(Public)类型
@@ -1494,19 +1504,19 @@ DEV, FAT, UAT, PRO
 
 
 
-###### 关联类型案例 
+##### 关联类型案例 
 
 ![1606268871350](MicroserviceArchitecture.assets/1606268871350.png)
 
 
 
-###### 核心概念~配置项(item) 
+##### 核心概念~配置项(item) 
 
 ![1606268912401](MicroserviceArchitecture.assets/1606268912401.png)
 
 
 
-###### 核心概念~权限 
+##### 核心概念~权限 
 
 - 编辑和发布权限分离
 
@@ -1528,9 +1538,10 @@ DEV, FAT, UAT, PRO
   docker exec -i apollo-quick-start /apollo-quick-start/demo.sh client
   ```
 
-- http://{portal地址}/user-manage.html 
-  - 用户管理界面：http://localhost:8070/user-manage.html
-
+- 超级管理员添加新用户：http://{portal地址}/user-manage.html 
+  
+- 用户管理界面：http://localhost:8070/user-manage.html
+  
 - 使用新用户，添加新的项目之后，想要直接发布成功，需要启动对应的client
   - vi client\META-INF\app.properties
   - 更改app.id=xxx
@@ -1538,15 +1549,11 @@ DEV, FAT, UAT, PRO
 
 
 
-
-
-
-
 #### Apollo架构设计之服务器端 
 
 ##### 架构视图1 
 
-
+![1606296002857](MicroserviceArchitecture.assets/1606296002857.png)
 
 
 
@@ -1558,6 +1565,8 @@ DEV, FAT, UAT, PRO
 - Admin Service 
 - Meta Server 
 
+![1606296095030](MicroserviceArchitecture.assets/1606296095030.png)
+
 
 
 ##### 模块介绍2 
@@ -1566,7 +1575,7 @@ DEV, FAT, UAT, PRO
 - Portal 
 - Client 
 
-
+![1606296106673](MicroserviceArchitecture.assets/1606296106673.png)
 
 
 
@@ -1808,6 +1817,8 @@ CAT：https://github.com/dianping/cat
 
 ##### 场景~无线app接入apollo 
 
+- 注意：这里只能使用 token 的方式实现，没法做到数据的加密等操作。
+
 - 授权：http://localhost:8070/open/manage.html
 
 - 第三注册，生成Token
@@ -1962,10 +1973,10 @@ Feature Flag Driven Development
 https://blog.launchdarkly.com/feature-flag-driven-development/
 
 Feature flagging to mitigate risk in database migration
-https://blog.launchdarkly.com/feature-flagging-to-mitigate-riskin-database-migration/
+https://blog.launchdarkly.com/feature-flagging-to-mitigate-risk-in-database-migration/
 
 Trunk based Development 
-https://www.continuousdeliveryconsulting.com/blog/organisationpattern-trunk-based-development/ 
+https://www.stevesmith.tech/blog/organisation-pattern-trunk-based-development/
 
 
 
@@ -1982,10 +1993,17 @@ Github站点
 https://github.com/ctripcorp/apollo
 
 Apollo源码解析(宇道源码) 
+http://www.iocoder.cn/categories/Apollo/
 
 
 
 ##### Spring Cloud Config 
+
+Dive into Spring Cloud Config
+https://nobodyiam.com/2016/04/02/dive-into-spring-cloud-config/
+
+Spring Cloud Config
+https://spring.io/projects/spring-cloud-config
 
 
 
@@ -1995,6 +2013,7 @@ Apollo源码解析(宇道源码)
 https://github.com/knightliao/disconf
 
 Qihoo360 QConf 
+https://github.com/Qihoo360/QConf
 
 Netflix Archaius（客户端） （可以扩展对接Apollo）
 https://github.com/Netflix/archaius
@@ -2006,6 +2025,8 @@ https://github.com/Netflix/archaius
 [Feature Flags, Toggles, Controls](https://featureflags.io/)：https://featureflags.io/
 
 https://launchdarkly.com/
+
+![1606297535046](MicroserviceArchitecture.assets/1606297535046.png)
 
 
 
