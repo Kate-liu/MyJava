@@ -1397,81 +1397,144 @@ OpenId-Connect-Java-Spring-Server：https://github.com/mitreid-connect/OpenIDCon
 
 #### 携程Apollo配置中心简介 
 
+##### 背景 
 
+- 2016年
+- https://github.com/ctripcorp/apollo
 
+![1606267816926](MicroserviceArchitecture.assets/1606267816926.png)
 
 
 
+##### 功能亮点 
 
+- 统一管理不同环境、不同集群的配置
+- 配置修改实时生效（热发布）
+- 版本发布管理
+- 灰度发布（5->10->100-> 全部发布）
+- 权限管理、发布审核、操作审计
+- 客户端配置信息监控
+- 提供Java和.Net原生客户端
+- 提供开放平台API
+- 部署简单
+- 文档完善 
 
 
 
+##### 简化架构 
 
+![1606268065416](MicroserviceArchitecture.assets/1606268065416.png)
 
 
 
 
 
+##### Apollo主界面 
 
+![配置界面](MicroserviceArchitecture.assets/apollo-home-screenshot.jpg)
 
 
 
+##### 已知接入公司 
 
+- https://github.com/ctripcorp/apollo#contribution
 
+![1606268207208](MicroserviceArchitecture.assets/1606268207208.png)
 
 
 
+##### Apollo核心概念 
 
+###### 核心概念~应用(application) 
 
+唯一的appid 
 
+![1606268414093](MicroserviceArchitecture.assets/1606268414093.png)
 
 
 
+###### 核心概念~环境(environment) 
 
+DEV, FAT, UAT, PRO 
 
+![1606268493101](MicroserviceArchitecture.assets/1606268493101.png)
 
 
 
 
 
+###### 核心概念~集群(cluster) 
 
+默认数据中心作为cluster 
 
+不同区拿到不同的配置信息
 
+![1606268608079](MicroserviceArchitecture.assets/1606268608079.png)
 
 
 
+###### 核心概念~名字空间(namespace) 
 
+- 一个应用下不同配置的分组 
+- 应用默认有自己的配置 
+- 也可以使用公共组件的配置
 
 
+![1606268654994](MicroserviceArchitecture.assets/1606268654994.png)
 
 
 
+###### 名字空间类型 
 
+- 私有(Private)类型
+- 公有(Public)类型
+- 关联类型(继承类型) 
 
+![1606268806991](MicroserviceArchitecture.assets/1606268806991.png)
 
 
 
+###### 关联类型案例 
 
+![1606268871350](MicroserviceArchitecture.assets/1606268871350.png)
 
 
 
+###### 核心概念~配置项(item) 
 
+![1606268912401](MicroserviceArchitecture.assets/1606268912401.png)
 
 
 
+###### 核心概念~权限 
 
+- 编辑和发布权限分离
 
+![1606268949650](MicroserviceArchitecture.assets/1606268949650.png)
 
 
 
 
 
+#### Apollo快速起步 
 
+- 参考：https://github.com/ctripcorp/apollo/wiki/Apollo-Quick-Start-Docker%E9%83%A8%E7%BD%B2
 
+- 在docker-quick-start目录下执行`docker-compose up`
 
+- 在Docker环境下需要通过下面的命令运行Demo客户端：
 
+  ```
+  docker exec -i apollo-quick-start /apollo-quick-start/demo.sh client
+  ```
 
+- http://{portal地址}/user-manage.html 
+  - 用户管理界面：http://localhost:8070/user-manage.html
 
+- 使用新用户，添加新的项目之后，想要直接发布成功，需要启动对应的client
+  - vi client\META-INF\app.properties
+  - 更改app.id=xxx
+  - docker exec -i apollo-quick-start /apollo-quick-start/demo.sh client
 
 
 
@@ -1479,7 +1542,9 @@ OpenId-Connect-Java-Spring-Server：https://github.com/mitreid-connect/OpenIDCon
 
 
 
+#### Apollo架构设计之服务器端 
 
+##### 架构视图1 
 
 
 
@@ -1487,206 +1552,398 @@ OpenId-Connect-Java-Spring-Server：https://github.com/mitreid-connect/OpenIDCon
 
 
 
+##### 模块介绍1 
 
+- Config Service 
+- Admin Service 
+- Meta Server 
 
 
 
+##### 模块介绍2 
 
+- Eureka 
+- Portal 
+- Client 
 
 
 
 
 
+##### 架构视图2 
 
+![1606272960201](MicroserviceArchitecture.assets/1606272960201.png)
 
 
 
 
 
+##### 领域模型 
 
+![1606273132673](MicroserviceArchitecture.assets/1606273132673.png)
 
 
 
+##### 权限模型 
 
+![1606273165453](MicroserviceArchitecture.assets/1606273165453.png)
 
 
 
+##### 实时推送设计 
 
+![1606273210649](MicroserviceArchitecture.assets/1606273210649.png)
 
 
 
+##### ReleaseMessage实现 
 
+- 使用数据库当做队列
 
+![1606273247857](MicroserviceArchitecture.assets/1606273247857.png)
 
 
 
+#### Apollo架构设计之客户端 
 
+##### 客户端架构
 
+- 双保险：配置更新推动+定时拉去配置
 
+![1606273312632](MicroserviceArchitecture.assets/1606273312632.png)
 
 
 
+##### 客户端实现总结 
 
+![1606273449909](MicroserviceArchitecture.assets/1606273449909.png)
 
 
 
+#### Apollo架构设计之高可用和监控 
 
+##### Apollo HA高可用设计 
 
+![1606273496545](MicroserviceArchitecture.assets/1606273496545.png)
 
 
 
+##### HA图例 
 
+![1606272960201](MicroserviceArchitecture.assets/1606272960201.png)
 
 
 
+##### Apollo监控 
 
+- 内置支持CAT 
+- 定制扩展 
+- 关键指标
 
+CAT：https://github.com/dianping/cat
 
+![1606273743847](MicroserviceArchitecture.assets/1606273743847.png)
 
 
 
+#### Apollo分布式部署指南 
 
+##### 先决条件 
 
+![1606273845082](MicroserviceArchitecture.assets/1606273845082.png)
 
 
 
+##### 部署案例~ctrip 
 
+- 携程部署案例
 
+![1606273928995](MicroserviceArchitecture.assets/1606273928995.png)
 
 
 
+##### 部署图例 
 
+![1606272960201](MicroserviceArchitecture.assets/1606272960201.png)
 
 
 
+##### 关键配置和注意点 
 
+- 创建数据库
+- Portal DB 部署一份，调整好
+- Config DB 部署 双活，多份
 
+![1606274076426](MicroserviceArchitecture.assets/1606274076426.png)
 
 
 
+#### Apollo Java客户端和多语言接入 
 
+##### 环境要求 
 
+- Java 1.7+ 
+- Guava: 15.0+
+  • Apollo客户端默认会引用Guava 19，如果你的项目引入
+  了其它版本，请确保版本号>=15.0 
 
 
 
+##### AppId 
 
+![1606274280103](MicroserviceArchitecture.assets/1606274280103.png)
 
 
 
+##### 配置中心地址
 
+- 客户端读取MetaServer地址方式
+- 启动参数-Ddev_meta=http://someIp:8080
+- apollo-core.jar中的apollo-env.properties（ 推荐）
+- classpath中单独一份app-env.properties
+  • local.meta=http://localhost:8080
+  • dev.meta=http://dev-apconfig.spring2go.com
+  • fat.meta=http://fat-apconfig.spring2go.com
+  • uat.meta=http://uat-apconfig.spring2go.com
+  • pro.meta=http://apconfig.spring2go.com 
 
 
 
+##### 运行环境设置Environment
 
+- 客户端所在运行环境Env
+- 启动参数-Denv=YOUR-ENV，注意key小写
+- OS环境变量ENV，注意key大写
+- 配置文件（ 推荐）
+  • Mac/Linux，文件位置为opt/settings/server.properties
+  • Windows，文件位置为C:\opt\settings\server.properties
+  • 格式env=DEV
+  • 支持DEV/FAT/UAT/PRO
+  • 本地开发模式env=Local 
 
 
 
+##### 可选集群Cluster
 
+- 一个环境中的一个app，对不同的集群可以有不同的配置
+- 启动参数-Dapollo.cluster=app_cluster_v1, key全小写
+- 通过配置文件（ 推荐）
+  • Mac/Linux，文件位置为opt/settings/server.properties
+  • Windows，文件位置为C:\opt\settings\server.properties
+  • 可设置数据中心集群idc=xyz，注意key全小写 
 
 
 
+##### 本地缓存路径
 
+- 本地容灾降级，本地调试
+- Mac/Linux: /opt/data/{appId}/config-cache
+- Windows: C:\opt\data\{appId}\config-cache
+- 注意应用需要有读写权限
+- 文件名{appId}-{cluster}-{namespace}.properties 
 
 
 
+##### Apollo Client Jar依赖
 
+参考[部署指南](https://github.com/ctripcorp/apollo/wiki/%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2%E6%8C%87%E5%8D%97)打包到自己公司maven私服
 
+• <dependency>
+• <groupId>com.ctrip.framework.apollo</groupId>
+• <artifactId>apollo-client</artifactId>
+• <version>0.9.1</version>
+• </dependency> 
 
 
 
+##### 其它语言接入
 
+- [.Net客户端使用指南](https://github.com/ctripcorp/apollo/wiki/.Net%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97)原生支持
+-  [Go、 Python、 NodeJS]第三方客户端 
+-  [Apollo Http接口](https://github.com/ctripcorp/apollo/wiki/%E5%85%B6%E5%AE%83%E8%AF%AD%E8%A8%80%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%8E%A5%E5%85%A5%E6%8C%87%E5%8D%97)其它语言接入 
 
 
 
+#### Apollo Client API实操 
 
+- com.ctrip.framework.apollo.demo.api.ApolloConfigDemo
+- 本地配置缓存：C:\opt\data\appId\config-cache
 
 
 
+#### Apollo Client和Spring集成~XML方式 
 
+- com.ctrip.framework.apollo.demo.spring.xmlConfigDemo.XmlApplication
 
+- 优先级配置
 
+  - ```
+    <apollo:config order="10"/><apollo:config namespaces="TEST1.apollo,application.yaml" order="11"/>
+    ```
 
 
 
+#### Apollo Client和Spring集成~代码方式 
 
+- com.ctrip.framework.apollo.demo.spring.javaConfigDemo.AnnotationApplication
+- 配置重载
+- `@ApolloJsonValue`
+  - 进行 json 的自动绑定
 
 
 
 
 
+#### Apollo Client和Spring Boot集成 
 
+- com.ctrip.framework.apollo.demo.spring.springBootDemo.SpringBootSampleApplication
 
+- ```
+  @ConditionalOnProperty("redis.cache.enabled")
+  ```
 
 
 
+#### Apollo开放平台接入实操 
 
+##### 场景~无线app接入apollo 
 
+- 授权：http://localhost:8070/open/manage.html
 
+- 第三注册，生成Token
 
+- 获取App环境，集群信息
 
+  - URL : http://{portal_address}/openapi/v1/apps/{appId}/envclusters
 
+- 获取集群下所有Namespace信息接口
 
+  - URL : http://{portal_address}/openapi/v1/envs/{env}/apps/{appId}/clusters/{clusterName}/namespaces
 
+- 获取某个Namespace信息接口
 
+  URL ： http://{portal_address}/openapi/v1/envs/{env}/apps/{appId}/clusters/{clusterName}/namespaces/{namespaceName}
 
+![1606274981172](MicroserviceArchitecture.assets/1606274981172.png)
 
 
 
 
 
+#### Spring Cloud Config简介 
 
+##### Spring Cloud Config简介1 
 
+![1606291939141](MicroserviceArchitecture.assets/1606291939141.png)
 
 
 
+##### Spring Cloud Config简介2
 
+- 存储在 GIt 中
+- 与Spring 无缝集成
+- 设计简单
+- 没有动态配置，业务管理开关
+- 适合中小项目，不适合大型项目
 
+![1606292431179](MicroserviceArchitecture.assets/1606292431179.png)
 
 
 
+##### Config Server接口样例 
 
+接口URL:/{application}/{profile}/{label} 
 
+![1606292599253](MicroserviceArchitecture.assets/1606292599253.png)
 
 
 
+##### 简化架构 
 
+![1606292630182](MicroserviceArchitecture.assets/1606292630182.png)
 
 
 
+##### Config Client实现细节 
 
+- Environment
 
+![1606292653620](MicroserviceArchitecture.assets/1606292653620.png)
 
 
 
+##### 动态配置实现 
 
+- RefreshScope
 
+![1606292691561](MicroserviceArchitecture.assets/1606292691561.png)
 
 
 
+#### Apollo vs Spring Cloud Config 
 
+结论： Apollo是企业生产级配置中心，适用范围更广
 
+| 功能点         | Apollo                                            | Spring Cloud Config                             |
+| -------------- | ------------------------------------------------- | ----------------------------------------------- |
+| 配置界面       | 统一界面管理不同环境/集群配置                     | 无，通过git操作                                 |
+| 配置生效时间   | 实时                                              | 重启生效，或者Refresh，或git hook + MQ扩展      |
+| 版本管理       | 界面上直接提供发布历史和回滚按钮                  | 无，通过git操作                                 |
+| 灰度发布       | 支持                                              | 不支持                                          |
+| 授权/审计/审核 | 界面上直接操作，且支持修改和发布权限分离          | 需要通过git仓库设置，且不支持修改和发布权限分离 |
+| 实例配置监控   | 可以方便看到当前哪些客户端在使用哪些配置          | 不支持                                          |
+| 配置获取性能   | 快，通过数据库访问+缓存支持                       | 较慢，需从git clone repo，然后本地文件读取      |
+| 客户端支持     | 原生支持Java/.Net，提供API，支持Spring annotation | Spring应用+annotation支持                       |
 
 
 
 
 
+#### Apollo FAQ和开发常见问题 
 
+##### 常见FAQ
 
+- Cluster是什么？
+  一个应用不同实例的分组，比如典型的多机房部署按数据中心分集群。
 
+- Namespace是什么？
+  一个应用下不同配置的分组，例如应用配置application，中间件配置framework，数据库配置database
 
+- 多个应用想使用同一份配置，如何做到？
+  使用公有Namespace
 
+- 客户端访问配置是否有权限，是否支持配置加密？
+  Apollo Client获取配置没有做权限管控，配置加密需要应用层自己实现
 
 
 
+##### 应用开发常见问题
 
+- 本地开发没有问题，为什么线上会出问题
+  首先检查服务器上对应的data文件夹读写权限，此权限对应的是程序运行时所对应的角色； 环境是否配对
 
+- 为什么不能进行编辑发布操作
+  编辑和发布权限需要管理员授权，即使是管理员自己需要自己给自己授权
 
+- 接入了apollo值不更新怎么办？
+  - 通过Config每次获取最新值，
+  - 监听配置变更事件，
+  - Spring RefreshScope
 
+- 一个应用可以创建多个版本的配置吗？
+  使用集群Cluster 
 
 
 
+##### 高级功能和定制参考 
 
+- Apollo开发指南：https://github.com/ctripcorp/apollo/wiki/Apollo%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97
+- 灰度发布使用指南：https://github.com/ctripcorp/apollo/wiki/Apollo%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97#%E4%BA%94%E7%81%B0%E5%BA%A6%E5%8F%91%E5%B8%83%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97
+- Portal 实现用户登录功能：https://github.com/ctripcorp/apollo/wiki/Portal-%E5%AE%9E%E7%8E%B0%E7%94%A8%E6%88%B7%E7%99%BB%E5%BD%95%E5%8A%9F%E8%83%BD
+- 邮件模板样例：https://github.com/ctripcorp/apollo/wiki/%E9%82%AE%E4%BB%B6%E6%A8%A1%E6%9D%BF%E6%A0%B7%E4%BE%8B
+- 部署&开发遇到的常见问题：https://github.com/ctripcorp/apollo/wiki/%E9%83%A8%E7%BD%B2&%E5%BC%80%E5%8F%91%E9%81%87%E5%88%B0%E7%9A%84%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98
 
+![1606293651794](MicroserviceArchitecture.assets/1606293651794.png)
 
 
 
@@ -1694,72 +1951,67 @@ OpenId-Connect-Java-Spring-Server：https://github.com/mitreid-connect/OpenIDCon
 
 
 
+#### 参考资源和后续课程预览 
 
+##### 参考文章
 
+微服务来了，配置怎么办？
+http://p.primeton.com/articles/59f2c45e4be8e639a5002b84
 
+Feature Flag Driven Development
+https://blog.launchdarkly.com/feature-flag-driven-development/
 
+Feature flagging to mitigate risk in database migration
+https://blog.launchdarkly.com/feature-flagging-to-mitigate-riskin-database-migration/
 
+Trunk based Development 
+https://www.continuousdeliveryconsulting.com/blog/organisationpattern-trunk-based-development/ 
 
 
 
+##### 参考ppt
 
+百倍速交付~谈Trunk-Based Development
+https://www.slideshare.net/bryan0817/trunkbased-development 
 
 
 
+##### 携程Apollo参考 
 
+Github站点
+https://github.com/ctripcorp/apollo
 
+Apollo源码解析(宇道源码) 
 
 
 
+##### Spring Cloud Config 
 
 
 
+##### 其它开源配置中心产品 
 
+百度Disconf
+https://github.com/knightliao/disconf
 
+Qihoo360 QConf 
 
+Netflix Archaius（客户端） （可以扩展对接Apollo）
+https://github.com/Netflix/archaius
 
 
 
+##### SaaS服务 
 
+[Feature Flags, Toggles, Controls](https://featureflags.io/)：https://featureflags.io/
 
+https://launchdarkly.com/
 
 
 
+##### 后续课程预览~技术体系
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+![1605682470104](./MicroserviceArchitecture.assets/1605682470104.png)
 
 
 
