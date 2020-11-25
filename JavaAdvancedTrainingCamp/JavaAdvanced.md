@@ -5088,51 +5088,162 @@ https://github.com/kimmking/JavaCourseCodes/tree/main/03concurrency/0301/src/mai
 
 ## Java 并发编程 --安全编程与面试经验
 
+### 常用线程安全类型
+
+#### JDK 基础数据类型与集合类
+
+- 原生类型，
+- 数组类型，
+- 对象引用类型
+- 注意：Properties的坑，java.util.Properties#getProperty(java.lang.String)，如果取出来的对象不是String，就直接设置为 null。
+
+
+
+#### ArrayList
+
+基本特点：基于数组，便于按 index 访问，超过数组需要扩容，扩容成本较高
+
+用途：大部分情况下操作一组数据都可以用 ArrayList
+
+原理：使用数组模拟列表，默认大小10，扩容 x1.5，newCapacity = oldCapacity +(oldCapacity >> 1)
+
+安全问题：
+
+1、写冲突：
+
+- 两个写，相互操作冲突
+
+2、读写冲突：
+
+- 读，特别是 iterator 的时候，数据个数变了，拿到了非预期数据或者报错
+- 产生ConcurrentModificationException
+
+
+
+#### LinkedList
+
+基本特点：使用双链表实现，无需扩容
+
+用途：不知道容量，插入变动多的情况
+
+原理：使用双向指针将所有节点连起来
+
+安全问题：
+
+1、写冲突：
+
+- 两个写，相互操作冲突
+
+2、读写冲突：
+
+- 读，特别是 iterator 的时候，数据个数变了，拿到了非预期数据或者报错
+- 产生 ConcurrentModificationException
+
+
+
+#### List 线程安全的简单办法
+
+既然线程安全是写冲突和读写冲突导致的
+
+最简单办法就是，读写都加锁。
+
+例如：
+
+- 1.ArrayList 的方法都加上 synchronized -> Vector
+- 2.Collections.synchronizedList，强制将 List 的操作加上同步
+- 3.Arrays.asList，不允许添加删除，但是可以 set 替换元素
+- 4.Collections.unmodifiableList，不允许修改内容，包括添加删除和 set
+
+
+
+#### CopyOnWriteArrayList
+
+核心改进原理（应用发布，滚动停机，发布）：
+1、写加锁，保证不会写混乱
+2、写在一个 Copy 副本上，而不是原始数据上（GC young 区用复制，old 区用本区内的移动）
+
+读写分离
+最终一致
+
+1、插入元素时，在新副本操作，不影响旧引用，why?
+
+2、删除元素时，
+1）删除末尾元素，直接使用前 N-1 个元素创建一个新数组。
+2）删除其他位置元素，创建新数组，将剩余元素复制到新数组。
+
+3、读取不需要加锁，why？
+
+4、使用迭代器的时候，直接拿当前的数组对象做一个快照，此后的 List元素变动，就跟这次迭代没关系了。
+想想：淘宝商品 item 的快照。商品价格会变，每次下单都会生成一个当时商品信息的快照。
 
 
 
 
 
+#### HashMap
+
+基本特点：空间换时间，哈希冲突不大的情况下查找数据性能很高
+
+用途：存放指定 key 的对象，缓存对象
+
+原理：使用 hash 原理，存 k-v 数据，初始容量16，扩容 x2，负载因子0.75
+JDK8 以后，在链表长度到8 & 数组长度到64时，使用红黑树。
+
+安全问题：
+1、写冲突，
+2、读写问题，可能会死循环
+3、keys()无序问题
 
 
 
+#### LinkedHashMap
+
+基本特点：继承自 HashMap，对 Entry 集合添加了一个双向链表
+
+用途：保证有序，特别是 Java8 stream 操作的 toMap 时使用
+
+原理：同 LinkedList，包括插入顺序和访问顺序
+
+安全问题：
+同 HashMap
 
 
 
+#### ConcurrentHashMap-Java7 分段锁
+
+分段锁
+默认16个Segment，降低锁粒度。
+concurrentLevel = 16
+
+想想：
+Segment[] ~ 分库
+HashEntry[] ~ 分表
 
 
 
+#### ConcurrentHashMap-Java8
+
+Java 7为实现并行访问，引入了Segment 这一结构，实现了分段锁，理论上最大并发度与 Segment 个数相等。
+
+Java 8为进一步提高并发性，摒弃了分段锁的方案，而是直接使用一个大的数组。
+
+why?
+
+putIfAbsent() 方法
 
 
 
+#### 并发集合类总结
 
 
 
+### 并发编程相关内容
+
+线程安全操作利器 - ThreadLocal
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+3：10
 
 
 
