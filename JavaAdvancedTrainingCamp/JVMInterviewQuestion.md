@@ -43,7 +43,7 @@ JVM是Java程序运行的底层平台，与Java支持库一起构成了Java程�
 
 JDK = JRE + 开发调试诊断工具
 
-JRE = JVM + Java标准库 
+JRE = JVM + Java标准库 (核心类库)
 
 
 
