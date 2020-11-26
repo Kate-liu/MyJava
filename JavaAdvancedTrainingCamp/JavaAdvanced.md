@@ -1,4 +1,4 @@
-# Java Advanced
+Java Advanced
 
 
 
@@ -4984,9 +4984,7 @@ CAS 本质上没有使用锁。
 2、Lock/Condition,
 可以作为简单的协作机制。
 
-但是更复杂的，需要这些线程满足某些条件（数量，时间，）。 
-
-
+但是更复杂的，需要这些线程满足某些条件（数量，时间）。 
 
 更复杂的应用场景，比如
 
@@ -5002,6 +5000,8 @@ CAS 本质上没有使用锁。
 - AbstractQueuedSynchronizer：抽象队列式的同步器
 - 两种资源共享方式: 独占 | 共享，子类负责实现公平 OR 非公平 
 
+![1606364771330](JavaAdvanced.assets/1606364771330.png)
+
 
 
 #### Semaphore - 信号量
@@ -5011,6 +5011,16 @@ CAS 本质上没有使用锁。
 
 使用场景：同一时间控制并发线程数
 
+注意：
+
+- 可以使用 数量控制一次操作的线程个数
+- 在每一个子线程中进行各自 信号量的 acquire() or release()
+- 默认非公平同步，即使用 AQS 实现队列，进行先来后到的排序
+
+![1606364852952](JavaAdvanced.assets/1606364852952.png)
+
+
+
 
 
 #### CountdownLatch 
@@ -5019,9 +5029,27 @@ CAS 本质上没有使用锁。
 
 示例: 等所有人干完手上的活，一起去吃饭。 
 
+注意：
+
+- 一般会给出CountDownLatch的个数count
+- 当多个线程中的某count个线程完成任务之后，就不会继续await()，而是直接await()后面的程序
+- 使用线程池的时候，需要确保countDownLatch.countDown()被执行，不然await()会等到天荒地来，并且 还需要显式的关闭线程池exec.shutdown()
+
+| 要方法                                     | 说明             |
+| ------------------------------------------ | ---------------- |
+| public CountDownLatch(int count)           | 构造方法（总数） |
+| void await() throws InterruptedException   | 等待数量归0      |
+| boolean await(long timeout, TimeUnit unit) | 限时等待         |
+| void countDown()                           | 等待数减1        |
+| long getCount()                            | 返回剩余数量     |
+
+![1606366988519](JavaAdvanced.assets/1606366988519.png)
+
 
 
 #### CountDownLatch 示例 
+
+![1606367053436](JavaAdvanced.assets/1606367053436.png)
 
 
 
@@ -5031,19 +5059,46 @@ CAS 本质上没有使用锁。
 - 场景: 任务执行到一定阶段, 等待其他任务对齐。
 - 示例: 等待所有人都到达，再一起开吃。 
 
+注意：
+
+- 每一次使用的时候，创建一个回调方法，给定一个调用回调的阈值
+- 在单个线程中调用cyc.await(); 
+- 一旦到达调用回调的阈值，就会调用回调方法
+- 当调用之后，就会开始下一轮等待，后续再次到达阈值，还是继续调用回调
+
+| 重要方法                                                  | 说明                                       |
+| --------------------------------------------------------- | ------------------------------------------ |
+| public CyclicBarrier(int parties)                         | 构造方法（需要等待的数量）                 |
+| public CyclicBarrier(int parties, Runnable barrierAction) | 构造方法（需要等待的数量, 需要执行的任务） |
+| int await()                                               | 任务内部使用; 等待大家都到齐               |
+| int await(long timeout, TimeUnit unit)                    | 任务内部使用; 限时等待到齐                 |
+| void reset()                                              | 重新一轮                                   |
+
+![1606367714364](JavaAdvanced.assets/1606367714364.png)
+
 
 
 #### CyclicBarrier 示例
+
+![1606367755167](JavaAdvanced.assets/1606367755167.png)
+
+
 
 
 
 #### CountDownLatch 与 CyclicBarrier 比较 
 
+![1606368649611](JavaAdvanced.assets/1606368649611.png)
+
+![1606368928117](JavaAdvanced.assets/1606368928117.png)
+
 
 
 #### Future/FutureTask/CompletableFuture 
 
+![1606369758465](JavaAdvanced.assets/1606369758465.png)
 
+![1606369807430](JavaAdvanced.assets/1606369807430.png)
 
 
 
@@ -5060,6 +5115,8 @@ CAS 本质上没有使用锁。
 | T getNow(T valueIfAbsent)                                    | 立即获取结果(默认值)       |
 | ……                                                           |                            |
 
+![1606370209453](JavaAdvanced.assets/1606370209453.png)
+
 
 
 
@@ -5068,7 +5125,8 @@ CAS 本质上没有使用锁。
 
 #### 总结回顾
 
-1. Java 到底什么是锁 并发包（*JUC）
+1. Java  并发包（*JUC）
+2. 到底什么是锁
 3. 并发原子类*
 4. 并发工具类详解* 
 
@@ -5086,6 +5144,8 @@ https://github.com/kimmking/JavaCourseCodes/tree/main/03concurrency/0301/src/mai
 
 
 
+
+
 ## Java 并发编程 --安全编程与面试经验
 
 ### 常用线程安全类型
@@ -5096,6 +5156,10 @@ https://github.com/kimmking/JavaCourseCodes/tree/main/03concurrency/0301/src/mai
 - 数组类型，
 - 对象引用类型
 - 注意：Properties的坑，java.util.Properties#getProperty(java.lang.String)，如果取出来的对象不是String，就直接设置为 null。
+- 注意：Stack 和 Queue ，一个是类，一个是接口，并且都是线性数据结构
+- 注意：LinkedList，属于杂交水稻
+
+![1606375042781](JavaAdvanced.assets/1606375042781.png)
 
 
 
@@ -5118,6 +5182,8 @@ https://github.com/kimmking/JavaCourseCodes/tree/main/03concurrency/0301/src/mai
 - 读，特别是 iterator 的时候，数据个数变了，拿到了非预期数据或者报错
 - 产生ConcurrentModificationException
 
+![1606375169897](JavaAdvanced.assets/1606375169897.png)
+
 
 
 #### LinkedList
@@ -5139,6 +5205,8 @@ https://github.com/kimmking/JavaCourseCodes/tree/main/03concurrency/0301/src/mai
 - 读，特别是 iterator 的时候，数据个数变了，拿到了非预期数据或者报错
 - 产生 ConcurrentModificationException
 
+![1606375228590](JavaAdvanced.assets/1606375228590.png)
+
 
 
 #### List 线程安全的简单办法
@@ -5154,27 +5222,38 @@ https://github.com/kimmking/JavaCourseCodes/tree/main/03concurrency/0301/src/mai
 - 3.Arrays.asList，不允许添加删除，但是可以 set 替换元素
 - 4.Collections.unmodifiableList，不允许修改内容，包括添加删除和 set
 
+![1606375390523](JavaAdvanced.assets/1606375390523.png)
+
+
+
 
 
 #### CopyOnWriteArrayList
 
 核心改进原理（应用发布，滚动停机，发布）：
 1、写加锁，保证不会写混乱
-2、写在一个 Copy 副本上，而不是原始数据上（GC young 区用复制，old 区用本区内的移动）
+2、写在一个 Copy **副本**上，而不是原始数据上（GC young 区用复制，old 区用本区内的移动）
+![1606375490681](JavaAdvanced.assets/1606375490681.png)
 
 读写分离
+
 最终一致
 
 1、插入元素时，在新副本操作，不影响旧引用，why?
+![1606375595509](JavaAdvanced.assets/1606375595509.png)
 
 2、删除元素时，
 1）删除末尾元素，直接使用前 N-1 个元素创建一个新数组。
 2）删除其他位置元素，创建新数组，将剩余元素复制到新数组。
+![1606375712459](JavaAdvanced.assets/1606375712459.png)
 
 3、读取不需要加锁，why？
+![1606375868256](JavaAdvanced.assets/1606375868256.png)
 
 4、使用迭代器的时候，直接拿当前的数组对象做一个快照，此后的 List元素变动，就跟这次迭代没关系了。
 想想：淘宝商品 item 的快照。商品价格会变，每次下单都会生成一个当时商品信息的快照。
+
+![1606375987550](JavaAdvanced.assets/1606375987550.png)
 
 
 
@@ -5193,6 +5272,8 @@ JDK8 以后，在链表长度到8 & 数组长度到64时，使用红黑树。
 1、写冲突，
 2、读写问题，可能会死循环
 3、keys()无序问题
+
+![1606376145134](JavaAdvanced.assets/1606376145134.png)
 
 
 
@@ -5219,6 +5300,10 @@ concurrentLevel = 16
 Segment[] ~ 分库
 HashEntry[] ~ 分表
 
+![1606376172492](JavaAdvanced.assets/1606376172492.png)
+
+![1606376198682](JavaAdvanced.assets/1606376198682.png)
+
 
 
 #### ConcurrentHashMap-Java8
@@ -5231,12 +5316,22 @@ why?
 
 putIfAbsent() 方法
 
+注意，ConcurrentHashMap 随着链表的数据量上升，会将链表提升为红黑树，此时的链表就是天然的有序。
+
+![1606376264318](JavaAdvanced.assets/1606376264318.png)
+
+![1606376299246](JavaAdvanced.assets/1606376299246.png)
+
+
+
 
 
 #### 并发集合类总结
 
 - 规模小，排序数字 < 7，使用冒泡排序，
 - 规模大，排序数字 > 7，使用快速排序
+
+![1606376388141](JavaAdvanced.assets/1606376388141.png)
 
 
 
@@ -5267,6 +5362,9 @@ putIfAbsent() 方法
 - 多线程执行，只需要加个 .parallel() 即可 
 - 不动用其他的代码，默认启动一个线程池，将后面的任务包装成一个 Runable，默认线程个数是 CPU核心的两倍
 - 数据量的大小决定了最终的性能
+- 这样子的话，天然将业务代码和功能代码分开，只需要关注于业务代码即可
+
+![1606377637506](JavaAdvanced.assets/1606377637506.png)
 
 
 
@@ -5292,6 +5390,8 @@ putIfAbsent() 方法
 - 例如针对用户的限流是每分钟60次计数，API 服务器有3台，用户可能随机访问到任何一台，怎么控制？（秒杀场景是不是很像？库存固定且有限。） 
 
 不要着急，分布式缓存会详细讲
+
+
 
 
 
@@ -5335,6 +5435,8 @@ putIfAbsent() 方法
 
 ### 并发编程常见面试题 
 
+见文档。
+
 
 
 ### 总结回顾与作业实践 
@@ -5365,7 +5467,7 @@ putIfAbsent() 方法
 
 
 
-
+## 开发框架
 
 
 
