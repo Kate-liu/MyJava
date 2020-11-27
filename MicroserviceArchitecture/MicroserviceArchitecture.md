@@ -3195,8 +3195,9 @@ http://www.xbgateway.com/
 
 • 深度剖析开源分布式监控CAT
 • https://tech.meituan.com/CAT_in_Depth_Java_Application_Monitoring.html
+
 • Google Dapper论文
-• http://research.google.com/pubs/archive/36356.pdf 
+• http://static.googleusercontent.com/media/research.google.com/en//pubs/archive/36356.pdf
 
 
 
@@ -3204,8 +3205,10 @@ http://www.xbgateway.com/
 
 • OpenZipkin
 • https://zipkin.io/
+
 • OpenTracing
 • http://opentracing.io/
+
 • Spring Cloud Sleuth
 • https://cloud.spring.io/spring-cloud-sleuth/ 
 
@@ -3215,8 +3218,10 @@ http://www.xbgateway.com/
 
 • Uber Jaeger
 • https://github.com/jaegertracing/jaeger
+
 • Naver pinpoint
 • https://github.com/naver/pinpoint
+
 • Apache Skywalking
 • https://github.com/apache/incubator-skywalking 
 
@@ -3228,8 +3233,10 @@ http://www.xbgateway.com/
 
 • OneAPM
 • http://www.oneapm.com/
+
 • NewRelic
 • https://newrelic.com/
+
 • AppDynamics
 • https://www.appdynamics.com/ 
 
