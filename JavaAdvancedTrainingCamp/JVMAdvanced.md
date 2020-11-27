@@ -579,6 +579,8 @@ public Method getFlag:"()Z"
 
 村里的建筑师有一个潜规则，就是接到单子自己不能着手干，得先给师傅过过目。师傅不接手的情况下，才能自己来。在 Java 虚拟机中，这个潜规则有个特别的名字，叫**双亲委派模型**(其实是一个单亲)。每当一个类加载器接收到加载请求时，它会先将请求转发给父类加载器。在父类加载器没有找到所请求的类的情况下，该类加载器才会尝试去加载。
 
+> 双亲委派模式，英文中为parent不带s，照理应该翻译为单亲。但既然约定俗成翻译为双亲，就只好这样叫啦！
+
 在 Java 9 之前，启动类加载器负责加载最为基础、最为重要的类，比如存放在 JRE 的 lib 目录下 jar 包中的类（以及由虚拟机参数 -Xbootclasspath 指定的类）。除了启动类加载器之外，另外两个重要的类加载器是**扩展类加载器（extension class loader）**和**应用类加载器（application class loader）**，均由 Java 核心类库提供。
 
 ![1605597565964](JavaAdvanced.assets/1605597565964.png)
@@ -599,13 +601,13 @@ Java 9 引入了模块系统，并且略微更改了上述的类加载器[1](htt
 
 ### 链接
 
-链接，是指将创建成的类合并至 Java 虚拟机中，使之能够执行的过程。它可分为验证、准备以及解析三个阶段。
+链接，是指将创建成的类合并至 Java 虚拟机中，使之能够执行的过程。它可分为**验证、准备以及解析**三个阶段。
 
-验证阶段的目的，在于确保被加载类能够满足 Java 虚拟机的约束条件。这就好比 Tony 需要将设计好的房型提交给市政部门审核。只有当审核通过，才能继续下面的建造工作。
+**验证阶段**的目的，在于确保被加载类能够满足 Java 虚拟机的约束条件。这就好比 Tony 需要将设计好的房型提交给市政部门审核。只有当审核通过，才能继续下面的建造工作。
 
 通常而言，Java 编译器生成的类文件必然满足 Java 虚拟机的约束条件。因此，这部分我留到讲解字节码注入时再详细介绍。
 
-准备阶段的目的，则是为被加载类的静态字段分配内存。Java 代码中对静态字段的具体初始化，则会在稍后的初始化阶段中进行。过了这个阶段，咱们算是盖好了毛坯房。虽然结构已经完整，但是在没有装修之前是不能住人的。
+**准备阶段**的目的，则是为被加载类的静态字段分配内存。Java 代码中对静态字段的具体初始化，则会在稍后的初始化阶段中进行。过了这个阶段，咱们算是盖好了毛坯房。虽然结构已经完整，但是在没有装修之前是不能住人的。
 
 除了分配内存外，部分 Java 虚拟机还会在此阶段构造其他跟类层次相关的数据结构，比如说用来实现虚方法的动态绑定的方法表。
 
@@ -613,7 +615,9 @@ Java 9 引入了模块系统，并且略微更改了上述的类加载器[1](htt
 
 举例来说，对于一个方法调用，编译器会生成一个包含目标方法所在类的名字、目标方法的名字、接收参数类型以及返回值类型的符号引用，来指代所要调用的方法。
 
-解析阶段的目的，正是将这些符号引用解析成为实际引用。如果符号引用指向一个未被加载的类，或者未被加载类的字段或方法，那么解析将触发这个类的加载（但未必触发这个类的链接以及初始化。）
+**解析阶段**的目的，正是将这些符号引用解析成为实际引用。如果符号引用指向一个未被加载的类，或者未被加载类的字段或方法，那么解析将触发这个类的加载（但未必触发这个类的链接以及初始化。）
+
+> 注意：类的加载不等于类的初始化。
 
 如果将这段话放在盖房子的语境下，那么符号引用就好比“Tony 的房子”这种说法，不管它存在不存在，我们都可以用这种说法来指代 Tony 的房子。实际引用则好比实际的通讯地址，如果我们想要与 Tony 通信，则需要启动盖房子的过程。
 
@@ -623,15 +627,17 @@ Java 虚拟机规范并没有要求在链接过程中完成解析。它仅规定
 
 ### 初始化
 
-在 Java 代码中，如果要初始化一个静态字段，我们可以在声明时直接赋值，也可以在静态代码块中对其赋值。
+在 Java 代码中，如果要**初始化一个静态字段**，我们可以在声明时直接赋值，也可以在静态代码块中对其赋值。
 
-如果直接赋值的静态字段被 final 所修饰，并且它的类型是基本类型或字符串时，那么该字段便会被 Java 编译器标记成常量值（ConstantValue），其初始化直接由 Java 虚拟机完成。除此之外的直接赋值操作，以及所有静态代码块中的代码，则会被 Java 编译器置于同一方法中，并把它命名为 < clinit >。
+如果直接赋值的静态字段被 final 所修饰，并且它的类型是基本类型或字符串时，那么该字段便会被 Java 编译器标记成**常量值（ConstantValue）**，其初始化直接由 Java 虚拟机完成。除此之外的直接赋值操作，以及所有静态代码块中的代码，则会被 Java 编译器置于同一方法中，并把它命名为 **< clinit >**。
 
-类加载的最后一步是初始化，便是为标记为常量值的字段赋值，以及执行 < clinit > 方法的过程。Java 虚拟机会通过加锁来确保类的 < clinit > 方法仅被执行一次。
+>初始化调用<clinit>(即class init)
+
+类加载的最后一步是初始化，便是为标记为常量值的字段赋值，以及执行 < clinit > 方法的过程。Java 虚拟机会通过**加锁**来确保类的 < clinit > 方法仅被执行一次。
 
 只有当初始化完成之后，类才正式成为可执行的状态。这放在我们盖房子的例子中就是，只有当房子装修过后，Tony 才能真正地住进去。
 
-那么，类的初始化何时会被触发呢？JVM 规范枚举了下述多种触发情况：
+那么，**类的初始化何时会被触发呢？**JVM 规范枚举了下述多种触发情况：
 
 1. 当虚拟机启动时，初始化用户指定的主类；
 2. 当遇到用以新建目标类实例的 new 指令时，初始化 new 指令的目标类；
@@ -654,7 +660,7 @@ public class Singleton {
 }
 ```
 
-我在文章中贴了一段代码，这段代码是在著名的单例延迟初始化例子中[2](https://en.wikipedia.org/wiki/Initialization-on-demand_holder_idiom)，只有当调用 Singleton.getInstance 时，程序才会访问 LazyHolder.INSTANCE，才会触发对 LazyHolder 的初始化（对应第 4 种情况），继而新建一个 Singleton 的实例。
+我在文章中贴了一段代码，这段代码是在著名的**单例延迟初始化例子**中[2](https://en.wikipedia.org/wiki/Initialization-on-demand_holder_idiom)，只有当调用 Singleton.getInstance 时，程序才会访问 LazyHolder.INSTANCE，才会触发对 LazyHolder 的初始化（对应第 4 种情况），继而新建一个 Singleton 的实例。
 
 由于类初始化是线程安全的，并且仅被执行一次，因此程序可以确保多线程环境下有且仅有一个 Singleton 实例。
 
@@ -700,6 +706,23 @@ $ java -verbose:class Singleton
 
 问题 1：新建数组（第 11 行）会导致 LazyHolder 的加载吗？会导致它的初始化吗？
 
+```java
+// 从下面可以看出：
+// getInstance(true); 新建数组，只是触发了 LazyHolderd 的加载，并没有触发类的初始化
+// getInstance(false); 触发了类的初始化
+// java 虚拟机必须知道（加载）有这个类，才能创建这个类的数组（容器），但是这个类并没有被使用到（没有达到初始化的条件），所以不会初始化。
+
+[Loaded Singleton from file:/Users/rmliu/Desktop/]
+[Loaded sun.launcher.LauncherHelper$FXHelper from /Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/rt.jar]
+[Loaded java.lang.Class$MethodArray from /Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/rt.jar]
+[Loaded java.lang.Void from /Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/rt.jar]
+[Loaded Singleton$LazyHolder from file:/Users/rmliu/Desktop/]
+----
+LazyHolder.<clinit>
+```
+
+
+
 在命令行中运行下述指令（不包含提示符 $）：
 
 ```sh
@@ -710,6 +733,25 @@ $ java -verbose:class Singleton
 ```
 
 问题 2：新建数组会导致 LazyHolder 的链接吗？
+
+```java
+// 从下面可以看出：
+// getInstance(true); 新建数组不会链接 LazyHolderd , 链接的第一步：验证字节码，awk把字节码改的不符合jvm规范
+// getInstance(false); 真正链接和初始化
+// 新建数组的时候并不是要使用这个类（只是定义了放这个类的容器），所以不会被链接，调用getInstance(false)的时候约等于告诉虚拟机，我要使用这个类了，你把这个类造好（链接），然后把static修饰的字符赋予变量（初始化）。
+
+[Loaded Singleton from file:/Users/rmliu/Desktop/]
+[Loaded sun.launcher.LauncherHelper$FXHelper from /Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/rt.jar]
+[Loaded java.lang.Class$MethodArray from /Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/rt.jar]
+[Loaded java.lang.Void from /Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/rt.jar]
+[Loaded Singleton$LazyHolder from file:/Users/rmliu/Desktop/]
+----
+LazyHolder.<clinit>
+```
+
+
+
+
 
 
 
