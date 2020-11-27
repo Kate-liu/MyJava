@@ -1,6 +1,5 @@
 package org.copydays.thinking.java.jvm.core.technology.jvm.advanced;
 
-import sun.misc.Unsafe;
 
 public class Foo {
     static boolean boolValue;
