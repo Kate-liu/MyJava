@@ -2681,395 +2681,571 @@ http://www.xbgateway.com/
 
 ### CAT 和 微服务调用链监控架构
 
+#### 课程概述 
 
+##### 课程概述和亮点 
 
+- 调用链监控原理分析和产品比对
+- 大众点评开源调用链产品CAT深度剖析
+- CAT埋点案例和实践
+- Zuul和CAT集成
+- CAT生产治理最佳实践
+- Spring Cloud Sleuth和Zipkin简介 
 
 
 
+##### 架构和技术栈预览 
 
+![1606447080516](MicroserviceArchitecture.assets/1606447080516.png)
 
 
 
 
 
+#### 调用链监控业务需求 
 
+##### 从单块到微服务 
 
+![1606447230708](MicroserviceArchitecture.assets/1606447230708.png)
 
 
 
+##### 应用监控缺失造成的坑 
 
+- 康威定律
 
+![1606447365403](MicroserviceArchitecture.assets/1606447365403.png)
 
 
 
+##### DevOps实践1：要提升必先测量 
 
+![1606447433221](MicroserviceArchitecture.assets/1606447433221.png)
 
 
 
+##### DevOps实践2：研发自助监控 
 
+![1606447461088](MicroserviceArchitecture.assets/1606447461088.png)
 
 
 
 
 
+#### 调用链监控原理 
 
+##### Google Dapper论文 
 
+- http://static.googleusercontent.com/media/research.google.com/en//pubs/archive/36356.pdf
 
+![1606447577069](MicroserviceArchitecture.assets/1606447577069.png)
 
 
 
 
 
+###### Dapper Deployment 
 
+![1606447659570](MicroserviceArchitecture.assets/1606447659570.png)
 
 
 
 
 
+###### Dapper UI 
 
+![1606447766069](MicroserviceArchitecture.assets/1606447766069.png)
 
 
 
+###### 核心概念 
 
+| 概念            | 含义                         |
+| --------------- | ---------------------------- |
+| Trace （tid）   | 一次分布式调用的链路踪迹     |
+| Span (sid, pid) | 一个方法(局部或远程)调用踪迹 |
+| Annotation      | 附着在Span上的日志信息       |
+| Sampling        | 采样率                       |
 
+![1606447845026](MicroserviceArchitecture.assets/1606447845026.png)
 
 
 
+##### Zipkin 
 
+- https://zipkin.io/
+- google 没有开源，Twitter 基于论文实现了 zipkin，并将其开源
 
+![1606448234915](MicroserviceArchitecture.assets/1606448234915.png)
 
 
 
+###### Zipkin UI 
 
+![1606448261545](MicroserviceArchitecture.assets/1606448261545.png)
 
 
 
+##### Open Tracing 
 
+- http://opentracing.io/
+- 定义一个标准，规范调用链
+- 解决互操作，兼容成本
 
+![1606448297901](MicroserviceArchitecture.assets/1606448297901.png)
 
 
 
 
 
+#### 调用链监控产品和比较 
 
+##### 演进时间线 
 
+![1606450605247](MicroserviceArchitecture.assets/1606450605247.png)
 
 
 
+##### 开源产品比较 
 
+|               | 点评CAT                    | Open Zipkin                      | Naver Pinpoint         |
+| ------------- | -------------------------- | -------------------------------- | ---------------------- |
+| 调用链可视化  | 有                         | 有                               | 有                     |
+| 聚合报表      | 非常丰富                   | 少                               | 中                     |
+| ServerMap     | 简单依赖图                 | 简单                             | 好                     |
+| 埋点方式      | 侵入                       | 侵入                             | 非侵入字节码增强       |
+| Heartbeat支持 | 有                         | 无                               | 有                     |
+| Metric支持    | 简单                       | 无                               | 无                     |
+| 告警支持      | 有                         | 无                               | 有                     |
+| 多语言支持    | Java/.Net                  | 丰富                             | 只有Java               |
+| 界面中文支持  | 好                         | 无                               | 无                     |
+| 社区支持      | 内置文档，作者在国内       | 文档较丰富，中文社区一般         | 文档一般，暂无中文社区 |
+| 国内案例      | 携程、点评、陆金所、拍拍贷 | 京东、阿里定制不开源             | 唯品会改造定制         |
+| 源头祖先      | eBay CAL                   | Google Dapper                    | Google Dapper          |
+| 类似产品      | 暂无                       | Uber Jaeger, Spring Cloud Sleuth | Apache Skywalking      |
 
 
 
+#### 点评CAT背景介绍 
 
+##### CAT简介 
 
+- 大众点评开源的基础监控框架，在中间件（ MVC框架、 RPC框架、数据库框架、缓存框架等）得到广泛应用，为点评各个业务线提供系统的性能指标、健康状况和基础告警。
+- https://github.com/dianping/cat
+- 设计理念源自eBay监控框架CAL(Centralized Application Logging)
+- 国内上百家公司使用或评估 
 
+![Alt text](MicroserviceArchitecture.assets/companys.png)
 
 
 
+##### 作者 
 
+![1606451543230](MicroserviceArchitecture.assets/1606451543230.png)
 
 
 
+##### CAT监控场景 
 
+- 业务层
+- 应用层
+- 系统层
 
+![1606451573279](MicroserviceArchitecture.assets/1606451573279.png)
 
 
 
+##### CAT在点评的发展历程 
 
+![1606451696311](MicroserviceArchitecture.assets/1606451696311.png)
 
 
 
+##### CAT@大众点评(2016-10) 
 
+![1606451745786](MicroserviceArchitecture.assets/1606451745786.png)
 
 
 
+##### CAT@携程旅游网(2016-10) 
 
+![1606451802821](MicroserviceArchitecture.assets/1606451802821.png)
 
 
 
+##### 资深用户反馈 
 
+- 报表丰富 
 
+![1606451872276](MicroserviceArchitecture.assets/1606451872276.png)
 
 
 
+#### CAT典型报表 
 
+##### 应用报错大盘 
 
+![1606452162938](MicroserviceArchitecture.assets/1606452162938.png)
 
 
 
+##### 业务大盘 
 
+- 这块一般使用 Metrix 监控
 
+![1606452272831](MicroserviceArchitecture.assets/1606452272831.png)
 
 
 
+##### CAT的Logview 
 
+- 调用树
 
+![1606452337826](MicroserviceArchitecture.assets/1606452337826.png)
 
 
 
+##### 分布式 Logview 
 
+- 跨进程展示
+- 跨机器展示
 
+![1606452401476](MicroserviceArchitecture.assets/1606452401476.png)
 
 
 
+##### 可视化Logview 
 
+- 时间轴显示调用链
 
+![1606452445758](MicroserviceArchitecture.assets/1606452445758.png)
 
 
 
+##### 应用报表(APM) 
 
+| 报表名称            | 用途                                                         |
+| ------------------- | ------------------------------------------------------------ |
+| Transaction实时报表 | 一段代码的运行时间/次数/分布、比如URL/Cache/SQL执行次数和响应时间 |
+| Event实时报表       | 事件产生的次数/分布，比如出现一个异常                        |
+| Problem实时报表     | 根据Transaction/Event数据分析出来的系统出现的异常，包括访问较慢的程序等 |
+| Heartbeat实时报表   | JVM内部一些状态信息， Load/Memory/GC/Thread等                |
+| Metric实时报表      | 业务指标监控                                                 |
+| Matrix实时报表      | 一个请求调用分布统计(一次请求中调用多少次SQL/RPC/Cache等)，可评估应用设计 的合理性 |
+| Cross实时报表       | SOA系统中关于RPC调用的报表(支持粒度服务/IP/方法)             |
+| Cache               | 缓存命中率分析                                               |
+| Dependency实时报表  | 应用间依赖关系图，包括远程服务/数据库/缓存等                 |
+| …                   | …                                                            |
 
 
 
+##### Transaction报表 
 
+- 平均延时
+- 95线，99线
 
+![1606452636695](MicroserviceArchitecture.assets/1606452636695.png)
 
 
 
+##### Event报表 
 
+![1606452725241](MicroserviceArchitecture.assets/1606452725241.png)
 
 
 
+##### Problem报表 
 
+![1606452750551](MicroserviceArchitecture.assets/1606452750551.png)
 
 
 
+##### Heartbeat报表 
 
+![1606452807043](MicroserviceArchitecture.assets/1606452807043.png)
 
 
 
+##### Storage报表 
 
+- 数据库层访问监控
 
+![1606452841543](MicroserviceArchitecture.assets/1606452841543.png)
 
 
 
+##### Cache报表 
 
+![1606452881518](MicroserviceArchitecture.assets/1606452881518.png)
 
 
 
+#### CAT告警 
 
+##### 自助告警 
 
+- 登录系统，设置监控配置
 
+![1606452931932](MicroserviceArchitecture.assets/1606452931932.png)
 
 
 
+##### 失败率告警 
 
+![1606453000484](MicroserviceArchitecture.assets/1606453000484.png)
 
 
 
+##### 响应时间告警 
 
+![1606453045243](MicroserviceArchitecture.assets/1606453045243.png)
 
 
 
+##### 心跳告警 
 
+![1606453083181](MicroserviceArchitecture.assets/1606453083181.png)
 
 
 
+##### 告警策略 
 
+![1606453107477](MicroserviceArchitecture.assets/1606453107477.png)
 
 
 
+##### 告警发送服务配置 
 
+- 对接钉钉，微信，邮箱
 
+![1606453139253](MicroserviceArchitecture.assets/1606453139253.png)
 
 
 
 
 
+#### CAT架构设计 
 
+##### CAT设计目标
 
+- 对应用无影响(服务端上下线、宕机等)
+- 实时性(消息尽快到达服务端)
+- 吞吐量(服务端高的吞吐量)
+- 开销低(客户端尽可能开销低) (开销2%以内)
+- （不能保证）可靠性(消息100%到达服务端)
+- （不能保证）服务端100%的处理到达消息 
 
 
 
+##### 客户端设计 
 
+- 使用 ThreadLocal （线程局部变量）实现
+- 使用异步队列实现
+- 构建消息树
 
+![1606453427574](MicroserviceArchitecture.assets/1606453427574.png)
 
 
 
+##### 服务器端设计 
 
+- 消息消费机
+- 分析器
 
+![1606453491443](MicroserviceArchitecture.assets/1606453491443.png)
 
 
 
+##### 部署 
 
+- 物理机内存大
 
+![1606453553384](MicroserviceArchitecture.assets/1606453553384.png)
 
 
 
+##### 监控模型 
 
+![1606453612652](MicroserviceArchitecture.assets/1606453612652.png)
 
 
 
+##### 监控API 
 
+![1606453652816](MicroserviceArchitecture.assets/1606453652816.png)
 
 
 
+#### CAT本地部署 
 
+- cat 的文档，主要集中在 cat 内部，启动之后就可以看到
 
 
 
+#### CAT埋点案例和代码剖析
 
+##### Acme Financial案例 
 
+![1606458376564](MicroserviceArchitecture.assets/1606458376564.png)
 
 
 
 
 
+#### CAT埋点案例实验 
 
 
 
 
 
+#### Zuul网关集成CAT代码剖析 
 
+##### Acme Financial案例 
 
+![1606459870812](MicroserviceArchitecture.assets/1606459870812.png)
 
 
 
+#### Zuul网关集成CAT实验 
 
 
 
+#### CAT生产埋点实践 
 
 
 
 
 
+#### CAT生产部署实践 
 
+##### 参考部署架构案例 
 
+- 一台物理机（支持上千的应用）
+- Collector, Alerting, Reporting
+- HEFS 集群
 
+![1606461476381](MicroserviceArchitecture.assets/1606461476381.png)
 
 
 
+##### Collector参考硬件规格 
 
+![1606461612689](MicroserviceArchitecture.assets/1606461612689.png)
 
 
 
 
 
+#### CAT生产治理实践 
 
+##### 生产治理实践 
 
+- 框架统一埋点
+- 技术栈
+- Metric
+- 告警
+- 项目定期分组
 
+![1606461652008](MicroserviceArchitecture.assets/1606461652008.png)
 
 
 
+##### 服务红黑榜~平均延迟 
 
+![1606461741139](MicroserviceArchitecture.assets/1606461741139.png)
 
 
 
+##### 服务红黑榜~95线性能 
 
+![1606461763580](MicroserviceArchitecture.assets/1606461763580.png)
 
 
 
+#### Spring Cloud Sleuth简介 
 
+##### Spring Cloud Sleuth简介 
 
+- Spring Cloud封装的Zipkin兼容客户端Tracer 
+- 自身支持的库，点都埋好了，自动埋点
 
+![1606462065958](MicroserviceArchitecture.assets/1606462065958.png)
 
 
 
 
 
+##### 集成架构
 
+![1606462180951](MicroserviceArchitecture.assets/1606462180951.png)
 
 
 
+#### Spring Cloud Sleuth实验 
 
+- Quickstart zipkin：https://zipkin.io/pages/quickstart.html
 
 
 
 
 
+#### 参考资源和后续课程预览 
 
+##### 参考文章
 
+• 深度剖析开源分布式监控CAT
+• https://tech.meituan.com/CAT_in_Depth_Java_Application_Monitoring.html
+• Google Dapper论文
+• http://research.google.com/pubs/archive/36356.pdf 
 
 
 
+##### 参考站点
 
+• OpenZipkin
+• https://zipkin.io/
+• OpenTracing
+• http://opentracing.io/
+• Spring Cloud Sleuth
+• https://cloud.spring.io/spring-cloud-sleuth/ 
 
 
 
+##### 其它开源调用链监控产品
 
+• Uber Jaeger
+• https://github.com/jaegertracing/jaeger
+• Naver pinpoint
+• https://github.com/naver/pinpoint
+• Apache Skywalking
+• https://github.com/apache/incubator-skywalking 
 
+![1606463853410](MicroserviceArchitecture.assets/1606463853410.png)
 
 
 
+##### 商业APM和SaaS 
 
+• OneAPM
+• http://www.oneapm.com/
+• NewRelic
+• https://newrelic.com/
+• AppDynamics
+• https://www.appdynamics.com/ 
 
+![1606463968935](MicroserviceArchitecture.assets/1606463968935.png)
 
 
 
+##### 架构和技术栈预览 
 
+![1606447080516](MicroserviceArchitecture.assets/1606447080516.png)
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### Hystrix 和 微服务容错限流架构
 
 
 
