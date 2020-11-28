@@ -157,9 +157,9 @@
 • 案例本身
 • React.js 
 3. 教学版 Staffjoy 改造
-  • Golang -> Java/Spring
-  • 去掉 gRPC API Gateway
-  • 默认采用邮件通知
+    • Golang -> Java/Spring
+    • 去掉 gRPC API Gateway
+    • 默认采用邮件通知
 4. 教学版仅供参考！
 5. Lombok 减少编码 
 
@@ -203,12 +203,297 @@
 
 #### 观点2:微服务优先 
 
+- 由于现在微服务实践的案例较多，直接实现微服务与实现单体应用的花费相当
+- 那么，就还不如一次到底，直接实现微服务
+
 ![1606484958951](MicroserviceSpringBootStaffjoy.assets/1606484958951.png)
 
 
 
 ### 架构设计和技术栈选型 
 
+#### 总体架构设计 
+
+- 绿色标注：微服务
+- 浅红色：Webapp 应用
+- Faraday 类似于 网关
+
+![1606483073145](MicroserviceSpringBootStaffjoy.assets/1606483073145.png)
+
+
+
+#### Skywalking 依赖监控图 
+
+- 使用 Skywalking  实现 调用链监控 看到的服务调用之间的关系
+
+![1606545686973](MicroserviceSpringBootStaffjoy.assets/1606545686973.png)
+
+
+
+#### 架构设计思想 
+
+- 分为治之
+- 单一职责
+- 关注分离
+
+![1606545873569](MicroserviceSpringBootStaffjoy.assets/1606545873569.png)
+
+
+
+#### 技术栈选型 
+
+![1606483073145](MicroserviceSpringBootStaffjoy.assets/1606483073145.png)
+
+
+
+#### SaaS 多租户设计 
+
+- 由于提供的是 SaaS 服务，需要进行隔离
+- 首先 以公司为隔离对象，在公司内部，进行不同资源与任务的隔离
+
+![1606546025070](MicroserviceSpringBootStaffjoy.assets/1606546025070.png)
+
+
+
+### 数据和接口模型设计～账户服务 
+
+#### 账户数据模型 
+
+![1606546077056](MicroserviceSpringBootStaffjoy.assets/1606546077056.png)
+
+
+
+#### 账户接口 
+
+- Intercom 客户系统 和 客服系统 是内部进行客户关系管理的系统，类似于 CMS（客户关系管理系统）
+
+![1606546106710](MicroserviceSpringBootStaffjoy.assets/1606546106710.png)
+
+
+
+### 数据和接口模型设计～公司服务 
+
+#### 公司数据模型 
+
+![1606546265586](MicroserviceSpringBootStaffjoy.assets/1606546265586.png)
+
+![1606546280084](MicroserviceSpringBootStaffjoy.assets/1606546280084.png)
+
+
+
+#### 实体关系ER图(简化) 
+
+![1606546330568](MicroserviceSpringBootStaffjoy.assets/1606546330568.png)
+
+
+
+#### 公司Company服务接口模型 
+
+| 操作          | HTTP方法 | 功能                       |
+| ------------- | -------- | -------------------------- |
+| createCompany | POST     | 创建公司                   |
+| listCompanies | GET      | 获取现有公司列表(内部使用) |
+| getCompany    | GET      | 通过id获取公司             |
+| updateCompany | PUT      | 更新公司信息               |
+
+![1606546412977](MicroserviceSpringBootStaffjoy.assets/1606546412977.png)
+
+
+
+#### 公司管理员Admin服务接口模型 
+
+| 操作        | HTTP方法 | 功能                             |
+| ----------- | -------- | -------------------------------- |
+| createAdmin | POST     | 创建用户和公司间的管理员关系     |
+| listAdmins  | GET      | 通过公司id获取管理员用户列表     |
+| getAdmin    | GET      | 通过公司id和用户id获取管理员关系 |
+| getAdminOf  | GET      | 通过用户id获取其管理的公司列表   |
+| deleteAdmin | DELETE   | 删除用户和公司间的管理员关系     |
+
+![1606546548156](MicroserviceSpringBootStaffjoy.assets/1606546548156.png)
+
+
+
+#### 员工目录Directory服务接口模型 
+
+| 操作                 | HTTP方法 | 功能                                                         |
+| -------------------- | -------- | ------------------------------------------------------------ |
+| createDirectory      | POST     | 将某用户添加到公司员工目录中                                 |
+| listDirectories      | GET      | 列出某公司id下的所有员工目录项                               |
+| getDirectoryEntry    | GET      | 通过公司id和用户id查询某员工目录项                           |
+| getAssociations      | GET      | 获取某公司id下的所有员工目录项， 包括是否管理员，对应团队信息 |
+| updateDirectoryEntry | PUT      | 更新员工目录项                                               |
+
+![1606546631626](MicroserviceSpringBootStaffjoy.assets/1606546631626.png)
+
+
+
+#### 团队Team服务接口模型 
+
+| 操作              | HTTP方法 | 功能                                 |
+| ----------------- | -------- | ------------------------------------ |
+| createTeam        | POST     | 创建团队                             |
+| listTeams         | GET      | 列出某公司id下的所有团队             |
+| getTeam           | GET      | 通过公司id和团队id获取团队信息       |
+| updateTeam        | PUT      | 更新团队信息                         |
+| getWorkerTeamInfo | GET      | 通过公司id和用户id查询该员工隶属团队 |
+
+![1606546734175](MicroserviceSpringBootStaffjoy.assets/1606546734175.png)
+
+
+
+#### 雇员Worker服务接口模型 
+
+| 操作         | HTTP方法 | 功能                                     |
+| ------------ | -------- | ---------------------------------------- |
+| createWorker | POST     | 建立某用户和某公司/团队间的雇员关系      |
+| listWorkers  | GET      | 列出某公司id和团队id下的所有雇员目录项   |
+| getWorker    | GET      | 获取某公司id、团队id和用户id的雇员目录项 |
+| getWorkerOf  | GET      | 获取某用户id所隶属的团队                 |
+| deleteWorker | DELETE   | 删除某用户和某公司/团队间的雇员关系      |
+
+![1606546808226](MicroserviceSpringBootStaffjoy.assets/1606546808226.png)
+
+
+
+#### 任务Job服务接口模型 
+
+| 操作      | HTTP方法 | 功能                                     |
+| --------- | -------- | ---------------------------------------- |
+| createJob | POST     | 为某公司/团队新建任务                    |
+| listJobs  | GET      | 列出某公司/团队下的所有任务              |
+| getJob    | GET      | 获取某公司id，团队id和任务id所对应的任务 |
+| updateJob | PUT      | 更新任务信息                             |
+
+![1606546897138](MicroserviceSpringBootStaffjoy.assets/1606546897138.png)
+
+
+
+#### 班次Shift服务接口模型 
+
+| 操作              | HTTP方法 | 功能                                                  |
+| ----------------- | -------- | ----------------------------------------------------- |
+| createShift       | POST     | 在某公司/团队下创建新班次                             |
+| getShift          | GET      | 通过班次id获取班次信息                                |
+| listShifts        | POST     | 通过公司/团队/用户/任务id，时间范围等信息查询对应班次 |
+| listWorkerShifts  | POST     | 通过公司/团队/雇员id和时间范围等信息 查询对应班次     |
+| deleteShift       | DELETE   | 删除某个班次                                          |
+| updateShift       | PUT      | 更新某班次信息                                        |
+| bulkPublishShifts | POST     | 批量发布班次                                          |
+
+![1606546992981](MicroserviceSpringBootStaffjoy.assets/1606546992981.png)
+
+
+
+### Dubbo、Spring Cloud和K8s 该如何选型？ 
+
+#### 微服务公共关注点 
+
+- 配置管理，Apollo
+- 服务发现和LB，Eureka Ribbon
+- 弹性和容错，Hystrix
+- API管理， Zuul
+- 服务安全，OAuth 2
+- 日志监控，Prometheus
+- Metrics 监控，Prometheus
+- 调用链监控，Cat
+
+![1606547091843](MicroserviceSpringBootStaffjoy.assets/1606547091843.png)
+
+
+
+
+
+#### Dubbo、Spring Cloud和K8s横向比对 
+
+![1606547532047](MicroserviceSpringBootStaffjoy.assets/1606547532047.png)
+
+|              | Dubbo(阿里巴巴)     | Spring Cloud（Netflix）          | K8s（谷歌）                   |
+| ------------ | ------------------- | -------------------------------- | ----------------------------- |
+| 服务发现和LB | ZK/Nacos + Client   | Eureka + Ribbon                  | Service                       |
+| API网关      | NA                  | Zuul                             | Ingress                       |
+| 配置管理     | Diamond/Nacos       | Spring Cloud Config              | ConfigMaps/Secrets            |
+| 容错限流     | Sentinel            | Hystrix                          | HealthCheck/Probe/ServiceMesh |
+| 日志监控     | ELK                 | ELK                              | EFK                           |
+| Metrics监控  | Dubbo Admin/Monitor | Actuator/MicroMeter + Prometheus | Heapster+Prometheus           |
+| 调用链监控   | NA                  | SpringCloud Sleuth/Zipkin        | Jaeger/Zipkin                 |
+| 应用打包       | Jar/War     | Uber Jar/War      | Docker Image/Helm                |
+| 服务框架       | Dubbo RPC   | Spring(Boot) REST | 框架无关                         |
+| 发布和调度     | NA          | NA                | Scheduler                        |
+| 自动伸缩和自愈 | NA          | NA                | Scheduler/AutoScaler             |
+| 进程隔离       | NA          | NA                | Docker/Pod                       |
+| 环境管理       | NA          | NA                | Namespace/Auththorization        |
+| 资源配额       | NA          | NA                | CPU/Mem Limit , Namespace Quotas |
+| 流量治理       | ZK + Client | NA                | ServiceMesh                      |
+
+![1606547487557](MicroserviceSpringBootStaffjoy.assets/1606547487557.png)
+
+![1606547509069](MicroserviceSpringBootStaffjoy.assets/1606547509069.png)
+
+
+
+#### 优劣比对 
+
+|      | Dubbo                                 | Spring Cloud                                         | K8s                                                          |
+| ---- | ------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------ |
+| 亮点 | 阿里背书 成熟稳定 RPC高性能 流量治理  | Netflix/Pivotal背书 社区活跃 开发体验好 抽象组件化好 | 谷歌背书 平台抽象 全面覆盖微服务关注点(发布) 语言栈无关 社区活跃 |
+| 不足 | 技术较老 耦合性高 JVM only 国外社区小 | JVM only 运行耗资源                                  | 偏DevOps和运维 重量复杂 技术门槛高                           |
+
+![1606547625859](MicroserviceSpringBootStaffjoy.assets/1606547625859.png)
+
+
+
+
+
+#### 建议
+
+- 理解微服务关注点，根据企业上下文综合考量
+- 尽量不要混搭，保持体系一致性
+- 个人倾向 K8s + Spring Boot 
+
+
+
+### 技术中台到底讲什么？ 
+
+#### 阿里巴巴中台体系 
+
+![1606547692036](MicroserviceSpringBootStaffjoy.assets/1606547692036.png)
+
+
+
+#### eBay中台架构 
+
+- https://www.slideshare.net/tcng3716/ebay-architecture
+
+![1606547759688](MicroserviceSpringBootStaffjoy.assets/1606547759688.png)
+
+
+
+#### 拍拍贷中台架构 
+
+- https://www.ppdai.com/
+
+![1606547786896](MicroserviceSpringBootStaffjoy.assets/1606547786896.png)
+
+
+
+#### Staffjoy 的中台 
+
+- 技术中台，云平台，支持一键部署
+- 业务中台，账户和公司服务
+- 业务前台，App和单页应用，REST API
+
+![1606483073145](MicroserviceSpringBootStaffjoy.assets/1606483073145.png)
+
+
+
+
+
+#### 参考链接 
+
+1. [Microservice Premium](https://martinfowler.com/bliki/MicroservicePremium.html)
+2. [Monolith First](https://martinfowler.com/bliki/MonolithFirst.html)
+3. [阿里巴巴全面启动中台战略](https://www.huxiu.com/article/133482/1.html)
 
 
 
@@ -224,34 +509,47 @@
 
 
 
+如何实现统一异常处理？ 
+
+- 包含Rest 与 HTML异常的不同处理方式
 
 
 
 
 
+DTO 和 DMO 
+
+DTO：数据传输对象，对接API与网络传输
+
+DMO：数据实体对象，业务对象，对接数据库
 
 
 
 
 
+客户端调用范例 
+
+- xyz.staffjoy.account.client.AccountClient#getAccount
+- xyz.staffjoy.whoami.service.WhoAmIService#findIntercomSettings
+
+![1606538818624](MicroserviceSpringBootStaffjoy.assets/1606538818624.png)
+
+
+
+开发测试环境禁用Sentry异常日志 
+
+- xyz.staffjoy.common.env.EnvConfig
 
 
 
 
 
+线程上下文拷贝 
 
-
-
-
-
-
-
-
-
-
-
-
-
+- 由于使用异步调用，会使得线程的切换之后，请求的信息丢失
+- 使用线程上下文拷贝，实现信息同步
+- xyz.staffjoy.account.config.AppConfig
+- xyz.staffjoy.common.async.ContextCopyingDecorator
 
 
 
