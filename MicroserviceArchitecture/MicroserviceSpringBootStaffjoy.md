@@ -489,7 +489,7 @@
 
 
 
-#### 参考链接 
+### 参考链接 
 
 1. [Microservice Premium](https://martinfowler.com/bliki/MicroservicePremium.html)
 2. [Monolith First](https://martinfowler.com/bliki/MonolithFirst.html)
@@ -497,101 +497,363 @@
 
 
 
+## 服务开发框架 设计和实践 
+
+### Staffjoy 项目代码组织 
+
+#### 项目代码组织 
+
+- Mono-Repo ，单体仓库
+- 微服务 api 与 service 分离
+- common-lib 属于公共依赖
+
+![1606548412959](MicroserviceSpringBootStaffjoy.assets/1606548412959.png)
+
+
+
+#### 依赖管理 
+
+- ```xml
+  <spring.cloud.version>Greenwich.RELEASE</spring.cloud.version>
+  ```
+
+![1606548527466](MicroserviceSpringBootStaffjoy.assets/1606548527466.png)
+
+
+
+### 谷歌为什么采用单体仓库(Mono-Repo) 
+
+#### Multi-Repo vs Mono-Repo 
+
+- 一开始是 单体应用，开始演变为微服务多仓库，最后合并为单体仓库
+- 多仓库，不方便项目整体的开发，会存在大量的重复轮子，子仓库会形成属于自己的代码开发风格
+
+![1606548984525](MicroserviceSpringBootStaffjoy.assets/1606548984525.png)
+
+
+
+#### 谁在用 MonoRepo? 
+
+- Google的单体仓库构建工具：https://bazel.build/
+- Facebook的单体仓库构建工具：https://buck.build/
+- Shippable的微服务之道：mono repo vs multiple repositories ：http://blog.shippable.com/our-journey-to-microservices-and-a-mono-repository
+
+![1606549158155](MicroserviceSpringBootStaffjoy.assets/1606549158155.png)
+
+
+
+### 微服务接口参数校验为何重要？ 
+
+#### 控制器接口参数校验 
+
+- ```java
+  // @PhoneNumber
+  // 自定义
+  getAccountByPhonenumber(@RequestParam @PhoneNumber String phoneNumber)
+  ```
+
+- ```java
+  // @Min(0)
+  // 框架提供
+  listAccounts(@RequestParam int offset, @RequestParam @Min(0) int limit)
+  ```
+
+![1606549216313](MicroserviceSpringBootStaffjoy.assets/1606549216313.png)
+
+
+
+#### DTO 参数校验 
+
+- DTO：数据传输对象，对接API与网络传输
+
+- 数据传输对象，需要保证参数存在意义，判空与格式匹配校验
+
+- ```java
+  @NotBlank
+  @NotNull
+  @PhoneNumber
+  ```
+
+![1606549389026](MicroserviceSpringBootStaffjoy.assets/1606549389026.png)
+
+
+
+#### 自定义标注 
+
+- 自己实现注解，进行参数校验，使用自己的正则表达式逻辑
+
+![1606549572370](MicroserviceSpringBootStaffjoy.assets/1606549572370.png)
 
 
 
 
 
-
-
-
-
-
-
-
-如何实现统一异常处理？ 
+### 如何实现统一异常处理？ 
 
 - 包含Rest 与 HTML异常的不同处理方式
 
+#### 统一异常处理 
+
+- Rest 框架自动实现异常捕获
+
+![1606549681995](MicroserviceSpringBootStaffjoy.assets/1606549681995.png)
 
 
 
+#### RestControllerAdvice 
 
-DTO 和 DMO 
+- xyz.staffjoy.common.error.GlobalExceptionTranslator
+
+![1606549727138](MicroserviceSpringBootStaffjoy.assets/1606549727138.png)
+
+
+
+#### 统一异常捕获 
+
+![1606549854098](MicroserviceSpringBootStaffjoy.assets/1606549854098.png)
+
+
+
+#### BaseResponse 
+
+- xyz.staffjoy.common.api.BaseResponse
+
+![1606549897066](MicroserviceSpringBootStaffjoy.assets/1606549897066.png)
+
+
+
+#### Web MVC ErrorController 
+
+- xyz.staffjoy.web.controller.GlobalErrorController
+
+![1606550018729](MicroserviceSpringBootStaffjoy.assets/1606550018729.png)
+
+
+
+### DTO 和 DMO为什么要互转？ 
+
+#### DTO 和 DMO 
 
 DTO：数据传输对象，对接API与网络传输
 
 DMO：数据实体对象，业务对象，对接数据库
 
+![1606550061505](MicroserviceSpringBootStaffjoy.assets/1606550061505.png)
+
+
+
+#### DTO 和 DMO互转 示例
+
+- https://github.com/modelmapper/modelmapper
+- 使用 ModelMapper 工具，实现传输对象和实体对象之间的转换
+- xyz.staffjoy.account.service.AccountService#convertToDto
+- xyz.staffjoy.account.service.AccountService#convertToModel
+
+![1606550144628](MicroserviceSpringBootStaffjoy.assets/1606550144628.png)
 
 
 
 
-客户端调用范例 
+
+### 如何实现强类型接口设计？ 
+
+#### 强类型 vs 弱类型 
+
+- 编程语言的强类型和弱类型，动态与静态
+- 服务框架强类型和弱类型
+
+![1606550332860](MicroserviceSpringBootStaffjoy.assets/1606550332860.png)
+
+
+
+#### Spring Feign 
+
+- 动态代理
+- 实现一个 API 接口，完成 Spring Bean 与 Json 数据的转换(Encoder and Decoder)
+- Bean 属于强类型，Json属于弱类型
+
+![1606550477823](MicroserviceSpringBootStaffjoy.assets/1606550477823.png)
+
+
+
+#### 强类型接口设计 
+
+- xyz.staffjoy.account.client.AccountClient
+- xyz.staffjoy.account.dto.GenericAccountResponse
+- xyz.staffjoy.account.dto.ListAccountResponse
+- xyz.staffjoy.common.api.BaseResponse
+
+![1606550538065](MicroserviceSpringBootStaffjoy.assets/1606550538065.png)
+
+
+
+#### Account Client 
+
+- xyz.staffjoy.account.client.AccountClient
+
+![1606550695892](MicroserviceSpringBootStaffjoy.assets/1606550695892.png)
+
+
+
+#### 继承关系 
+
+- xyz.staffjoy.account.dto.GenericAccountResponse
+- xyz.staffjoy.account.dto.ListAccountResponse
+- xyz.staffjoy.common.api.BaseResponse
+
+![1606550727247](MicroserviceSpringBootStaffjoy.assets/1606550727247.png)
+
+
+
+
+
+#### 客户端调用范例 
 
 - xyz.staffjoy.account.client.AccountClient#getAccount
 - xyz.staffjoy.whoami.service.WhoAmIService#findIntercomSettings
+- 注意：这里的调用是跨服务的，需要使用接口调用！
 
 ![1606538818624](MicroserviceSpringBootStaffjoy.assets/1606538818624.png)
 
 
 
-开发测试环境禁用Sentry异常日志 
+#### 封装消息+捎带 
+
+![1606550538065](MicroserviceSpringBootStaffjoy.assets/1606550538065.png)
+
+
+
+
+
+### 为什么框架层要考虑分环境配置？ 
+
+#### 环境定义 
+
+- xyz.staffjoy.common.env.EnvConstant
+
+![1606550984585](MicroserviceSpringBootStaffjoy.assets/1606550984585.png)
+
+
+
+#### 环境配置 
 
 - xyz.staffjoy.common.env.EnvConfig
 
+![1606551005365](MicroserviceSpringBootStaffjoy.assets/1606551005365.png)
+
+
+
+#### 开发测试环境禁用Sentry异常日志 
+
+- xyz.staffjoy.common.aop.SentryClientAspect
+- 使用 切面编程实现，即 aop
+
+![1606551066029](MicroserviceSpringBootStaffjoy.assets/1606551066029.png)
+
+
+
+### 异步调用处理 
+
+#### ThreadPoolTaskExecutor 
+
+![1606551220745](MicroserviceSpringBootStaffjoy.assets/1606551220745.png)
+
+
+
+#### AsyncExecutor 配置 
+
+- xyz.staffjoy.account.config.AppConfig#asyncExecutor
+
+![1606551235476](MicroserviceSpringBootStaffjoy.assets/1606551235476.png)
+
+
+
+#### Async 标注 
+
+- xyz.staffjoy.account.service.helper.ServiceHelper#trackEventAsync
+
+![1606551394581](MicroserviceSpringBootStaffjoy.assets/1606551394581.png)
 
 
 
 
-线程上下文拷贝 
+
+#### 线程上下文拷贝 
 
 - 由于使用异步调用，会使得线程的切换之后，请求的信息丢失
 - 使用线程上下文拷贝，实现信息同步
 - xyz.staffjoy.account.config.AppConfig
 - xyz.staffjoy.common.async.ContextCopyingDecorator
+- https://stackoverflow.com/questions/23732089/how-to-enable-request-scope-in-async-task-executor
+
+![1606551430015](MicroserviceSpringBootStaffjoy.assets/1606551430015.png)
+
+
+
+### Swagger 接口文档 
+
+#### Swagger 配置 
+
+- https://swagger.io/docs/specification/about/
+- xyz.staffjoy.account.config.SwaggerConfig
+
+![1606551572438](MicroserviceSpringBootStaffjoy.assets/1606551572438.png)
+
+
+
+#### Swagger UI 
+
+- https://dzone.com/articles/spring-boot-restful-api-documentation-with-swagger
+- 自动实现 服务的接口文档
+
+![1606551897702](MicroserviceSpringBootStaffjoy.assets/1606551897702.png)
+
+
+
+#### Swagger JSON Doc 
+
+- https://editor.swagger.io/
+- 可以基于 JSON 接口文档，实现接口的自动生成
+
+![1606551934948](MicroserviceSpringBootStaffjoy.assets/1606551934948.png)
+
+
+
+### 主流服务框架概览 
+
+#### 主流服务框架概览 
+
+|              | 支持公司 | 编程风格 | 编程模型 | 支持语言 | 亮点                           |
+| ------------ | -------- | -------- | -------- | -------- | ------------------------------ |
+| Spring(Boot) | Pivotal  | REST     | 代码优先 | Java     | 社区生态好                     |
+| Dubbo        | 阿里     | RPC/REST | 代码优先 | Java     | 阿里背书+ 服务治理             |
+| Motan        | 新浪     | RPC      | 代码优先 | Java为主 | 轻量版Dubbo                    |
+| gRpc         | 谷歌     | RPC      | 契约优先 | 跨语言   | 谷歌背书+多语言支持+HTTP2 支持 |
+
+![1606552079235](MicroserviceSpringBootStaffjoy.assets/1606552079235.png)
+
+
+
+### 参考链接 
+
+1. [Shippable的微服务之旅：mono repo vs multiple repositories](http://blog.shippable.com/our-journey-to-microservices-and-a-mono-repository)
+2. [Why startups need to use monorepo](https://medium.com/@hoangbkit/why-monorepo-in-2018-89221acd4bfb)
+3. [Google Build System Bazel](https://bazel.build/)
+4. [Facebook Build System Buck](https://buck.build/)
+5. [Model Mapper](https://github.com/modelmapper/modelmapper)
+6. [gRPC](https://grpc.io/)
+7. [Thrift](https://github.com/apache/thrift)
+8. [Swagger Codegen](https://github.com/swagger-api/swagger-codegen)
+9. [Spring Boot RESTful API Documentation With Swagger 2](https://dzone.com/articles/spring-boot-restful-api-documentation-with-swagger)
+10. [Swagger和Open API](https://swagger.io/docs/specification/about/)
 
 
 
 
 
+## 可编程网关 设计和实践 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### 网关和 BFF 是如何演化出来的 
 
 
 
