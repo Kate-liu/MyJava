@@ -855,6 +855,474 @@ DMO：数据实体对象，业务对象，对接数据库
 
 ### 网关和 BFF 是如何演化出来的 
 
+#### MyShop SOA V1 
+
+- 桌面服务
+
+![1606720007772](MicroserviceSpringBootStaffjoy.assets/1606720007772.png)
+
+
+
+#### MyShop SOA V2 
+
+- 新增无线设备服务
+- 该方案被否决
+
+![1606720033283](MicroserviceSpringBootStaffjoy.assets/1606720033283.png)
+
+
+
+#### MyShop SOA V2.5 
+
+- 使用无线 BFF 完成无线设备服务
+
+![1606720145048](MicroserviceSpringBootStaffjoy.assets/1606720145048.png)
+
+
+
+#### MyShop SOA V3 
+
+- 无线业务发展，添加无线网关解决多无线BFF耦合问题
+
+![1606720190729](MicroserviceSpringBootStaffjoy.assets/1606720190729.png)
+
+
+
+#### MyShop SOA V4 
+
+- 随着业务扩张，统一无线和桌面网关层
+
+![1606720252895](MicroserviceSpringBootStaffjoy.assets/1606720252895.png)
+
+
+
+### 网关和反向代理是什么关系？ 
+
+#### 反向代理 vs 网关 
+
+- Web 时代，Nginx 和 HA proxy
+- 微服务时代，Zuul 和 Nginx
+- 云原生时代，Envoy(c++) 和 Traefil（golang）
+- 反向代理，可以理解为不同应用设备之间的接待前台
+- 网关，可以理解为每一个微服务之间的接口
+
+![1606720380636](MicroserviceSpringBootStaffjoy.assets/1606720380636.png)
+
+
+
+
+
+### 网关需要分集群部署吗？ 
+
+#### 反向代理+网关部署架构 
+
+- Api 流量
+- 网页流量
+
+![1606720508395](MicroserviceSpringBootStaffjoy.assets/1606720508395.png)
+
+
+
+#### 统一网关部署架构 
+
+- 一统网关和反向代理
+
+![1606720531608](MicroserviceSpringBootStaffjoy.assets/1606720531608.png)
+
+
+
+#### 统一网关+分集群 
+
+![1606720252895](MicroserviceSpringBootStaffjoy.assets/1606720252895.png)
+
+
+
+### Faraday 网关内核设计 
+
+#### Faraday 网关内核设计 
+
+- 路由映射表
+- HttpClient映射表
+- ReverseProxyFilter
+
+![1606720617640](MicroserviceSpringBootStaffjoy.assets/1606720617640.png)
+
+
+
+#### 静态路由配置 
+
+- staffjoy\faraday\src\main\resources\application-dev.yml
+- 基于域名映射 对应的 微服务
+
+![1606721733921](MicroserviceSpringBootStaffjoy.assets/1606721733921.png)
+
+
+
+### Faraday网关代码解析 
+
+#### 网关代码解析 
+
+- 路由映射表（上部分）
+- xyz.staffjoy.faraday.core.mappings.MappingsProvider
+- xyz.staffjoy.faraday.core.mappings.ConfigurationMappingsProvider
+- xyz.staffjoy.faraday.core.mappings.ProgrammaticMappingsProvider
+- ReverseProxyFilter（下部分）
+- xyz.staffjoy.faraday.core.http.ReverseProxyFilter
+- xyz.staffjoy.faraday.core.http.RequestForwarder
+
+
+
+#### 统一异常处理 
+
+![1606722154364](MicroserviceSpringBootStaffjoy.assets/1606722154364.png)
+
+
+
+### 生产级网关需要考虑哪些环节？ 
+
+#### 生产扩展点 
+
+- 限流熔断
+- 动态路由和负载均衡（目前系统是将其写死了，直接使用域名映射服务）
+- 基于 Path 的路由
+  - api.xxx.com/pathx
+- 截获器链（将请求截获器组成链式，更容易扩展）
+- 日志采集和 Metrics 埋点
+- 响应流优化 （数据不需要经过内核拷贝到内核）
+
+
+
+### 主流开源网关概览 
+
+#### 主流开源网关概览 
+
+|                             | 支持公司        | 实现语言      | 亮点                                 | 不足                      |
+| --------------------------- | --------------- | ------------- | ------------------------------------ | ------------------------- |
+| Nginx (2004)                | Nginx Inc       | C/Lua         | 高性能，成熟稳定                     | 门槛高，偏运维，可编 程弱 |
+| Kong (2014)                 | Kong Inc        | OpenResty/Lua | 高性能，可编程API                    | 门槛较高                  |
+| Zuul1 (2012)                | Netflix/Pivotal | Java          | 成熟，简单门槛低                     | 性能一般，可编程一般      |
+| Spring Cloud Gateway (2016) | Pivotal         | Java          | 异步，配置灵活                       | 早期产品                  |
+| Envoy (2016)                | Lyft            | C++           | 高性能，可编程 ServiceMesh集成 API/  | 门槛较高                  |
+| Traefik (2015)              | Containous      | Golang        | 云原生，可编程 种服务发现 API/对接各 | 生产案例不多              |
+
+![1606722365553](MicroserviceSpringBootStaffjoy.assets/1606722365553.png)
+
+
+
+### 参考链接 
+
+1. [Nginx](https://www.nginx.com/)
+2. [Haproxy](http://www.haproxy.org/)
+3. [Kong](https://konghq.com/kong/)
+4. [Envoy](https://www.envoyproxy.io/)
+5. [Traefik](https://traefik.io/)
+6. [Zuul](https://github.com/Netflix/zuul)
+7. [Spring Cloud Gateway](https://spring.io/projects/spring-cloud-gateway)
+8. [Resilience4j](https://github.com/resilience4j/resilience4j)
+9. [Hystrix](https://github.com/Netflix/Hystrix)
+10. [Spring Cloud Netflix](https://spring.io/projects/spring-cloud-netflix)
+11. [Micrometer](https://micrometer.io/)
+
+
+
+## 安全框架 设计和实践 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
