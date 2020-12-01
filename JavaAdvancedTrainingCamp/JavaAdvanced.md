@@ -5608,6 +5608,7 @@ Spring 早期版本的核心功能，管理对象生命周期与对象装配。
   - 默认使用 CGlib
   - 运行期生成，xxx$$ EnhancerBySpringCGLIB
 - 示例程序
+- org.copydays.thinking.java.spring.core.technology.aopproxy.SpringDemo
 
 一个 对象的代理有哪些种类？用在什么场景？组合类型，门面模式，装饰模式。
 
@@ -5741,6 +5742,9 @@ Spring 早期版本的核心功能，管理对象生命周期与对象装配。
 
 
 - activemq 示例
+- http://activemq.apache.org/
+- org.copydays.thinking.java.spring.core.technology.jms.JmsSender
+- org.copydays.thinking.java.spring.core.technology.jms.JmsReceiver
 
 
 
