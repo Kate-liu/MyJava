@@ -595,6 +595,16 @@ Apache Dubbo PMC，前阿里架构师/某商业银行北京研发中心负责人
 
 
 
+
+
+
+
+
+
+
+
+
+
 ## JVM 核心技术--基础知识 
 
 ### 1. JVM 核心技术--基础知识 
@@ -5469,69 +5479,141 @@ putIfAbsent() 方法
 
 
 
-## 开发框架
+## java 开发框架-Spring
+
+### Spring 技术发展
+
+#### Spring 框架的产生与发展
+
+https://spring.io/
+
+2002年10月，Rod Johnson 撰写了一本名为 Expert One-on-One J2EE 设计和开发的书。
+
+Rod, Juergen 和 Yann  于2003年2月左右开始合作开发Spring项目。
+
+自2004年1.0版本发布以来，Spring框架迅速发展。
+
+Spring 2.0于2006年10月发布，到那时，Spring的下载量超过了100万。
+
+在Rod领导下管理 Interface21 项目于 2007年11月 更名为 SpringSource。同时发不了Spring2.5。Spring 2.5 中的主要新功能包括支持 Java6 / Java EE 5，支持注释配置， Classpath 中 的组件自动 检测和兼容 OSGI 的 bundle。
+
+2007年，SpringSource 从基准资本获得了 A 轮融资，1000万美元。
+
+2009年8月，Springsource 以4.2亿美元被VMWare收购。
+
+2009年12月，Spring 3.0 发布。
+
+2012年7月，Rod Johnson 离开团队。
+
+2013年4月，VMware 和 EMC通过 GE投资创建了一家名为 Pivotal 的合资企业。所有的spring 应用项目都转移到了 Pivotal。
+
+2013年12月，Pivotal 宣布发布Spring 框架 4.0。Spring 4.0 是Spring框架的一大进步，它包含了对Java8的全面支持，更高的第三方库依赖性（groovy  1.8+，ehcache 2.1+，hibernate  3.6+等），Java EE 7支持，groovy DSL for bean定义，对 websockets 的支持以及对泛型类型的支持作为注入 Bean 的限定符。
+
+2014年至2017年期间发不了许多 Spring 框架 4.xx 系列版本。
+
+Spring 5.0 GA 版本与 2017年9月28日发布。Spring 5.0 开始支持 JDK 8 和 Java EE 7，同时兼容 JDK 9。全面支持  Servlet 3.1，它还引入了一个全新的模块 Spring  webflux。用于替代老话的 spring-webmvc，对Kotlin 也有了更好的支持。
+
+Pivotal 公司成立之后，于2014年发布了 Spring Boot，2015年 发布了 Spring Cloud，2018年 Pivotal 公司在纽约上式。
+
+公司开源产品有：Spring 以及 Spring衍生产品，Web 服务器 Tomcat，缓存中间件 Redis，消息中间件 RabbitMQ，平台即服务的 Cloud Foundry，Greenplum 数据引擎，GemFire（12306 系统解决方案组件之一）。
+
+
+
+#### Spring 重点版本
+
+- 2.5.6
+- 3.3.1
+- 4.x
 
 
 
 
 
+### Spring 框架设计
+
+#### Spring 框架设计
+
+思考一下，什么是框架？
+
+- 框架本身不解决业务问题
+- 使用框架，更加关注的解决业务问题
+
+
+
+#### Spring Framework 6大模块
+
+- core
+- Testing
+- DataAccess
+- Spring MVC/WebFlux
+- Integration
+- Languages
+
+
+
+#### Spring 框架设计
+
+- 众多项目
+- Bean 与 AOP
+
+
+
+- 引入Spring意味着引入了一种研发协作模式（MVC）
+- 进行系统的分层，根据功能切分为一个个小组件，方便划分工作与复杂度
 
 
 
 
 
+### Spring AOP 详解
+
+#### Spring AOP
+
+AOP-面向切面编程
 
 
 
+IOC-控制反转
 
 
 
+属性的循环依赖，A.b=B，B.a=A，无法进行编译，先有蛋还是先有鸡。
+
+解决方法，从编译器推迟到运行期。
 
 
 
+什么类型的循环依赖 Spring无法处理？==>构造函数中的依赖，无法处理。
+
+除了 Spring，循环依赖还有哪些类似场景？==>事务中的死锁，并发死锁。
+
+如何打破依赖？==>1）将循环依赖去掉，打破一个锁，死掉线程或者扔掉锁。2）将循环操作，加上一个超时，加上可以中断的。
 
 
 
+#### Spring AOP做法
+
+- 接口类型
+- 非接口类型
+  - 默认使用 CGlib
+  - 运行期生成，xxx$$ EnhancerBySpringCGLIB
+- 示例程序
+
+一个 对象的代理有哪些种类？用在什么场景？组合类型，门面模式，装饰模式。
 
 
 
+#### Spring AOP动态代理
+
+- CGLIB
+- 字节码增强 emit，C# 直接有 emit 的包
+- 字节操作，都是第三方，非类库提供。
+- 提供一个动态代理口子，Instrumentation，叫做java  agent，拿到的是真正改变之后的类。
+- ByteBuddy 提供更友好的操作 API
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### Spring Core 核心原理
 
 
 
