@@ -5549,6 +5549,8 @@ Pivotal 公司成立之后，于2014年发布了 Spring Boot，2015年 发布了
 - Integration
 - Languages
 
+![1606792684278](JavaAdvanced.assets/1606792684278.png)
+
 
 
 #### Spring 框架设计
@@ -5556,10 +5558,12 @@ Pivotal 公司成立之后，于2014年发布了 Spring Boot，2015年 发布了
 - 众多项目
 - Bean 与 AOP
 
-
+![1606792795141](JavaAdvanced.assets/1606792795141.png)
 
 - 引入Spring意味着引入了一种研发协作模式（MVC）
 - 进行系统的分层，根据功能切分为一个个小组件，方便划分工作与复杂度
+
+![1606792849786](JavaAdvanced.assets/1606792849786.png)
 
 
 
@@ -5569,15 +5573,21 @@ Pivotal 公司成立之后，于2014年发布了 Spring Boot，2015年 发布了
 
 #### Spring AOP
 
-AOP-面向切面编程
+**AOP-面向切面编程**
+Spring 早期版本的核心功能，管理对象生命周期与对象装配。
+为了实现管理和装配，一个自然而然的想法就是，加一个中间层代理（字节码增强）来实现所有对象的托管。
 
 
 
-IOC-控制反转
+**IOC-控制反转**
+也称为 DI（Dependency Injection）依赖注入。
+对象装配思路的改进。
+从对象A直接引用和操作对象B，变成对象A里只需要依赖一个接口B。系统启动和装配阶段，把IB接口的实例对象注入到对象A，这样A就不需要依赖一个IB接口的具体实现，也即是类B。
+从而实现在不修改代码的情况，修改配置文件，即可以运行时替换成注入IB接口的另一实现类C的一个对象实例。
 
 
 
-属性的循环依赖，A.b=B，B.a=A，无法进行编译，先有蛋还是先有鸡。
+**属性的循环依赖**，A.b=B，B.a=A，无法进行编译，先有蛋还是先有鸡。
 
 解决方法，从编译器推迟到运行期。
 
@@ -5601,6 +5611,10 @@ IOC-控制反转
 
 一个 对象的代理有哪些种类？用在什么场景？组合类型，门面模式，装饰模式。
 
+![1606793253140](JavaAdvanced.assets/1606793253140.png)
+
+
+
 
 
 #### Spring AOP动态代理
@@ -5611,13 +5625,160 @@ IOC-控制反转
 - 提供一个动态代理口子，Instrumentation，叫做java  agent，拿到的是真正改变之后的类。
 - ByteBuddy 提供更友好的操作 API
 
-
-
-### Spring Core 核心原理
-
+![1606793313511](JavaAdvanced.assets/1606793313511.png)
 
 
 
+
+
+### Spring  Bean  核心原理
+
+#### Spring Bean 生命周期
+
+- BeanFactory
+- ApplicationContext
+- 从Bean 工厂到应用上下文
+
+![1606793395950](JavaAdvanced.assets/1606793395950.png)
+
+
+
+- Bean 的加载过程示意图
+- 为什么设计得这么复杂？11步？
+  - Spring作为通用框架，需要初始化任何类，就需要这么复杂
+
+![1606793510924](JavaAdvanced.assets/1606793510924.png)
+
+
+
+- Bean 的加载过程流程图
+- 是否可以对照 Classloader加载？可以，它们是一致的。
+
+![1606793617127](JavaAdvanced.assets/1606793617127.png)
+
+
+
+- Bean 的加载过程
+- 1）创建对象
+- 2）属性赋值
+- 3）初始化
+- 4）注销接口注册
+- org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#doCreateBean
+
+![1606796592031](JavaAdvanced.assets/1606796592031.png)
+
+
+
+- Bean 的加载过程-初始化过程
+  - 检查Aware装配
+  - 前置处理，After处理
+  - 调用 init method
+  - 后置处理
+- 返回包装类
+- org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#initializeBean(java.lang.String, java.lang.Object, org.springframework.beans.factory.support.RootBeanDefinition)
+
+![1606796758778](JavaAdvanced.assets/1606796758778.png)
+
+
+
+- Bean 的加载过程
+- Spring Bean 工厂，都是单例的
+- Spring 管理对象生命周期以后，也就改变了编程和协作模式
+
+![1606796882395](JavaAdvanced.assets/1606796882395.png)
+
+![1606796896484](JavaAdvanced.assets/1606796896484.png)
+
+
+
+### Spring XML 配置原理
+
+#### XML 配置原理
+
+- XML 配置原理
+- 基于 xsd 文件描述
+- 本地文件的命名空间
+- xxx.xml
+
+![1606796965935](JavaAdvanced.assets/1606796965935.png)
+
+- 自动化 XML 配置工具：
+  - XMLBeans -> Spring-xbean
+  - 自动生成Handler等文件
+- 2个原理
+  - 1.根据Bean的字段结构，自动生成 XSD
+  - 根据Bean的字段结构，配置XML文件
+- 思考：
+  - 1.解析XML的工具有哪些，都有什么特点？
+  - XML <-> Bean 相互转换的工具，除了 xbean，还有什么？
+
+
+
+- 总结
+- Spring 4.0之后，可以将一个方法变成一个 Bean，不需要new那么多实例
+- 自动扫描的方式实现
+
+![1606797245311](JavaAdvanced.assets/1606797245311.png)
+
+
+
+
+
+### Spring Messaging 等技术
+
+- 介绍 Messageing 与 JMS
+- RPC 与 MQ ，同步转异步，依赖关系变简单
+
+![1606797327993](JavaAdvanced.assets/1606797327993.png)
+
+
+
+- JMS 规范类似于 JDBC
+- 点对点发送消息 与 发布订阅模式
+
+![1606797378931](JavaAdvanced.assets/1606797378931.png)
+
+
+
+- activemq 示例
+
+
+
+### 总结回顾与作业实践 
+
+#### 总结回顾
+
+![1606797435939](JavaAdvanced.assets/1606797435939.png)
+
+
+
+#### 作业实践
+
+1）使java里的动态代理，实现一个简单的AOP
+
+2）写代码实现 Spring Bean的装配，方式越多越好（XML，Annotation都可以）。
+
+3）实现一个 Spring XML 自定义配置，配置一组 Bean，例如 Student / Klass/ School。
+
+4）附加
+
+4.1）将网关的 frontend /backgend /filter /router /线程池都改造成 Spring 配置方式
+
+4.2）基于 AOP 改造 Netty 网关，filter 和 router 使用 AOP 方式实现
+
+4.3）基于前述改造，将网关请求前后端分离，中级使用 JMS 传递消息
+
+4.4）尝试使用 ByteBuddy 实现一个简单的基于类的AOP
+
+4.5）尝试使用 ByteBuddy 和 Instrument 实现一个简单 JavaAgent 实现吴琴融入下的 AOP
+
+
+
+
+
+
+
+## java 开发框架-Spring Boot
 
 
 
