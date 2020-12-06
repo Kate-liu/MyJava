@@ -13,6 +13,7 @@
         <module>concurrent-core-technology</module>
         <module>netty-core-technology-gateway</module>
         <module>spring-core-technology</module>
+        <module>spring-boot-core-technology</module>
     </modules>
     <packaging>pom</packaging>
 
