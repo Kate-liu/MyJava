@@ -5796,6 +5796,8 @@ Spring 4 以上的新特性，走向 Spring Boot
 
 功能，使用方式太复杂，怎么办？ 
 
+![1607248734394](JavaAdvanced.assets/1607248734394.png)
+
 
 
 #### Spring Boot 的出发点
@@ -5852,6 +5854,10 @@ Spring Boot 使创建独立运行、生产级别的 Spring 应用变得容易，
 
 - https://start.spring.io/
 
+![1607248849495](JavaAdvanced.assets/1607248849495.png)
+
+
+
 
 
 ### Spring Boot 核心原理 
@@ -5864,11 +5870,15 @@ Spring Boot 使创建独立运行、生产级别的 Spring 应用变得容易，
 2、spring-boot-starter：脚手架核心
 整合各种第三方类库，协同工具 
 
+![1607248885579](JavaAdvanced.assets/1607248885579.png)
+
 （整合到项目的pom文件中）
 
 application.yaml --> Configuration  --> Bean
 
 前缀  --> 一**组**配置 -->  Starter 组件 
+
+![1607248911420](JavaAdvanced.assets/1607248911420.png)
 
 
 
@@ -5876,7 +5886,7 @@ application.yaml --> Configuration  --> Bean
 
 为什么要约定大于配置？
 
-举例来说，JVM 有1000多个参数，但是我们不需要一个参数，就能 java Hello。
+举例来说，JVM 有1000多个参数（查看命令：java -XX:+PrintFlagsFinal -XX:+UnlockDiagnosticVMOptions -version | wc -l），但是我们不需要一个参数，就能 java Hello。
 
 优势在于，开箱即用：
 一、Maven 的目录结构：默认有 resources 文件夹存放配置文件。默认打包方式为 jar。
@@ -5885,15 +5895,27 @@ application.yaml --> Configuration  --> Bean
 四、EnableAutoConfiguration 默认对于依赖的 starter 进行自动装载。
 五、spring-boot-start-web 中默认包含 spring-mvc 相关依赖以及内置的 web容器，使得构建一个 web 应用更加简单。
 
-什么是脚手架？ 
-
 
 
 #### 自动化配置原理
 
-自动化配置 
+自动化配置 步骤：
 
+- 写配有注解 @EnableAutoConfiguration 的类
 
+![1607249023809](JavaAdvanced.assets/1607249023809.png)
+
+- 写配有注解 @Configuration  的类
+
+![1607249069680](JavaAdvanced.assets/1607249069680.png)
+
+- 写配有注解 @Import(WebConfiguration.class) 的类
+
+![1607249137303](JavaAdvanced.assets/1607249137303.png)
+
+- 写 spring.factories 文件，进行映射装配
+
+![1607249187788](JavaAdvanced.assets/1607249187788.png)
 
 
 
@@ -5908,6 +5930,7 @@ SpringBoot 应用标注在某个类上说明这个类是 SpringBoot 的主配置
 •@Import({AutoConfigurationImportSelector.class})
 
 加载所有 META-INF/spring.factories 中存在的配置类（类似 SpringMVC 中加载所有 converter）
+
 核心启动入口 
 
 
@@ -5935,6 +5958,10 @@ SpringBoot 应用标注在某个类上说明这个类是 SpringBoot 的主配置
 3、additional--metadata（配置内容，可以设置默认值）
 4、自定义 Configuration 类 （配置类，扫描包的converter，）
 
+![1607249239558](JavaAdvanced.assets/1607249239558.png)
+
+![1607249274967](JavaAdvanced.assets/1607249274967.png)
+
 
 
 ### JDBC 与数据库连接池 
@@ -5947,6 +5974,10 @@ Connection
 Statement
 ResultSet
 后来又加了DataSource--Pool  （数据库连接池，类似于线程池）
+
+![1607249555893](JavaAdvanced.assets/1607249555893.png)
+
+![1607249571207](JavaAdvanced.assets/1607249571207.png)
 
 
 
@@ -5990,7 +6021,7 @@ Hibernate 里可以使用 HQL（写一个配置映射文件）、Criteria（直�
 
 也可以作为 JPA 适配实现，使用 JPA 接口操作。 
 
-
+![1607249635133](JavaAdvanced.assets/1607249635133.png)
 
 
 
@@ -5999,6 +6030,10 @@ Hibernate 里可以使用 HQL（写一个配置映射文件）、Criteria（直�
 MyBatis 是一款优秀的持久层框架，它支持定制化 SQL、存储过程以及高级映射。MyBatis 避免了几乎所有的JDBC 代码和手动设置参数以及获取结果集。MyBatis 可以使用简单的 XML或注解来配置和映射原生信息，将接口和 Java 的 POJOs(Plain Old Java Objects,普通的 Java 对象)映射成数据库中的记录。 
 
 备注：大厂使用。
+
+![1607249690582](JavaAdvanced.assets/1607249690582.png)
+
+
 
 
 
@@ -6039,6 +6074,8 @@ JPA 的全称是 Java Persistence API，即 Java 持久化 API，是一套基于
 
 核心 EntityManager 
 
+![1607249778307](JavaAdvanced.assets/1607249778307.png)
+
 
 
 #### Spring JDBC 与 ORM
@@ -6049,6 +6086,8 @@ JPA      EntityManager      Spring ORM
 
 Spring Data with NoSQL ? （Spring Data 是一堆的包，长的类似 JPA，进行包的统一）
 
+![1607249800487](JavaAdvanced.assets/1607249800487.png)
+
 
 
 #### Spring 管理事务
@@ -6057,7 +6096,7 @@ JDBC 层，数据库访问层，怎么操作事务？编程式事务管理
 
 Spring 怎么做到无侵入实现事务？声明式事务管理：事务管理器+AOP 
 
-
+![1607249821310](JavaAdvanced.assets/1607249821310.png)
 
 
 
@@ -6122,6 +6161,10 @@ Pojo、 Mapper 与服务类
 
 访问测试 
 
+- https://github.com/apache/shardingsphere
+- git clone https://github.com/apache/shardingsphere.git --depth=1
+- mysql 3306 root 无密码
+
 
 
 #### Spring Boot 集成 MyBatis
@@ -6134,6 +6177,8 @@ Pojo、 Mapper 与服务类
 启动类
 
 访问测试 
+
+- https://gitee.com/nicefish/nicefish-backend
 
 
 
@@ -6158,7 +6203,8 @@ Pojo、 Mapper 与服务类
 5.ORM-Hibernate/MyBatis*
 6.Spring 集成 ORM/JPA*
 7.Spring Boot 集成 ORM/JPA
-8.第 10 课总结回顾与作业实践 
+
+![1607249952212](JavaAdvanced.assets/1607249952212.png)
 
 
 
