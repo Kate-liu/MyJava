@@ -5782,7 +5782,311 @@ Spring 早期版本的核心功能，管理对象生命周期与对象装配。
 
 
 
-## java 开发框架-Spring Boot
+# java 开发框架-Spring Boot
+
+### 从 Spring 到 Spring Boot 
+
+#### Spring 变得越来越复杂
+
+配置的发展方向：
+XML--全局
+注解--类
+配置类--方法
+Spring 4 以上的新特性，走向 Spring Boot
+
+功能，使用方式太复杂，怎么办？ 
+
+
+
+#### Spring Boot 的出发点
+
+Spring 臃肿以后的必然选择。
+一切都是为了简化。
+
+- 让开发变简单：
+- 让配置变简单：
+- 让运行变简单：
+
+怎么变简单？关键词：整合
+就像是 SSH、SSM（脚手架），国产的 SpringSide（唯品会）
+
+基于什么变简单：**约定大于配置**。 
+
+限定性框架（框死应用领域）和非限定性框架（Spring 原始方式，什么都可以，万金油）？ 
+
+
+
+#### Spring Boot 如何做到简化
+
+为什么能做到简化：
+1、Spring 本身技术的成熟与完善，各方面第三方组件的成熟集成
+2、Spring 团队在去 web 容器化等方面的努力（内嵌Tomcat，属于Apache。Jetty 更小，只有一个jar，天然是嵌入的，属于eclipse）
+3、基于 MAVEN 与 POM 的 Java 生态体系，整合 POM 模板成为可能
+4、避免大量 maven 导入和各种版本冲突
+
+Spring Boot 是 Spring 的一套快速配置**脚手架**，关注于自动配置，配置驱动。
+
+什么是脚手架？ （框架（Spring），脚手架（Spring Boot），解决方案（Spring Cloud））
+
+
+
+#### 什么是 Spring Boot
+
+Spring Boot 使创建独立运行、生产级别的 Spring 应用变得容易，你可以直接运行它。
+我们对 Spring 平台和第三方库采用限定性视角，以此让大家能在最小的成本下上手。大部分 Spring Boot 应用仅仅需要最少量的配置。
+
+功能特性
+
+1. 创建独立运行的 Spring 应用
+2. 直接嵌入 Tomcat 或 Jetty，Undertow，无需部署 WAR 包 (maven  打一个 fat jar，使用插件 shade；gradle 也可以打出来 fat jar)
+3. 提供限定性的 starter 依赖简化配置（就是脚手架）
+4. 在必要时自动化配置 Spring 和其他三方依赖库
+5. 提供生产 production-ready 特性，例如指标度量，健康检查，外部配置等
+6. 完全零代码生产和不需要 XML 配置 
+
+
+
+
+
+#### 快速构建基础 maven 项目 
+
+- https://start.spring.io/
+
+
+
+### Spring Boot 核心原理 
+
+#### Spring Boot 两大核心原理
+
+1、自动化配置：简化配置核心
+基于 Configuration，EnableXX，Condition
+
+2、spring-boot-starter：脚手架核心
+整合各种第三方类库，协同工具 
+
+（整合到项目的pom文件中）
+
+application.yaml --> Configuration  --> Bean
+
+前缀  --> 一**组**配置 -->  Starter 组件 
+
+
+
+#### 为什么要约定大于配置
+
+为什么要约定大于配置？
+
+举例来说，JVM 有1000多个参数，但是我们不需要一个参数，就能 java Hello。
+
+优势在于，开箱即用：
+一、Maven 的目录结构：默认有 resources 文件夹存放配置文件。默认打包方式为 jar。
+二、默认的配置文件：application.properties 或 application.yml 文件
+三、默认通过 spring.profiles.active 属性来决定运行环境时的配置文件。
+四、EnableAutoConfiguration 默认对于依赖的 starter 进行自动装载。
+五、spring-boot-start-web 中默认包含 spring-mvc 相关依赖以及内置的 web容器，使得构建一个 web 应用更加简单。
+
+什么是脚手架？ 
+
+
+
+#### 自动化配置原理
+
+自动化配置 
+
+
+
+
+
+#### Spring Boot 自动配置注解
+
+•@SpringBootApplication
+
+SpringBoot 应用标注在某个类上说明这个类是 SpringBoot 的主配置类，SpringBoot 就会运行这个类的 main 方法来启动 SpringBoot 项目。
+•@SpringBootConfiguration
+•@EnableAutoConfiguration
+•@AutoConfigurationPackage
+•@Import({AutoConfigurationImportSelector.class})
+
+加载所有 META-INF/spring.factories 中存在的配置类（类似 SpringMVC 中加载所有 converter）
+核心启动入口 
+
+
+
+#### 条件化自动配置
+
+@ConditionalOnBean
+@ConditionalOnClass
+@ConditionalOnMissingBean
+@ConditionalOnProperty
+@ConditionalOnResource
+@ConditionalOnSingleCandidate
+@ConditionalOnWebApplication
+
+运行时灵活组装，避免冲突 
+
+
+
+### Spring Boot Starter 详解 
+
+#### 以一个实际项目讲解 Starter
+
+1、spring.provides（那个包提供了starter）
+2、spring.factories（定义自动配置的类）
+3、additional--metadata（配置内容，可以设置默认值）
+4、自定义 Configuration 类 （配置类，扫描包的converter，）
+
+
+
+### JDBC 与数据库连接池 
+
+#### JDBC
+
+JDBC 定义了数据库交互接口：
+DriverManager
+Connection
+Statement
+ResultSet
+后来又加了DataSource--Pool  （数据库连接池，类似于线程池）
+
+
+
+#### JDBC 是 Java 里操作数据库的核心
+
+Java 操作数据库的各种类库，都可以看做是在 JDBC 上做的增强实现（JDBC实现了一个接口，只需要使用代理模式，进行封装即可实现各种类库）
+
+为什么可以这么做？
+加上 XA 事务--XAConnection
+从连接池获取--PooledConnection
+MySQL 驱动 JDBC 接口--Connection 
+
+（基于AOP的思想，对每一个连接，添加一个状态。忙的时候就是true，不忙就是false）
+
+
+
+
+
+#### 数据库连接池
+
+C3P0
+DBCP--Apache CommonPool
+Druid（德鲁伊）
+Hikari （光）
+
+连接池需要哪些功能，如何实现？（连接池的快慢意义都不大，相比较于 整个业务操作，时间很短）
+
+
+
+### ORM-Hibernate/MyBatis 
+
+#### Hibernate
+
+ORM（Object-Relational Mapping） 表示对象关系映射。
+
+Hibernate 是一个开源的对象关系映射框架，它对JDBC 进行了非常轻量级的对象封装，它将 POJO 与数据库表建立映射关系，是一个全自动的 orm 框架，hibernate 可以自动生成 SQL 语句，自动执行，使得 Java 程序员可以使用面向对象的思维来操纵数据库。
+
+Hibernate 里需要定义**实体类**和 **hbm 映射**关系文件（IDE 一般有工具生成）。
+
+Hibernate 里可以使用 HQL（写一个配置映射文件）、Criteria（直接使用.的方式，.query().where()）、Native SQL（直接写的就是SQL）三种方式操作数据库。
+
+也可以作为 JPA 适配实现，使用 JPA 接口操作。 
+
+
+
+
+
+#### MyBatis
+
+MyBatis 是一款优秀的持久层框架，它支持定制化 SQL、存储过程以及高级映射。MyBatis 避免了几乎所有的JDBC 代码和手动设置参数以及获取结果集。MyBatis 可以使用简单的 XML或注解来配置和映射原生信息，将接口和 Java 的 POJOs(Plain Old Java Objects,普通的 Java 对象)映射成数据库中的记录。 
+
+备注：大厂使用。
+
+
+
+#### MyBatis-半自动化 ORM
+
+1、需要使用映射文件 mapper.xml 定义 map规则和 SQL
+2、需要定义 mapper/DAO，基于 xml 规则，操作数据库
+
+可以使用工具生成基础的 mapper.xml 和 mapper/DAO
+
+一个经验就是，继承生成的 mapper，而不是覆盖掉
+
+也可以直接在 mapper 上用注解方式配置 SQL 
+
+
+
+#### MyBatis 与 Hibernate 比较
+
+MyBatis 与 Hibernate 的区别与联系？
+
+Mybatis 优点：原生 SQL（XML 语法），直观，对 DBA 友好
+
+Hibernate 优点：简单场景不用写 SQL（HQL、Cretiria、SQL）
+
+Mybatis 缺点：繁琐，可以用 MyBatis-generator、MyBatis-Plus 之类的插件
+
+Hibernate 缺点：对 DBA 不友好 
+
+考虑为什么大公司都用 MyBatis？
+
+
+
+### Spring 集成 ORM 与 JPA 
+
+03:01
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
