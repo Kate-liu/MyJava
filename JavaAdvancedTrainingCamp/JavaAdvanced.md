@@ -5782,7 +5782,7 @@ Spring 早期版本的核心功能，管理对象生命周期与对象装配。
 
 
 
-# java 开发框架-Spring Boot
+## java 开发框架-Spring Boot
 
 ### 从 Spring 到 Spring Boot 
 
@@ -6033,57 +6033,158 @@ Hibernate 缺点：对 DBA 不友好
 
 ### Spring 集成 ORM 与 JPA 
 
-03:01
+#### JPA
+
+JPA 的全称是 Java Persistence API，即 Java 持久化 API，是一套基于 ORM 的规范，内部是由一系列的接口和抽象类构成。JPA 通过 JDK 5.0 注解描述对象-关系表映射关系，并将运行期的实体对象持久化到数据库中。
+
+核心 EntityManager 
+
+
+
+#### Spring JDBC 与 ORM
+
+JDBC     DataSource      Spring JDBC
+
+JPA      EntityManager      Spring ORM
+
+Spring Data with NoSQL ? （Spring Data 是一堆的包，长的类似 JPA，进行包的统一）
+
+
+
+#### Spring 管理事务
+
+JDBC 层，数据库访问层，怎么操作事务？编程式事务管理
+
+Spring 怎么做到无侵入实现事务？声明式事务管理：事务管理器+AOP 
 
 
 
 
 
+#### Spring 声明式事务配置参考
+
+事务的传播性：
+@Transactional(propagation=Propagation.REQUIRED)
+
+事务的隔离级别：
+@Transactional(isolation = Isolation.READ_UNCOMMITTED)
+读取未提交数据(会出现脏读, 不可重复读) 基本不使用
+
+只读：
+@Transactional(readOnly=true)
+该属性用于设置当前事务是否为只读事务，设置为 true 表示只读，false 则表示可读写，默认值为 false。
+
+事务的超时性：
+@Transactional(timeout=30)
+
+回滚：
+指定单一异常类：@Transactional(rollbackFor=RuntimeException.class)
+指定多个异常类：@Transactional(rollbackFor={RuntimeException.class, Exception.class}) 
+
+
+
+#### Spring 集成 MyBatis
+
+演示操作 Spring 与 Mybatis ：
+Mybatis 用法展示
+
+User 表
+XML/Mapper 
+
+- https://gitee.com/nicefish/nicefish-backend
+
+
+
+#### Spring 集成 Hibernate/JPA
+
+演示操作 Spring 与 Hibernate/JPA：
+Hibernate/JPA 用法展示
+
+User 实体类
+注解 
+
+- https://github.com/apache/shardingsphere
+-  git clone https://github.com/apache/shardingsphere.git --depth=1
+- mysql 3306 root 无密码
+
+
+
+### Spring Boot 集成 ORM 与 JPA 
+
+#### Spring Boot 集成JPA/Hibernate
+
+演示操作 Spring Boot 与 MyBatis：
+
+准备环境与配置依赖
+Configuration 与配置文件
+Pojo、 Mapper 与服务类
+启动类
+
+访问测试 
+
+
+
+#### Spring Boot 集成 MyBatis
+
+演示操作 Spring Boot 与 MyBatis：
+
+准备环境与配置依赖
+Configuration 与配置文件
+Pojo、 Mapper 与服务类
+启动类
+
+访问测试 
+
+
+
+#### Spring/Spring Boot 使用 ORM 的经验
+
+1、本地事务（事务的设计与坑）
+2、多数据源（配置、静态制定、动态切换）
+3、数据库连接池配置（大小、重连，超时，心跳）
+4、ORM 内的复杂 SQL，级联查询
+5、ORM 辅助工具和插件 
+
+
+
+### 总结回顾与作业实践 
+
+#### 总结回顾 
+
+1.从 Spring 到 Spring Boot
+2.Spring Boot 核心原理*
+3.Spring Boot Starter 详解*
+4.JDBC 与数据库连接池*
+5.ORM-Hibernate/MyBatis*
+6.Spring 集成 ORM/JPA*
+7.Spring Boot 集成 ORM/JPA
+8.第 10 课总结回顾与作业实践 
+
+
+
+#### 作业实践
+
+1. （选做）总结一下，单例的各种写法，比较它们的优劣。
+2. （选做）maven/spring 的 profile 机制，都有什么用法？
+3. （必做）给前面课程提供的 Student/Klass/School 实现自动配置和 Starter。
+4. （选做）总结 Hibernate 与 MyBatis 的各方面异同点。
+5. （选做）学习 MyBatis-generator 的用法和原理，学会自定义 TypeHandler 处理复杂类型。
+6. （必做）研究一下 JDBC 接口和数据库连接池，掌握它们的设计和用法：
+1）使用 JDBC 原生接口，实现数据库的增删改查操作。
+2）使用事务，PrepareStatement 方式，批处理方式，改进上述操作。
+3）配置 Hikari 连接池，改进上述操作。提交代码到 Github。
+
+附加题（可以后面上完数据库的课再考虑做）：
+
+1. (挑战)基于 AOP 和自定义注解，实现 @MyCache(60) 对于指定方法返回值缓存60秒。
+2. (挑战)自定义实现一个数据库连接池，并整合 Hibernate/Mybatis/Spring/SpringBoot。
+3. (挑战)基于 MyBatis 实现一个简单的分库分表+读写分离+分布式 ID 生成方案。 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+## java 开发框架-
 
 
 
