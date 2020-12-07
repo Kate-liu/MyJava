@@ -1,4 +1,4 @@
-package org.copydays.thinking.java.spring.core.technology.advance;
+package org.copydays.thinking.java.java.core.technology.advance;
 
 import lombok.extern.java.Log;
 import org.copydays.thinking.java.spring.core.technology.domain.Student;

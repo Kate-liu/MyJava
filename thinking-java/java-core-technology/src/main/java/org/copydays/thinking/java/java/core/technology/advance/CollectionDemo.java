@@ -1,4 +1,4 @@
-package org.copydays.thinking.java.spring.core.technology.advance;
+package org.copydays.thinking.java.java.core.technology.advance;
 
 import java.io.IOException;
 import java.util.Arrays;
