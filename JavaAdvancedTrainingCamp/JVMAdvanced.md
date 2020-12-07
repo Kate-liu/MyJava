@@ -996,16 +996,35 @@ interface Customer {
  
 class Merchant {
   public Number actionPrice(double price, Customer customer) {
-    ...
+		//    ...
+        return 1;
   }
 }
  
-class NaiveMerchant extends Merchant {
+class NaiveMerchant extends Merchant {  
   @Override
   public Double actionPrice(double price, Customer customer) {
-    ...
+        //    ...
+        return 2.0d;
   }
 }
+
+// ------------------------------------------------
+// javac org/copydays/thinking/java/jvm/core/technology/override/NaiveMerchant.java
+// javap -v org/copydays/thinking/java/jvm/core/technology/override/NaiveMerchant
+// 直接 Double 复写了 Number 返回值类型的函数 actionPrice
+Constant pool:
+...
+   #5 = Methodref          #6.#20         // org/copydays/thinking/java/jvm/core/technology/override/NaiveMerchant.actionPrice:(DLorg/copydays/thinking/java/jvm/core/technology/override/Customer;)Ljava/lang/Double;
+   #6 = Class              #21            // org/copydays/thinking/java/jvm/core/technology/override/NaiveMerchant
+   #7 = Class              #22            // org/copydays/thinking/java/jvm/core/technology/override/Merchant
+...
+  #12 = Utf8               actionPrice
+  #13 = Utf8               (DLorg/copydays/thinking/java/jvm/core/technology/override/Customer;)Ljava/lang/Double;
+...
+  #20 = NameAndType        #12:#13        // actionPrice:(DLorg/copydays/thinking/java/jvm/core/technology/override/Customer;)Ljava/lang/Double;
+  #21 = Utf8               org/copydays/thinking/java/jvm/core/technology/override/NaiveMerchant
+  #22 = Utf8               org/copydays/thinking/java/jvm/core/technology/override/Merchant
 ```
 
 2. 范型参数类型造成的**方法参数类型不一致**：
@@ -1017,23 +1036,38 @@ interface Customer {
  
 class Merchant<T extends Customer> {
  	public double actionPrice(double price, T customer) {
-		  ...
+        //    ...
+        return 3.0d;
  	}
 }
  
 class VIPOnlyMerchant extends Merchant<VIP> {
 	 @Override
  	public double actionPrice(double price, VIP customer) {
-    ...
+        //    ...
+        return 2.0d;
  	}
 }
+
+// ------------------------------------------------
+// javac org/copydays/thinking/java/jvm/core/technology/override/VIPOnlyMerchant.java
+// javap -v org/copydays/thinking/java/jvm/core/technology/override/VIPOnlyMerchant
+Constant pool:
+...
+   #4 = Class              #17            // org/copydays/thinking/java/jvm/core/technology/override/VIPOnlyMerchant
+   #5 = Class              #18            // org/copydays/thinking/java/jvm/core/technology/override/Merchant
+...
+    #10 = Utf8               actionPrice
+...
+   #17 = Utf8               org/copydays/thinking/java/jvm/core/technology/override/VIPOnlyMerchant
+   #18 = Utf8               org/copydays/thinking/java/jvm/core/technology/override/Merchant
 ```
 
 
 
 
 
-
+## JVM是如何执行方法调用的？（下）
 
 
 
