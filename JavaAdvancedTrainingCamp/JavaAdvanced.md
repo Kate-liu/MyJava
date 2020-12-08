@@ -6236,7 +6236,7 @@ Pojo、 Mapper 与服务类
 
 #### 什么是 Lambda 表达式？
 
-Lambda 表达式（lambda expression）是一个匿名函数，Lambda 表达式基于数中的λ演算得名，直接对应于其中的 lambda 抽象（lambda abstraction），是一个匿名函数，即没有函数名的函数。 
+Lambda 表达式（lambda expression）是一个匿名函数，Lambda 表达式基于数学中的λ演算得名，直接对应于其中的 lambda 抽象（lambda abstraction），是一个匿名函数，即没有函数名的函数。 
 
 从动态引用到动态定义，简化写法
 
@@ -6279,12 +6279,12 @@ x -> 2 * x
 - 代码实例 1
 - 简化的时候，内部会自动生成一个匿名类
 
-
+![1607394110168](JavaAdvanced.assets/1607394110168.png)
 
 - 代码实例 2
 - 可以直接将 lambda表达式 进行参数传递，此时只能保证接口只有一个未实现的方法
 
-
+![1607394135863](JavaAdvanced.assets/1607394135863.png)
 
 
 
@@ -6337,7 +6337,7 @@ Stream（流）是一个来自数据源的元素队列并支持聚合操作
 
 #### Stream 操作
 
-中间操作：
+**中间操作：**
 
 1、选择与过滤
 
@@ -6361,7 +6361,7 @@ Stream（流）是一个来自数据源的元素队列并支持聚合操作
 
 
 
-终止操作：
+**终止操作：**
 
 1.查找与匹配
 allMatch——检查是否匹配所有元素
@@ -6403,7 +6403,7 @@ Lombok 是基于 jsr269 实现的一个非常神奇的 java 类库，会利用�
 
 基于字节码增强，编译期处理。
 
-可以配置开发工具 IDE 或 Mave 能使用。 
+可以配置开发工具 IDE 或 Maven 能使用。 
 
 编译期增强跟前面讲的字节码工具异同点？
 
@@ -6457,11 +6457,15 @@ Guava 对 JDK 集合的扩展，这是 Guava 最成熟和为人所知的部分
 
 本地缓存实现，支持多种缓存过期策略
 
+![1607397648144](JavaAdvanced.assets/1607397648144.png)
+
 
 
 #### 并发[Concurrency]
 
 ListenableFuture：完成后触发回调的 Future ，进行异步回调
+
+![1607397671122](JavaAdvanced.assets/1607397671122.png)
 
 
 
@@ -6484,6 +6488,8 @@ ListenableFuture：完成后触发回调的 Future ，进行异步回调
 #### 反射[Reflection]
 
 Guava 的 Java 反射机制工具类 
+
+![1607397723098](JavaAdvanced.assets/1607397723098.png)
 
 
 
