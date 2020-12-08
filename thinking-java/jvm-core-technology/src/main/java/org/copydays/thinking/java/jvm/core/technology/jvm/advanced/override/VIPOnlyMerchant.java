@@ -1,4 +1,4 @@
-package org.copydays.thinking.java.jvm.core.technology.override;
+package org.copydays.thinking.java.jvm.core.technology.jvm.advanced.override;
 
 interface Customer {
     boolean isVIP();
