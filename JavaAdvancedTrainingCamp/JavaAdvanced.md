@@ -6666,16 +6666,6 @@ Mock 技术
 
 # 性能与SQL优化
 
-1.再聊聊性能优化
-
-2.关系数据库MySQL
-
-3.深入数据库原理
-
-4.MySQL配置优化*
-
-5.数据库设计优化*
-
 
 
 ### 性能优化
@@ -6754,23 +6744,25 @@ Mock 技术
 - 1NF：消除重复数据，即每一列都是不可再分的基本数据项，没个列都是原子的。
 - 拆列
 
-
+![1607570538217](JavaAdvanced.assets/1607570538217.png)
 
 - 2NF：消除部分依赖，表中没有列只与主键的部分相关，即每一行都被主键唯一标识，每个列都有主键。
 - 定义主键，拆
 
-
+![1607570569212](JavaAdvanced.assets/1607570569212.png)
 
 - 3NF：消除传递依赖，消除表中列不依赖主键，而是依赖表中的非主键列的情况，即没有列是与主键不相关的。
 - 从表只应用主表的主键。
 - 即表中每列都和主键相关。
 - 非主键，拆
 
-
+![1607570641315](JavaAdvanced.assets/1607570641315.png)
 
 - BCNF：Boyce-Codd Normal Form(巴斯-科德范式)
 - 3NF 的基础上消除主属性对于码的部分与传递函数依赖
 - 非主键，意义不同，拆
+
+![1607570676112](JavaAdvanced.assets/1607570676112.png)
 
 
 
@@ -6791,6 +6783,8 @@ Mock 技术
   - MongoDb，Hbase，Cassandra，CouchDB
 - NewSQL/ 分布式数据库
   - TiDB，CockroachDB，NuoDB，OpenGauss，OB，
+
+![1607570729849](JavaAdvanced.assets/1607570729849.png)
 
 
 
@@ -6842,9 +6836,9 @@ SQL各个版本:
 
 1989年, ANSI X3.135-1989, ISO/IEC 9075:1989, SQL-89
 
-1992年, ANSI X3.135-1992, ISO/IEC 9075:1992, SQL-92 (SQL2)
+**1992年, ANSI X3.135-1992, ISO/IEC 9075:1992, SQL-92 (SQL2)**
 
-1999年, ISO/IEC 9075:1999, SQL:1999 (SQL3)
+**1999年, ISO/IEC 9075:1999, SQL:1999 (SQL3)**
 
 2003年, ISO/IEC 9075:2003, SQL:2003
 
@@ -6864,37 +6858,93 @@ SQL各个版本:
 
 
 
+#### MySQL 版本
 
+> 选择学习哪个版本？（5.7）
+>
+> 阿里，直接使用 5.6 和 8.0，跳过 5.7版本，国内对 5.7 版本需求多
+>
+> 大多数开始使用 PostgreSQL
 
+- 4.0 支持 InnoDB
+- 2003年，5.0
+- 5.6 ==> 历史使用最多的版本
+- 5.7==> 近期使用最多的版本
+- 8.0==> 最新和功能完善的版本
 
 
 
+#### 5.6/5.7的区别
 
+5.7 支持：
 
+- 多主
+- MGR高可用
+- 分区表
+- json
+- 性能
+- 修复 XA 等 （分布式事务）
 
 
 
+#### 5.7/8.0的差异
 
+- 通用表达式（直接使用SQL编程，CTE，pivot）
+- 窗口函数
+- 持久化参数（set persist）
+- 自增列持久化
+- 默认编码 utf8mb4(真utf8)
+- DDL原子性
+- JSON增强
+- 不再对 group by 进行隐式排序 ==> 坑 （查询出来的数据顺序不一样了）
 
 
 
 
 
+### 深入数据库原理
 
+#### MySQL 架构图
 
+![1607563516399](JavaAdvanced.assets/1607563516399.png)
 
 
 
+#### MySQL 存储
 
+> show databases;
+>
+> use information_schema;
+>
+> show tables;
+>
+> create database k1;  (database  等价于 schema )
+>
+> create schema k2;
+>
+>  select  table_name from tables;（查看所有库里面的所有表的名字）
+>
+>  show columns from task; （查看表结构）
+>
+> show create table task; （查看表的创建语句）
 
+独占模式
 
+1)、日志组文件: ib_logfile0和ib_logfile1，默认均为5M
 
+2)、表结构文件:*.frm
 
+3)、独占表空间文件: *.ibd
 
+4)、字符集和排序规则文件:db.opt
 
+5) 、 binlog二进制日志文件:记录主数据库服务器的DDL和DML操作
 
+6）、二进制日志索引文件:master-bin.index
 
+共享模式innodb_file_per_table=1
 
+1)、数据都在ibdata1
 
 
 
@@ -6902,56 +6952,142 @@ SQL各个版本:
 
 
 
+#### MySQL  简化执行流程
 
+- 查询缓存
+- 解析器
+- 预处理器
+- 查询优化器
+- 查询执行引擎
 
+![1607564738865](JavaAdvanced.assets/1607564738865.png)
 
 
 
+#### MySQL  详细执行流程
 
+- Server 层
+- 引擎层
 
+![1607564818505](JavaAdvanced.assets/1607564818505.png)
 
 
 
+#### MySQL  执行引擎和状态
 
+- 事务
+- 锁
 
+![1607564956439](JavaAdvanced.assets/1607564956439.png)
 
 
 
+#### MySQL  对SQL的执行顺序
 
+实际上这个过程也并不是绝对这样的，中间mysql会有部分的优化以达到最佳的优化效果，比如 在 select 筛选出找到的数据集。
 
+- 整合表
+- 根据条件筛选
+- 选择数据
+- 输出的限制
 
+![1607565101820](JavaAdvanced.assets/1607565101820.png)
 
 
 
+#### MySQL  索引原理
 
+> 为什么一般单表数据不超过2000万？
+>
+> 一般 B+ 树不超过 3 层，保证主键都存储在内存，1170\*1170\*16。
 
+数据是按**页**来分块的，当一个数据被用到时，其附近的数据也通常会马上被使用。
 
+InnoDB使用 **B+ 树**实现聚集索引。
 
+![1607565366683](JavaAdvanced.assets/1607565366683.png)
 
 
 
 
 
+#### MySQL  数据库操作演示
 
+> 5.6 、5.7 、8.0
+>
+> ```mysql
+> # 启动
+> mysql -hlocalhost -P3306 -uroot -ppassword
+> 
+> # docker
+> docker pull mysql
+> 
+> # 打出 mysql 的变量
+> mysql -hlocalhost -P3306 -uroot -e "show variables" > d:mysql.txt
+> 
+> # 直接命令行打印数据表内容
+> mysql -hlocalhost -P3306 -uroot -e "select * from rmliu.words" 
+> ```
 
+操作示例
 
+- 安装的几种方式，安装文件或命令，docker
+- 安装工具，mysql-cli 或者 IDE（DataGrip，Mysql-workbench，MySQL-Front,Navicat等）
+- MySQL库结构，操作语句与命令
+- MySQL SQL语法演示
 
+```sh
+# 启动免安装的压缩包mysql脚本 startmysql.bat
+cd bin
+start mysql.exe
+pause
+```
 
 
 
 
 
+### MySQL配置优化
 
+#### 查看参数配置
 
+- show variable like xxx
+- 默认配置文件：my.cnf 文件
+  - server: [mysqld]
+  - client: [mysql]
 
 
 
+#### 配置优化
 
+1）连接请求的变量
 
+- **max_connections** （最大连接数）
+- back_log
+- wait_timeout 和 interative_timeout
 
+2）缓冲区配置(CPU越多，内存越大，就越快，尤其是预热之后，直接命中缓存，速度更快)
 
+- key_buffer_size
+- **query_cache_size** (查询缓存简称QC)
+- max_connect_errors
+- sort_buffer_size
+- max_allowed_packet=32M
+- join_buffer_size=2M
+- thred_cache_size=300
 
+3）配置 InnoDB 的几个变量
 
+- **innodb_buffer_pool_size**
+- innodb_buffer_log_at_trx_commit
+- **innodb_thread_concurrency=0**
+- innodb_log_buffer_size
+- innodb_log_file_size=20M
+- innodb_log_files_in_group=3
+- **read_buffer_size=1M**
+- read_rnd_buffer_size=16M
+- bulk_insert_buffer_size=64M
+- binary log
 
 
 
@@ -6959,18 +7095,76 @@ SQL各个版本:
 
 
 
+### 数据库设计优化
 
+#### 最佳实践
 
+> 还有哪些常见问题？
 
+- 如何恰当选择引擎？
+- 库表如何命名？（表名字，t_xxx，视图，v_xxx）
+- 如何合理拆分宽表？
+- 如何选择恰当数据类型：明确，尽量小
+  - char，varchar 的选择
+  - （text/blob/clob）的使用问题？(尽量少用)
+  - 文件，图片是否要存入到数据库？（不建议，最好放到分布式文件系统中）
+  - 时间日期的存储问题？（选择时间格式，定义时区，建议存时间戳，对计算友好）
+  - 数值的精度问题？（float 和 long的精度存储会被抹掉，用 bigInt 存储，或者使用多少倍的方式存储，并存上倍数）
+- 是否使用外键，触发器？（不建议）
 
 
 
+#### 设计优化
 
+> 性能是一个综合性问题
 
+- 唯一约束和索引的关系？（唯一约束本身就是索引）
+- 是否可以冗余字段？
+- 是否使用游标，变量，视图，自定义函数，存储过程？（不建议）
+- 自增主键的使用问题？（单表ID，全局ID，分布式ID）
+- 能够在线修改表结构（DDL操作）？
+- 逻辑删除还是物理删除？（重要数据，逻辑删除）
+- 要不要加 create_time，update_time 时间戳？（非常建议，同步数据的时候，使用修改时间戳）
+- 数据库碎片问题？(压缩数据库)
+- 如何快速导入导出，备份数据？（备份数据，用原生命令更快）
 
 
 
+### 总结回顾与作业实践 
 
+#### 总结回顾 
+
+1.再聊聊性能优化
+
+2.关系数据库MySQL
+
+3.深入数据库原理
+
+4.MySQL配置优化*
+
+5.数据库设计优化*
+
+![1607569356204](JavaAdvanced.assets/1607569356204.png)
+
+
+
+
+
+#### 作业实践 
+
+1、（选做)∶基于课程中的设计原则和最佳实践，分析是否可以将自己负责的业务系统进行数据库设计或是数据库服务器方面的优化。
+
+2、（必做)︰基于电商交易场景（用户、商品、订单），设计一套简单的表结构，提交DDL的SQL文件到Github（后面2周的作业依然要是用到这个表结构）。
+
+3、（选做）:尽可能多的从“常见关系数据库"中列的清单，安装运行，并使用上一题的SQL测试简单的增删改查。
+
+4、(选做)︰基于上一题，尝试对各个数据库测试100万订单数据的增删改查性能。
+
+5、(选做）︰尝试对MySQL不同引擎下测试100万订单数据的增删改查性能。
+
+6、(选做）︰模拟1000万订单数据，测试不同方式下导入导出（数据备份还原)  MySQL的速度，包括jdbc程序处理和命令行处理。思考和实践，如何提升处理效率。
+
+7、（选做):对MySQL配置不同的数据库连接池（DBCP、C3PO、Druid、Hikarcp）测试增删改查100万次，对比性能，生成报告。
 
 
 
