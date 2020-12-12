@@ -7652,6 +7652,7 @@ show engine innodb status\G;
 - Multiple Values/ Add Batch 减少交互
 - Load Data，直接导入
 - 索引和约束问题
+  
   - 将所有的数据，全部插入之后，再一次性创建索引
 
 
@@ -7795,11 +7796,289 @@ update xxx where value=oldValue
 
 
 
-## 超越分库分表
+# 超越分库分表
+
+1.从单机到集群
+
+2.MySQL主从复制*
+
+3.MySQL读写分离*
+
+4.MySQL高可用*
+
+
+
+### 从单机到集群
+
+#### 单机MySQL数据库的几个问题
+
+
+
+#### 单机MySQL的技术演进
+
+- 读写压力大，报表系统 单另使用从库，不影响主库
+- 容量大，影响主从复制问题
+- 数据库拆分，先垂直拆（会拆到头），后水平拆（分库分表）
+- 使用事务，在强一致性事务 XA 性能会下降，退而求其次，使用柔性事务
+- 金融系统：银行，证券（交易所），保险，
+- 淘宝，2003年，PHP买的，三丰，淘宝总裁，服务化，不走数据库，RPC直接调接口，通过ID拿到具体的信息
+
+![1607744018998](JavaAdvanced.assets/1607744018998.png)
 
 
 
 
+
+### MySQL主从复制
+
+#### 主从复制原理
+
+核心是：
+
+1.主库写 binlog
+
+2.从库 relay log
+
+![1607745087350](JavaAdvanced.assets/1607745087350.png)
+
+
+
+
+
+#### binlog 格式
+
+- ROW (记录详细，每一行的改变)
+- Statement（记录SQL语句）
+- Mixed（混合，自己决定如何选择）
+
+![1607745248690](JavaAdvanced.assets/1607745248690.png)
+
+
+
+![1607745329709](JavaAdvanced.assets/1607745329709.png)
+
+
+
+#### 异步复制(传统主从复制)
+
+异步复制：传统主从复制--2000年，MySQL 3.23.15版本引入了Replication
+
+![1607745511940](JavaAdvanced.assets/1607745511940.png)
+
+
+
+#### 半同步复制(传统主从复制)
+
+需要启用 插件
+
+-  改进点：将某一个从库收到 binlog 的时候，主库才可以提交
+- 保证至少有一个人 可以跟上主库，主库出问题后，可以顶上去
+
+- mysql-5.7.32-winx64\lib\plugin\semisync_master.dll
+- mysql-5.7.32-winx64\lib\plugin\semisync_slave.dll
+
+![1607745765923](JavaAdvanced.assets/1607745765923.png)
+
+
+
+#### 组复制（MGR）
+
+- mysql-5.7.32-winx64\lib\plugin\group_replication.dll
+
+![1607745938697](JavaAdvanced.assets/1607745938697.png)
+
+
+
+
+
+#### 主从复制演示
+
+1.本地启动两个 MySQL
+
+2.注意配置文件（思考几种安装，启动方式）
+
+3.演示数据复制操作，创建表和写入，修改数据
+
+- mysqld --initialize-insecure  (初始化数据表)
+- mysqld （启动mysql）
+- show variables like '%port%';
+- show master statue\G
+- show slave status\G
+- stop slave;
+- start slave;
+- create table  t2(id int);
+- create table t3 like t2;
+- create schema test; ( 创建数据库)
+- select * from information_schema.COLUMNS; （整个数据库的所有行都在这里）
+- show create table columns;  （展示COLUMNS 表的创建语句）
+- select * from information_schema.COLUMNS where table_name='tuser'; （展示一个tuser的表）
+- select table_catalog from columns;  （catalog 默认是写死的，为空）
+- insert into t2 values(1),(2),(3),(4);
+- show plugins;  (查看mysql的安装插件)
+
+
+
+#### 主从复制的局限性
+
+- 主从延迟问题（需要数据拆分）
+- 应用侧需要配合读写分离架构
+- 不能解决高可用问题
+
+
+
+
+
+### MySQL读写分离
+
+#### 主从复制在业务系统里的应用
+
+借助于主从复制，现在有了多个MySQL服务器示例。
+
+如果借助这个新的集群，改进我们的业务系统数据处理能力？
+
+答案：配置多个数据源，实现读写分离。
+
+
+
+#### 读写分离-动态切换数据版本1
+
+
+
+![1607766887077](JavaAdvanced.assets/1607766887077.png)
+
+
+
+#### 读写分离-数据库框架版本2
+
+
+
+![1607767103632](JavaAdvanced.assets/1607767103632.png)
+
+
+
+
+
+#### 读写分离-数据库中间件版本3
+
+- 阿里云的 tddl，后期进化为DRDS
+- 京东的早期 CDS，后期融合 Sharding
+- 京东的 JSF，底层就是Dubbo，上面加了界面等
+- 配置一个 Proxy ，直接管理整个数据库 主从，基于 Proxy进行数据的请求调整
+- 多种环境都可以使用，多种语言也可以
+
+
+
+
+
+
+
+### MySQL高可用
+
+#### 高可用定义（HA）
+
+高可用意味着，更少的不可服务时间。
+
+一般用SLA/SLO衡量。一般说，三个9和四个9。
+
+
+
+
+
+#### 为什么要高可用
+
+1.读写分离，提升读的处理能力
+
+2.故障转移，提供failover能力
+
+加上业务侧连接池的心跳充实，实现断线重连，业务不间断，降低RTO和RPO。
+
+
+
+#### 什么是failover
+
+什么是failover，故障转移，灾难恢复
+
+容灾：热备和冷备
+
+
+
+#### MySQL高可用0：主从手动切换
+
+
+
+
+
+#### MySQL高可用1：主从手动切换
+
+用LVS+Keepalived实现多个结点的探活+请求路由。
+
+配置VIP或DNS实现配置不变更。
+
+
+
+#### MySQL高可用2：MHA
+
+- 通过中间件，保证高可用
+
+
+
+![1607771057149](JavaAdvanced.assets/1607771057149.png)
+
+
+
+#### MySQL高可用3：MGR*
+
+
+
+![1607771158666](JavaAdvanced.assets/1607771158666.png)
+
+
+
+##### MGR特点
+
+
+
+##### MGR使用场景
+
+- 弹性复制，不停的加新的结点，共事的模块
+
+![1607771406804](JavaAdvanced.assets/1607771406804.png)
+
+
+
+##### MGR适用场景
+
+- 高可用分片，保证高可用
+- 
+
+![1607771498412](JavaAdvanced.assets/1607771498412.png)
+
+
+
+#### MySQL高可用4：MySQL Cluster
+
+
+
+![1607771763741](JavaAdvanced.assets/1607771763741.png)
+
+
+
+##### MySQL InnoDB Cluster
+
+
+
+#### MySQL高可用5：Orchestrator
+
+- go 语言开发的中间件，有管理控制台
+- Orchestrator，编排器
+
+
+
+
+
+### 总结回顾与作业实践 
+
+#### 总结回顾 
 
 
 
