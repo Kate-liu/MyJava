@@ -7796,21 +7796,21 @@ update xxx where value=oldValue
 
 
 
-# 超越分库分表
-
-1.从单机到集群
-
-2.MySQL主从复制*
-
-3.MySQL读写分离*
-
-4.MySQL高可用*
+## 超越分库分表
 
 
 
 ### 从单机到集群
 
 #### 单机MySQL数据库的几个问题
+
+随着数据量的增大，读写并发的增加，系统可用性要求的提升，单机MySQL面临:
+
+1、容量有限，难以扩容
+
+2、读写压力，QPS过大，特别是分析类需求会影响到业务事务
+
+3、可用性不足，宕机问题
 
 
 
@@ -7835,9 +7835,26 @@ update xxx where value=oldValue
 
 核心是：
 
-1.主库写 binlog
+- 1.主库写 binlog
+- 2.从库 relay log
 
-2.从库 relay log
+2000年，MySQL 3.23.15版本引入了**复制**
+
+2002年，MySQL 4.0.2版本分离IO和SQL线程，引入了**relay log**
+
+2010年，MySQL 5.5版本引入**半同步复制**
+
+2016年，MySQL在5.7.17中引入**InnoDB Group Replication**
+
+参考链接：
+
+- GTID与复制:
+  - https://blog.51cto.com/13540167/2086045
+  - https://wwww.cnblogs.com/zping/p/10789151.html
+- 半同步复制:
+  - https://wwww.cnblogs.com/zero-gg/p/9057092.html
+- 组复制:
+  - https://www.cnblogs.com/kevingrace/p/10260685.html
 
 ![1607745087350](JavaAdvanced.assets/1607745087350.png)
 
@@ -7942,7 +7959,17 @@ update xxx where value=oldValue
 
 #### 读写分离-动态切换数据版本1
 
+1、基于Spring/Spring Boot，配置多个数据源(例如2个，master和slave)
 
+2、根据具体的Service方法是否会操作数据，注入不同的数据源,1.0版本
+
+3、改进一下1.1：基于操作AbstractRoutingDataSource和自定义注解readOnly之类，简化自动切换数据源
+
+4、改进二下1.2:支持配置多个从库;
+
+5、改进三下1.3:支持多个从库的负载均衡。
+
+今天的作业之一。
 
 ![1607766887077](JavaAdvanced.assets/1607766887077.png)
 
@@ -7950,7 +7977,15 @@ update xxx where value=oldValue
 
 #### 读写分离-数据库框架版本2
 
+1、分析前一版本"动态切换数据源"有什么问题?
+1）侵入性还是较强
+2）降低侵入性会导致"写完读"不一致问题
 
+2、改进方式，ShardingSphere-jdbc的Master-Slave功能
+1）SQL解析和事务管理，自动实现读写分离
+2）解决"写完读"不一致的问题
+
+今天作业之一:使用ShardingSphere-jdbc 5.0.0-alpha 实现读写分离配置。
 
 ![1607767103632](JavaAdvanced.assets/1607767103632.png)
 
@@ -7966,7 +8001,15 @@ update xxx where value=oldValue
 - 配置一个 Proxy ，直接管理整个数据库 主从，基于 Proxy进行数据的请求调整
 - 多种环境都可以使用，多种语言也可以
 
+1、分析前一版本"框架版本"有什么问题?
+1）对业务系统还是有侵入
+2）对已存在的旧系统改造不友好
 
+2、改进方式，MyCat/ShardingSphere-Proxy的Master-Slave功能
+1）需要部署一个中间件，规则配置在中间件
+2）模拟一个MySQL服务器，对业务系统无侵入
+
+今天作业之一:使用ShardingSphere-proxy 5.0.0-alpha 实现读写分离配置。
 
 
 
@@ -7976,9 +8019,27 @@ update xxx where value=oldValue
 
 #### 高可用定义（HA）
 
+> 你维护的系统有几个9?99.95%算是几个9?
+>
+> 3 + lg(5) 个 9
+
 高可用意味着，更少的不可服务时间。
 
 一般用SLA/SLO衡量。一般说，三个9和四个9。
+
+1年=365天=8760小时
+
+99= 8760\*1%= 8760\*0.01= 87.6小时
+
+99.9=8760\*0.1%=8760\*0.001 =8.76小时
+
+99.99= 8760\*0.0001=0.876小时=0.876\*60=52.6分钟
+
+99.999 =8760 *0.00001 =0.0876小时=0.0876 *60= 5.26分钟
+
+后面的分布式课程讲稳定性，注意关系和区别。
+
+
 
 
 
@@ -8000,11 +8061,31 @@ update xxx where value=oldValue
 
 容灾：热备和冷备
 
+对于主从来说，简单讲就是主挂了，某一个从，变成主，整个集群来看，正常对外提供服务
+
+常见的一些策略:
+
+- 1、多个实例不在一个主机/机架上
+- 2、跨机房和可用区部署
+- 3、两地三中心容灾高可用方案
+
+
+
 
 
 #### MySQL高可用0：主从手动切换
 
+如果主节点挂掉，将某个从改成主;
 
+重新配置其他从节点。
+
+修改应用数据源配置。
+
+有什么问题?
+
+- 1.可能数据不一致。
+- 2.需要人工干预。
+- 3.代码和配置的侵入性。
 
 
 
@@ -8014,13 +8095,27 @@ update xxx where value=oldValue
 
 配置VIP或DNS实现配置不变更。
 
+有什么问题?
+
+- 1.手工处理主从切换
+- 2.大量的配置和脚本定义
+
 
 
 #### MySQL高可用2：MHA
 
 - 通过中间件，保证高可用
 
+MHA (Master High Availability)目前在 MySQL高可用方面是一个相对成熟的解决方案，它由日本 DeNA公司的youshimaton(现就职于Facebook公司）开发，是一套优秀的作为MySQL高可用性环境下故障切换和主从提升的高可用软件。
 
+基于Perl语言开发，一般能在30s内实现主从切换。
+
+切换时，直接通过SSH复制主节点的日志。
+
+有什么问题?
+
+- 1.需要配置SSH信息
+- 2.至少3台
 
 ![1607771057149](JavaAdvanced.assets/1607771057149.png)
 
@@ -8028,7 +8123,14 @@ update xxx where value=oldValue
 
 #### MySQL高可用3：MGR*
 
+如果主节点挂掉，将自动选择某个从改成主;
 
+无需人工干预，基于**组复制**，保证数据一致性。
+
+有什么问题?
+
+- 1.外部获得状态变更需要读取数据库。
+- 2.外部需要使用LVS/VIP配置。
 
 ![1607771158666](JavaAdvanced.assets/1607771158666.png)
 
@@ -8036,11 +8138,21 @@ update xxx where value=oldValue
 
 ##### MGR特点
 
+MySQL Group Replication (MGR)
+
+MGR的特点
+
+- 1.高一致性:基于分布式Paxos协议实现组复制，保证数据一致性;
+- 2．高容错性:自动检测机制，只要不是大多数节点都宕机就可以继续工作，内置防脑裂保护机制;
+- 3．高扩展性:节点的增加与移除会自动更新组成员信息，新节点加入后，自动从其他节点同步增量数据，直到与其他节点数据一致;
+- 4．高灵活性:提供单主模式和多主模式，单主模式在主库宕机后能够自动选主，所有写入都在主节点进行，多主模式支持多节点写入
+
 
 
 ##### MGR使用场景
 
 - 弹性复制，不停的加新的结点，共事的模块
+- Environments that require a very fluid replication infrastructure, where the number of servers has to grow or shrink dynamically and with a lttlepain as possible.
 
 ![1607771406804](JavaAdvanced.assets/1607771406804.png)
 
@@ -8049,15 +8161,21 @@ update xxx where value=oldValue
 ##### MGR适用场景
 
 - 高可用分片，保证高可用
-- 
+- Sharding is a popular approach to achieve write scale-out. Users can use MySQL Group Replication to implement highly available shards. Each shard can map into a Replication Group.
 
 ![1607771498412](JavaAdvanced.assets/1607771498412.png)
 
 
 
+
+
 #### MySQL高可用4：MySQL Cluster
 
+MysQL InnoDB Cluster是一个高可用的框架，它由下面这几个组件构成:
 
+1. MysQL Group Replication:提供DB的扩展、自动故障转移
+2. MysQL Router:轻量级中间件，提供应用程序连接目标的故障转移
+3. MysQL Shell:新的MySQL客户端，多种接口模式。可以设置群组复制及Router
 
 ![1607771763741](JavaAdvanced.assets/1607771763741.png)
 
@@ -8065,22 +8183,66 @@ update xxx where value=oldValue
 
 ##### MySQL InnoDB Cluster
 
+MysQL Shell
+
+MySQL Shell是MysQL团队打造的一个统一的客户端，它可以对MysQL执行数据操作和管理。它支持通过JavaScript,Python，SQL对关系型数据模式和文档型数据模式进行操作。使用它可以轻松**配置管理InnoDB Cluster**。
+
+MysQL Router
+
+MySQL Router是一个轻量级的中间件，可以提供**负载均衡**和**应用连接的故障转移**。它是MysQL团队为MGR量身打造的，通过使用Router和shell，用户可以利用MGR实现完整的数据库层的解决方案。如果您在使用MGR，请一定配合使用Router和Shell，您可以理解为它们是为MGR而生的，会配合MySQL的开发路线图发展的工具。
+
 
 
 #### MySQL高可用5：Orchestrator
 
-- go 语言开发的中间件，有管理控制台
+- 基于go 语言开发的中间件，实现了高可用，有管理控制台
 - Orchestrator，编排器
 
+一款MysQL**高可用**和**复制拓扑管理工具**，支持复制拓扑结构的调整，自动故障转移和手动主从切换等。
+
+后端数据库用MysQL或sQLite存储元数据，并提供web界面展示MysQL复制的拓扑关系及状态，通过web可更改MysQL实例的复制关系和部分配置信息，同时也提供命令行和API接口，方便运维管理。
+
+特点:
+
+- 1.自动发现MySQL的复制拓扑，并且在web上展示;
+- 2.重构复制关系，可以在web进行拖图来进行复制关系变更;
+- 3.检测主异常，并可以自动或手动恢复，通过Hooks进行自定义脚本;
+- 4.支持命令行和web界面管理复制。
+
+优势：
+
+- 能直接在UI界面拖拽改变主从关系
+
+两种部署方式
+
+- orchestrator/raft:
+- 1 数据一致性由orchestrator的**raft**协议保证
+- 2 数据库之间不通信
+
+- orchestrator/lgalera [ xtradb cluster [ innodb cluster]:
+- 1.数据一致性由数据库集群保证
+- 2.数据库结点之间通信
+
+- 如果不部署client
+- 1.使用HTTP(Vapi/leader-check)查询并路由到主节点
+
+![1607830125377](JavaAdvanced.assets/1607830125377.png)
 
 
 
 
-### 总结回顾与作业实践 
+
+### 总结回顾
 
 #### 总结回顾 
 
+1.从单机到集群
 
+2.MySQL主从复制*
+
+3.MySQL读写分离*
+
+4.MySQL高可用*
 
 
 
