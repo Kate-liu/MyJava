@@ -7281,7 +7281,7 @@ MySQL:
 
 
 
-##### 可重复度：REPEATABLE READ
+##### 可重复读：REPEATABLE READ
 
 - lnnoDB的默认隔离级别
 - 使用事务第一次读取时创建的快照
@@ -9001,63 +9001,196 @@ TCC 使用要求就是业务接口都必须实现三段逻辑：
 
 3.取消操作 Cancel：释放 Try 阶段预留的业务资源。同样的，Cancel 操作也需要满足幂等性。 
 
+> Try 的时候，一个业务操作已经提交了，属于自己的一个小事务；
+>
+> confirm 的时候，要是失败，重试多次，还是失败，也属于自己的一个小事务；
+>
+> 那么此时 需要使用 Cancel 接口。
+
 TCC 不依赖 RM 对分布式事务的支持，而是通过对业务逻辑的分解来实现分布式事务，不同于AT的是就是需要自行定义各个阶段的逻辑，对业务有侵入。 
 
 ![1608388572524](JavaAdvanced.assets/1608388572524.png)
 
 
 
+#### TCC 需要注意的问题
 
+TCC 需要注意的几个问题：
 
-3:15
+1、允许空回滚
 
+- 没有 try 的时候，执行 cancel，可以正常操作，不报错。
 
+2、防悬挂控制
 
+- 由于 try 发的时候，网抖了一下，比 Cancel 慢了，此时的 try 就没有 cancel了，此时无法执行cancel，需要保证 try 直接不需要执行了
 
+3、幂等设计 
 
-
-
-
-
-
-
-
-
-
-
+- 重复 commit 的时候，不要出现多个相同的操作，执行多次。
 
 
 
+#### 什么是 SAGA
+
+Saga 模式没有 try 阶段，直接提交事务。
+
+复杂情况下，对回滚操作的设计要求较高。 需要自己保证大的分步式事务失败之后，回滚操作可以正常执行。
 
 
 
+#### 什么是 AT
+
+AT 模式就是两阶段提交，自动生成反向 SQL 
 
 
 
+#### 柔性事务下隔离级别
+
+事务特性
+
+- 原子性（ Atomicity）：正常情况下保证。
+- 一致性（ Consistency），在某个时间点，会出现 A 库和 B 库的数据违反一致性要求的情况，但是最终是一致的。
+- 隔离性（ Isolation），在某个时间点， A 事务能够读到B事务部分提交的结果。
+- 持久性（ Durability），和本地事务一样，只要 commit 则数据被持久。
+
+隔离级别
+
+- 一般情况下都是读已提交（全局锁）、读未提交（无全局锁）。 
 
 
 
+#### Seata
+
+Seata-TCC/AT 柔性事务
+
+Seata 是阿里集团和蚂蚁金服联合打造的分布式事务框架。 其 AT 事务的目标是在微服务架构下，提供增量的事务 ACID 语意，让开发者像使用本地事务一样，使用分布式事务，核心理念同 Apache ShardingSphere 一脉相承。
+
+Seata AT 事务模型包含TM (事务管理器)，RM (资源管理器) 和 TC (事务协调器)。 TC 是一个独立部署的服务，TM 和 RM 以 jar 包的方式同业务应用一同部署，它们同 TC 建立长连接，在整个事务生命周期内，保持远程通信。 TM 是全局事务的发起方，负责全局事务的开启，提交和回滚。 RM 是全局事务的参与者，负责分支事务的执行结果上报，并且通过 TC 的协调进行分支事务的提交和回滚。 
 
 
 
+Seata 管理的分布式事务的典型生命周期：
+
+- TM 要求 TC 开始一个全新的全局事务。
+- TC 生成一个代表该全局事务的 XID。
+- XID 贯穿于微服务的整个调用链。
+- TM 要求 TC 提交或回滚 XID 对应全局事务。
+- TC 驱动 XID 对应的全局事务下的所有分支事务完成提交或回滚。 
 
 
 
+#### Seata - TCC 
 
 
 
+#### Seata - AT 原理
+
+两阶段提交协议的演变：
+
+一阶段：业务数据和回滚日志记录在同一个本地事务中提交，释放本地锁和连接资源。
+
+二阶段：提交异步化，非常快速地完成。回滚通过一阶段的回滚日志进行反向补偿。 
 
 
 
+通过全局锁的方式，实现读写隔离。
+
+1、本地锁控制本地操作；
+
+2、全局锁控制全局提交。 
 
 
 
+#### hmily
+
+Hmily 是一个高性能分布式事务框架，开源于2017年，目前有 2800 个 Star，基于TCC 原理实现，使用 Java 语言开发（ JDK1.8+），天然支持 Dubbo、 SpringCloud、 Motan 等微服务框架的分布式事务。 
 
 
 
+#### hmily 功能
+
+支持嵌套事务(Nested transaction support)等复杂场景
+
+支持 RPC 事务恢复，超时异常恢复等，具有高稳定性
+
+基于异步 Confirm 和 Cancel 设计，相比其他方式具有更高性能
+
+基于 SPI 和 API 机制设计，定制性强，具有高扩展性
+
+本地事务的多种存储支持 : redis/mongodb/zookeeper/file/mysql
+
+事务日志的多种序列化支持 ： java/hessian/kryo/protostuff
+
+基于高性能组件 disruptor 的异步日志性能良好
+
+实现了 SpringBoot-Starter，开箱即用，集成方便
+
+采用 Aspect AOP 切面思想与 Spring 无缝集成，天然支持集群
+
+实现了基于 VUE 的 UI 界面，方便监控和管理 
 
 
 
+#### hmily - TCC
+
+MainService：事务发起者（业务服务）
+
+TxManage：事务协调者
+
+ActorService：事务参与者（多个业务服务）
+
+Try：事务执行
+
+Confirm：事务确认
+
+Cancel：事务回滚
+
+Redo 日志 ：可以选择任意一种进行存储 
+
+
+
+#### 新事务机制
+
+将数据的读写，结合 业务系统 和 数据 存储，实现一个 MVCC 的事务。
+
+
+
+### ShardingSphere 对分布式事务的支持
+
+由于应用的场景不同，需要开发者能够合理的在性能与功能之间权衡各种分布式事务。
+
+强一致的事务与柔性事务的 API 和功能并不完全相同，在它们之间并不能做到自由的透明切换。在开发决策阶段，就不得不在强一致的事务和柔性事务之间抉择，使得设计和开发成本被大幅增加。
+
+基于 XA 的强一致事务使用相对简单，但是无法很好的应对互联网的高并发或复杂系统的长事务场景；柔性事务则需要开发者对应用进行改造，接入成本非常高，并且需要开发者自行实现资源锁定和反向补偿。
+
+整合现有的成熟事务方案，为本地事务、两阶段事务和柔性事务提供统一的分布式事务接口，并弥补当前方案的不足，提供一站式的分布式事务解决方案是 Apache ShardingSphere 分布式事务模块的主要设计目标。 
+
+
+
+#### ShardingSphere 支持 XA 事务
+
+ShardingSphere 支持 XA 事务的常见几个开源实现 
+
+ShardingSphere  的 proxy 可以实现，一个本地事务，经过 proxy 之后，在后续的数据分片中实现 XA 的事务。
+
+
+
+#### ShardingSphere 支持 Seata 的柔性事务
+
+ShardingSphere 支持 Seata 的柔性事务。 
+
+
+
+#### ShardingSphere 的分布式事务模块 
+
+- 分布式事务位置
+  - shardingsphere\shardingsphere-5.0.0-alpha\examples\shardingsphere-jdbc-example\transaction-example
+- 编译 ShardingSphere 
+  - mvn clean package install -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Drat.skip=true -Dcheckstyle.skip=true 
+- 导入 transaction-example
+  - 打开 shardingsphere\shardingsphere-5.0.0-alpha\examples\shardingsphere-jdbc-example\transaction-example 作为一个项目
+  - 
 
 
 
