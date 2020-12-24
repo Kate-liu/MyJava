@@ -9367,7 +9367,7 @@ ShardingSphere 支持 Seata 的柔性事务。
 
 
 
-# RPC与分布式服务化 
+## RPC与分布式服务化 
 
 ### RPC 基本原理
 
@@ -9377,13 +9377,48 @@ ShardingSphere 支持 Seata 的柔性事务。
 >
 > 先进，直接调远程中心的服务，调用里面的方法。
 
+RPC是远程过程调用（Remote Procedure Call)的缩写形式。
+
+RPC的概念与技术早在1981年由Nelson提出。
+
+1984年，Birrell和Nelson把其用于支持异构型分布式系统间的通讯。Birrell的RPC模型引入**存根进程( stub)**作为远程的本地代理，调用RPC运行时库来传输网络中的调用。
+
+Stub和RPC runtime屏蔽了网络调用所涉及的许多细节，特别是，参数的编码/译码及网络通讯是由stub和RPC runtime完成的，因此这一模式被各类RPC所采用。
+
 
 
 #### 什么叫 RPC 呢？
 
+简单来说，就是“像调用本地方法一样调用远程方法”。
+
+UserService service = new UserService();
+User user = service.findByld(1);
+
+UserService service = Rpcfx.create(UserService.class, url);
+User user = service.findByld(1);
+
+如何能做到本地方法调用时转换成远程?
+
 
 
 #### RPC 原理
+
+RPC的简化版原理如下图。
+
+核心是代理机制。
+
+- 1.本地代理存根: Stub
+- 2.本地序列化反序列化
+- 3.网络通信
+- 4.远程序列化反序列化
+- 5.远程服务存根: Skeleton
+- 6.调用实际业务服务
+- 7.原路返回服务结果
+- 8.返回给本地调用方
+
+注意处理异常。
+
+![1608816254643](JavaAdvanced.assets/1608816254643.png)
 
 
 
@@ -9395,9 +9430,26 @@ ShardingSphere 支持 Seata 的柔性事务。
 >
 > 非 java 语言的时候，可以使用 IDL (接口定义语言，Interface Definition Language)和 SOAP 进行统一的调用共享定义。
 
+RPC是基于接口的远程服务调用。
+
+本地应用程序与远程应用程序，分别需要共享什么信息，角色有什么不同?
+
+共享: POJO实体类定义，接口定义。
+
+REST/PB下，真的不需要嘛?另一种选择:WSDL/WADL/IDL
+
+远程->服务提供者，本地->服务消费者。
+
 
 
 #### RPC 原理 - 2.代理
+
+RPC是基于接口的远程服务调用。
+
+Java下，代理可以选择动态代理，或者AOP实现
+
+- C# 直接有远程代理
+- Flex 可以使用动态方法和属性
 
 
 
@@ -9407,11 +9459,24 @@ ShardingSphere 支持 Seata 的柔性事务。
 >
 > 可以使用统一的描述，文本（反序列化之后占据内存，比较大），JSON（比较简单），XML(更加复杂，数据类型定义方式XSD，DTD)
 
+序列化和反序列化的选择:
+
+1、语言原生的序列化，RMl，Remoting
+
+2、二进制平台无关，Hessian，avro，kyro，fst等
+
+3、文本，JSON、XML等
+
 
 
 #### RPC 原理 - 4.网络传输 
 
 > web services  的底层可以使用 HTTP，和TCP，JMS等多种协议方式。
+
+最常见的传输方式:
+
+- TCP/SSL
+- HTTP/HTTPS
 
 
 
@@ -9419,13 +9484,29 @@ ShardingSphere 支持 Seata 的柔性事务。
 
 > skeleton，查找实现类。
 
+通过接口查找服务端的实现类。
+
+一般是注册方式，
+
+例如dubbo 默认将接口和实现类配置到Spring
+
 
 
 ### RPC 技术框架
 
-#### PC 技术框架
+#### RPC 技术框架
 
 > DCOM，COM+ 实现远程调用
+
+很多语言都内置了RPC技术。
+
+Java RMl
+.NET Remoting
+
+远古时期，就有很多尝试，
+
+- Corba (Common Object Request Broker Architecture)公共对象请求代理体系结构，OMG组织在1991年提出的公用对象请求代理程序结构的技术规范。底层结构是基于面向对象模型的，由OMG接口描述语言(OMG Interface Definition Language,OMG IDL)、对象请求代理(Object Request Broker，ORB)和IIOP标准协议(Internet Inter- ORB Protocol，也称网络ORB交换协议)3个关键模块组成。
+- COM (Component Object Model，组件对象模型）是微软公司于1993年提出的一种组件技术，它是一种平台无关、语言中立、位置透明、支持网络的中间件技术，老一辈程序员心目中的神书《COM本质论》。
 
 
 
@@ -9433,9 +9514,17 @@ ShardingSphere 支持 Seata 的柔性事务。
 
 > 二进制协议，更紧凑，现在互联网 RPC 协议。
 
+- Corba/RMI/.NET Remoting
+- JSON RPC,XML RPC，WebService(Axis2,CXF)
+- Hessian，Thrift,Protocol Buffer, gRPC
+
 
 
 #### 常见的 RPC 技术详述
+
+- Hessian
+- Thrift
+- gRPC
 
 
 
@@ -9443,25 +9532,43 @@ ShardingSphere 支持 Seata 的柔性事务。
 
 #### 假如我们自己设计一个 RPC 框架
 
+- 从哪些方面考虑?
+- 基于共享接口还是IDL?
+- 动态代理or AOP?
+- 序列化用什么?文本or二进制?
+- 基于TCP还是HTTP?
+- 服务端如何查找实现类?异常处理
+- 还有没有要考虑的?
+
 
 
 #### RPC 原理 - 1.设计
+
+- rpcfx 里的 api 子项目
 
 
 
 #### RPC 原理 - 2.代理
 
+- rpcfx 里的默认使用，动态代理
+
 
 
 #### RPC 原理 - 3.序列化
+
+- rpcfx 里的默认使用，JSON
 
 
 
 #### RPC 原理 - 4.网络传输 
 
+-  rpcfx 里的默认使用，HTTP
+
 
 
 #### RPC 原理 - 5.查找实现类
+
+-  rpcfx 里的默认使用，Spring getBean
 
 
 
@@ -9469,23 +9576,60 @@ ShardingSphere 支持 Seata 的柔性事务。
 
 #### 从 RPC  走向服务化 -> 微服务架构
 
+具体的分布式业务场景里，除了能够调用远程方法，我们还需要考虑什么?
+
+1、多个相同服务如何管理?
+2、服务的注册发现机制?
+3、如何负载均衡，路由等集群功能?
+4、熔断，限流等治理能力。
+5、重试等策略
+6、高可用、监控、性能等等。
+
 
 
 #### 从 RPC  走向服务化 -> 分布式服务化架构
 
+- 一个典型的分布式服务化框架
+
+![1608817521724](JavaAdvanced.assets/1608817521724.png)
 
 
 
+### 总结回顾与作业实践 
+
+#### 总结回顾 
+
+1.RPC基本原理*
+
+2.RPC技术框架*
+
+3.如何设计一个RPC*
+
+4.从RPC到分布式服务化
+
+![1608817543975](JavaAdvanced.assets/1608817543975.png)
 
 
 
+#### 作业实践 
+
+- 1、(选做）实现简单的Protocol Buffer/Thrift/gRPC(选任一个)远程调用demo。
+- 2、(选做）实现简单的WebService-Axis2/CXF远程调用demo。
+- 3、(必做) 改造自定义RPC的程序，提交到github:
+  - 1）尝试将服务端写死查找接口实现类变成泛型和反射
+  - 2）尝试将客户端动态代理改成AOP，添加异常处理
+  - 3) 尝试使用Netty+HTTP作为client端传输方式
+- 4、(选做☆☆)升级自定义RPC的程序:
+  - 1) 尝试使用压测并分析优化RPC性能
+  - 2) 尝试使用Netty+TCP作为两端传输方式作
+  - 3) 尝试自定义二进制序列化或者使用kyro/fst等
+  - 4)尝试压测改进后的RPC并分析优化，有问题欢迎群里讨论
+  - 5)尝试将fastjson改成xstream
+  - 6)尝试使用字节码生成方式代替服务端反射
 
 
 
-
-
-
-
+# 分布式服务化 
 
 
 
