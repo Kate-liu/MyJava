@@ -15,6 +15,7 @@
         <module>spring-core-technology</module>
         <module>spring-boot-core-technology</module>
         <module>java-core-technology</module>
+        <module>java-beans</module>
     </modules>
     <packaging>pom</packaging>
 
