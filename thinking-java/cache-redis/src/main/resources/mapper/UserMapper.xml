@@ -2,6 +2,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.copydays.rmliu.cache.mapper.UserMapper">
 
+    <!--  开启 mybatis 缓存  -->
+    <!--  mybatis 作用在 mapper 上  -->
+<!--    <cache type="org.mybatis.caches.ehcache.LoggingEhcache">-->
+<!--        <property name="memoryStoreEvictionPolicy" value="LRU"/>-->
+<!--    </cache>-->
+
     <resultMap id="BaseResultMap" type="org.copydays.rmliu.cache.entity.User">
         <result column="id" jdbcType="INTEGER" property="id"/>
         <result column="name" jdbcType="VARCHAR" property="name"/>
