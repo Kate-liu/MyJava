@@ -1,0 +1,9 @@
+package org.copydays.rmliu.cache.hazelcast;
+
+public class HazelcastDemo {
+
+    public static void main(String[] args) {
+
+    }
+
+}
