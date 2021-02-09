@@ -10982,6 +10982,9 @@ $ docker run -itd --name redis-test -p 6379:6379 redis
 $ docker image inspect redis:latest|grep -i version
 
 $ docker exec -it redis-test /bin/bash
+$ dcoker start redis-test
+$ docker stop redis-test
+$ docker ps
 
 root@1e8f880099a7:/data# redis-cli
 127.0.0.1:6379> info
@@ -11593,10 +11596,10 @@ redis的话， 需要：
 #### Redis 事务
 
 - Redis 事务命令：
-- 开启事务： multi
+- 开启事务： multi ~ begin
 - 命令入队
-- 执行事务： exec
-- 撤销事务： discard
+- 执行事务： exec ~ commit
+- 撤销事务： discard ~ cancel
 
 - Watch 实现乐观锁
 - watch 一个key， 发生变化则事务失败
@@ -11627,6 +11630,8 @@ eval "redis.call('set',KEYS[1],ARGV[1])" 1 lua-key lua-value
 ```
 
 - 预编译
+  - 单线程，脚本执行具有原子性，操作不会被打断，值不会被修改
+  - 每个脚本执行，都能保证事务
 
 ```lua
 script load script脚本片段
@@ -11644,12 +11649,12 @@ evalsha shastring keynum [key1 key2 key3 ...] [param1 param2 param3 ...]
 
 
 
-#### Redis 管道技术
+#### Redis 管道技术（pipeline）
 
 合并操作批量处理， 且不阻塞前序命令：
 
 ```sh
-% (echo -en "PING\r\n SET pkey redis\r\nGET pkey\r\nINCR visitor\r\nINCR visitor\r\nINCR visitor\r\n"; sleep 1) | nc localhost 6379
+% (echo -en "PING\r\n SET pkey redis\r\nGET pkey\r\n INCR visitor\r\n INCR visitor\r\n INCR visitor\r\n"; sleep 1) | nc localhost 6379
 
 输出：
 +PONG
@@ -11659,6 +11664,11 @@ redis
 :1
 :2
 :3
+
+对比 Redis 的批量操作命令，这里的命令之间没有任何关系
+
+127.0.0.1:6379> ping
+PONG
 ```
 
 
@@ -11725,9 +11735,9 @@ AOF 文件和 Redis 命令是同步频率的， 假设配置为 always， 其含
 
 #### Redis 性能优化
 
-核心优化点：
+内部的核心优化点：
 
-- 1、 内存优化
+- 1、 内存优化 ~ 10G/20G
 
 ```http
 https://redis.io/topics/memory-optimization
@@ -11736,19 +11746,24 @@ hash-max-ziplist-value 64
 zset-max-ziplist-value 64
 ```
 
-- 2、 CPU优化
-  - 不要阻塞
+- 2、 CPU优化 ~ 单线程，要命！
+  - 不要阻塞 ，特别是 lua 脚本(sleep 要死)
   - 谨慎使用范围操作
   - SLOWLOG get 10 默认10毫秒， 默认只保留最后的128条
 
 
 
-#### Redis 分区
+#### Redis 分区 ~ 数据库垂直拆分
 
-设计问题：
+设计规划问题：
 
-- 1.容量
+- 1.容量 ~ 多个业务系统，公用一个redis，还是应该分开？
+  - order，规划好 key，使用前缀区分不同系统。
 - 2.分区
+  - 如果缓存数据变大了，就可以分区，order ~ 垂直拆分
+- 业务研发团队，一般看不到 redis/tair 实际配置的，怎么用？
+  - 1、申请缓存资源，key/token，mall.gouwuche.detail，
+  - 2、cache，key=mall.gouwuche.detail
 
 
 
@@ -11756,12 +11771,12 @@ zset-max-ziplist-value 64
 
 1、 性能：
 
-- 1) 线程数与连接数；
-- 2) 监控系统读写比和缓存命中率；
+- 1) client ~ 线程数（4~8）与连接数（redis ~ 10000）；
+- 2) 监控系统读写比和缓存命中率(N：1, 90%+)；
 
 2、 容量：
 
-- 1) 做好容量评估， 合理使用缓存资源；
+- 1) 做好容量评估， 合理使用缓存资源；监控要注重增量变化。
 
 3、 资源管理和分配：
 
