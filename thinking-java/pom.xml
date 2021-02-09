@@ -17,6 +17,7 @@
         <module>java-core-technology</module>
         <module>java-beans</module>
         <module>cache-redis</module>
+        <module>cache-redis-ha</module>
     </modules>
     <packaging>pom</packaging>
 
