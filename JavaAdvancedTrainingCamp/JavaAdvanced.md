@@ -11584,13 +11584,74 @@ redis的话， 需要：
 
 #### MyBatis项目集成cache示例
 
-- 1、 集成spring boot与mybatis， 实现简单单表操作， 配置成rest接口
-- 2、 配置ehcache+mybatis集成， 实现mybatis二级缓存
-- 3、 配置spring cache+ehcache缓存， 实现方法级别缓存
-- 4、 修改spring cache使用redis远程缓存代替ehcache本地缓存
-- 5、 修改spring cache使用jackson json序列化代替java序列化
-- 6、 整个过程中， 使用wrk压测rest接口性能， 并分析为什么?
-- 7、 尝试调整各种不同的配置和参数， 理解cache原理和用法。
+- 集成spring boot与mybatis， 实现简单单表操作， 配置成rest接口
+
+- 配置mybatis cache， 实现mybatis 二级缓存，压测2万
+
+- 配置spring cache，压测2万
+
+- 配置spring cache + redis，压测1.2万
+
+  - ```sh
+    127.0.0.1:6379> dbsize
+    (integer) 2
+    127.0.0.1:6379> keys *
+    1) "userCache::3"
+    2) "userCache::list"
+    127.0.0.1:6379> keys * （继续访问id=2的数据，可以看到存到了Redis数据库）
+    1) "userCache::2"
+    2) "userCache::3"
+    3) "userCache::list"
+    127.0.0.1:6379> get "userCache::2"  (进行 User 对象的序列化， 需要实现 User implements Serializable，不然会报错)
+    "\xac\xed\x00\x05sr\x00$org.copydays.rmliu.cache.entity.UserG\xaa9\xd8\xc2\x8b)\xc7\x02\x00\x03L\x00\x03aget\x00\x13Ljava/lang/Integer;L\x00\x02idq\x00~\x00\x01L\x00\x04namet\x00\x12Ljava/lang/String;xpsr\x00\x11java.lang.Integer\x12\xe2\xa0\xa4\xf7\x81\x878\x02\x00\x01I\x00\x05valuexr\x00\x10java.lang.Number\x86\xac\x95\x1d\x0b\x94\xe0\x8b\x02\x00\x00xp\x00\x00\x00\x14sq\x00~\x00\x04\x00\x00\x00\x02t\x00\x02CC"
+    ```
+
+  - 性能变差的原因：
+
+    - 1）需要进行序列化和反序列化，
+    - 2）多了读取缓存的I/O，
+    - 3）case 太简单，SQL太简单，MySQL相当于调用内存中的数据，验证数据需要预热，可以提高更好的性能
+
+- 配置spring cache + redis + jackson json 序列化（代替java序列化），压测1.3万
+
+  - ```sh
+    127.0.0.1:6379> keys *
+    1) "userCache::2"
+    127.0.0.1:6379> get "userCache::2" (获得 json 的序列化)
+    "{\"@class\":\"org.copydays.rmliu.cache.entity.User\",\"id\":2,\"name\":\"CC\",\"age\":20}"
+    
+    ```
+
+  - json序列化比java序列化，性能稍微好一点
+
+- 配置spring cache + redis + jackson json 序列化 + 更换 redis key，压测1.3万
+
+  - ```sh
+    127.0.0.1:6379> keys *
+    1) "users::org.copydays.rmliu.cache.service.UserServiceImpl.list."
+    2) "users::org.copydays.rmliu.cache.service.UserServiceImpl.find.2"
+    127.0.0.1:6379> get "users::org.copydays.rmliu.cache.service.UserServiceImpl.list."
+    "[\"java.util.ArrayList\",[{\"@class\":\"org.copydays.rmliu.cache.entity.User\",\"id\":1,\"name\":\"KK\",\"age\":19},{\"@class\":\"org.copydays.rmliu.cache.entity.User\",\"id\":2,\"name\":\"CC\",\"age\":20},{\"@class\":\"org.copydays.rmliu.cache.entity.User\",\"id\":3,\"name\":\"MM\",\"age\":21}]]"
+    127.0.0.1:6379> 
+    ```
+
+  - 使用全局的 redis key 生成方法
+
+- 配置spring cache + redis + jackson json 序列化 + 更换 redis key + 验证缓存拦截调不调用serverce方法
+
+  - 一旦 redis 中含有 key，就不会继续执行方法，直接返回
+  - 出现缓存穿透问题，一旦访问不存在的id就会穿透到数据库，大量的这种访问，会出现 DDOS 攻击
+
+- 整个过程中， 使用wrk压测rest接口性能， 并分析为什么?
+
+- 尝试调整各种不同的配置和参数， 理解cache原理和用法。
+
+注意：
+
+- 压测：wrk http://localhost:8080/user/list 
+- 命令行注意加转义符号：curl http://localhost:8080/user/find\?id=1
+
+
 
 
 
