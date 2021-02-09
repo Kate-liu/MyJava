@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.copydays.rmliu.cache.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="org.copydays.rmliu.cache.entity.User">
+        <result column="id" jdbcType="INTEGER" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="age" jdbcType="INTEGER" property="age"/>
+    </resultMap>
+
+    <select id="find" resultType="org.copydays.rmliu.cache.entity.User">
+        select *
+        from user
+        where id = #{id}
+    </select>
+
+    <select id="list" resultType="org.copydays.rmliu.cache.entity.User">
+        select *
+        from user
+    </select>
+
+</mapper>

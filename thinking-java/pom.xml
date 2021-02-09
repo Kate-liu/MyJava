@@ -16,6 +16,7 @@
         <module>spring-boot-core-technology</module>
         <module>java-core-technology</module>
         <module>java-beans</module>
+        <module>cache-redis</module>
     </modules>
     <packaging>pom</packaging>
 
