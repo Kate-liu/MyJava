@@ -18,6 +18,7 @@
         <module>java-beans</module>
         <module>cache-redis</module>
         <module>cache-redis-ha</module>
+        <module>mq-activemq</module>
     </modules>
     <packaging>pom</packaging>
 
