@@ -12392,7 +12392,25 @@ Messaging行为
 
 
 
-### ActiveMQ使用示例
+### ActiveMQ 使用示例
+
+#### 安装 ActiveMQ
+
+- 确定安装平台，下载程序：https://activemq.apache.org/components/classic/download/
+- 解压到文件夹
+- 进入目录：cd apache-activemq-5.16.x/bin
+- 启动执行：./activemq start
+- 关闭执行：./activemq stop
+- 控制台：http://localhost:8161/index.html
+  - 登录账号：admin
+  - 登录密码：admin
+- 查看queue，ActiveMQQueue：http://localhost:8161/admin/queues.jsp
+- 查看topic，ActiveMQTopic：http://localhost:8161/admin/topics.jsp
+- 查看activemq配置文件：vim apache-activemq-5.16.x/conf/activemq.xml
+- 查看activemq内嵌控制台jetty的配置文件：vim apache-activemq-5.16.x/conf/jetty.xml
+- 查看activemq示例中jdbc的配置文件：vim apache-activemq-5.16.x/examples/conf/activemq-jdbc.xml
+
+
 
 #### 使用场景
 
