@@ -12483,11 +12483,170 @@ ActiveMQ的使用场景：
 
 # 分布式消息 - Kafka 消息中间件
 
+### Kafka概念与入门
 
 
 
 
 
+```sh
+# 后台启动 zookeeper
+nohup bin/zookeeper-server-start.sh config/zookeeper.properties
+
+╰─ jps   
+5584 QuorumPeerMain  # zookeeper 进程
+6611 Jps
+
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 21:22:17  ─╮
+╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --list                                                                                                  ─╯
+
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 21:22:48  ─╮
+╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic testk --partitions 4 --replication-factor 1                                            ─╯
+Created topic testk.
+
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 21:24:00  ─╮
+╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic test32 --partitions 3 --replication-factor 2                                           ─╯
+Error while executing topic command : Replication factor: 2 larger than available brokers: 1.
+[2021-02-19 21:24:39,217] ERROR org.apache.kafka.common.errors.InvalidReplicationFactorException: Replication factor: 2 larger than available brokers: 1.
+ (kafka.admin.TopicCommand$)
+ 
+ 
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ────────────────────────────────────────────────────────────────────────────────────────── 1 ✘  at 21:24:39  ─╮
+╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --describe --topic testk                                                                                ─╯
+Topic: testk	PartitionCount: 4	ReplicationFactor: 1	Configs:
+	Topic: testk	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
+	Topic: testk	Partition: 1	Leader: 0	Replicas: 0	Isr: 0
+	Topic: testk	Partition: 2	Leader: 0	Replicas: 0	Isr: 0
+	Topic: testk	Partition: 3	Leader: 0	Replicas: 0	Isr: 0
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 21:30:10  ─╮
+╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --list                                                                                                  ─╯
+testk
+
+
+bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning --topic testk
+bin/kafka-console-producer.sh --bootstrap-server localhost:9092 --topic testk
+
+
+4、 简单性能测试
+bin/kafka-producer-perf-test.sh --topic testk --num-records 100000 --record-size 1000 --throughput 2000 --producer-props bootstrap.servers=localhost:9092
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────── INT ✘  took 1m 16s   at 21:41:55  ─╮
+╰─ bin/kafka-producer-perf-test.sh --topic testk --num-records 100000 --record-size 1000 --throughput 2000 --producer-props bootstrap.servers=localhost:9092
+10002 records sent, 2000.0 records/sec (1.91 MB/sec), 2.4 ms avg latency, 313.0 ms max latency.
+10004 records sent, 2000.8 records/sec (1.91 MB/sec), 0.4 ms avg latency, 6.0 ms max latency.
+10002 records sent, 2000.4 records/sec (1.91 MB/sec), 0.4 ms avg latency, 4.0 ms max latency.
+10002 records sent, 2000.4 records/sec (1.91 MB/sec), 0.4 ms avg latency, 11.0 ms max latency.
+10005 records sent, 2000.6 records/sec (1.91 MB/sec), 0.4 ms avg latency, 4.0 ms max latency.
+10005 records sent, 2000.2 records/sec (1.91 MB/sec), 0.3 ms avg latency, 8.0 ms max latency.
+10000 records sent, 2000.0 records/sec (1.91 MB/sec), 0.3 ms avg latency, 3.0 ms max latency.
+10004 records sent, 2000.8 records/sec (1.91 MB/sec), 0.3 ms avg latency, 4.0 ms max latency.
+10000 records sent, 2000.0 records/sec (1.91 MB/sec), 0.3 ms avg latency, 2.0 ms max latency.
+100000 records sent, 1999.680051 records/sec (1.91 MB/sec), 0.55 ms avg latency, 313.00 ms max latency, 0 ms 50th, 1 ms 95th, 2 ms 99th, 31 ms 99.9th.
+
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ─────────────────────────────────────────────────────────────────────────────── ✔  took 51s   at 21:43:27  ─╮
+╰─ bin/kafka-producer-perf-test.sh --topic testk --num-records 1000000 --record-size 1000 --throughput 200000 --producer-props bootstrap.servers=localhost:9092
+480504 records sent, 96100.8 records/sec (91.65 MB/sec), 293.5 ms avg latency, 449.0 ms max latency.
+1000000 records sent, 111135.807957 records/sec (105.99 MB/sec), 273.06 ms avg latency, 455.00 ms max latency, 261 ms 50th, 396 ms 95th, 429 ms 99th, 443 ms 99.9th.
+
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ─────────────────────────────────────────────────────────────────────────────── ✔  took 10s   at 21:44:38 
+╰─ bin/kafka-producer-perf-test.sh --topic testk --num-records 1000000 --record-size 1000 --throughput 1000000 --producer-props bootstrap.servers=localhost:9092
+489729 records sent, 97945.8 records/sec (93.41 MB/sec), 287.1 ms avg latency, 392.0 ms max latency.
+1000000 records sent, 121197.430614 records/sec (115.58 MB/sec), 246.27 ms avg latency, 392.00 ms max latency, 237 ms 50th, 336 ms 95th, 357 ms 99th, 375 ms 99.9th.
+
+# 创建一个 partitions 为1的topic，变慢了
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────── INT ✘  at 21:53:53  ─╮
+╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic testk1 --partitions 1 --replication-factor 1                                           ─╯
+Created topic testk1.
+
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 21:54:37  ─╮
+╰─ bin/kafka-producer-perf-test.sh --topic testk1 --num-records 1000000 --record-size 1000 --throughput 1000000 --producer-props bootstrap.servers=localhost:9092
+371105 records sent, 74221.0 records/sec (70.78 MB/sec), 385.5 ms avg latency, 678.0 ms max latency.
+1000000 records sent, 110987.791343 records/sec (105.85 MB/sec), 274.20 ms avg latency, 678.00 ms max latency, 219 ms 50th, 523 ms 95th, 632 ms 99th, 672 ms 99.9th.
+
+# 创建一个 partitions 为 16 的topic，变快了，根使用的 SSD 硬盘有关
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ─────────────────────────────────────────────────────────────────────────────── ✔  took 10s   at 21:55:20  ─╮
+╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic testk16 --partitions 16 --replication-factor 1                                         ─╯
+Created topic testk16.
+
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 21:58:00  ─╮
+╰─ bin/kafka-producer-perf-test.sh --topic testk16 --num-records 1000000 --record-size 1000 --throughput 1000000 --producer-props bootstrap.servers=localhost:9092
+1000000 records sent, 228466.986520 records/sec (217.88 MB/sec), 124.38 ms avg latency, 318.00 ms max latency, 120 ms 50th, 214 ms 95th, 273 ms 99th, 304 ms 99.9th.
+
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────── ✔  took 6s   at 21:58:32  ─╮
+╰─ bin/kafka-producer-perf-test.sh --topic testk16 --num-records 4000000 --record-size 1000 --throughput 1000000 --producer-props bootstrap.servers=localhost:9092
+1234081 records sent, 246766.8 records/sec (235.34 MB/sec), 118.5 ms avg latency, 324.0 ms max latency.
+1463953 records sent, 292673.5 records/sec (279.12 MB/sec), 111.6 ms avg latency, 385.0 ms max latency.
+4000000 records sent, 281948.262494 records/sec (268.89 MB/sec), 111.81 ms avg latency, 470.00 ms max latency, 103 ms 50th, 232 ms 95th, 319 ms 99th, 401 ms 99.9th.
+
+# 消费者压测
+# 每分钟消费30万左右的消息
+bin/kafka-consumer-perf-test.sh --bootstrap-server localhost:9092 --topic testk --fetch-size 1048576 --messages 100000 --threads 1
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 22:02:43  ─╮
+╰─ bin/kafka-consumer-perf-test.sh --bootstrap-server localhost:9092 --topic testk --fetch-size 1048576 --messages 100000 --threads 1                     ─╯
+WARNING: option [threads] and [num-fetch-threads] have been deprecated and will be ignored by the test
+start.time, end.time, data.consumed.in.MB, MB.sec, data.consumed.in.nMsg, nMsg.sec, rebalance.time.ms, fetch.time.ms, fetch.MB.sec, fetch.nMsg.sec
+2021-02-19 22:02:45:615, 2021-02-19 22:02:46:435, 95.7012, 116.7088, 100354, 122382.9268, 1613743365984, -1613743365164, -0.0000, -0.0001
+
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 22:02:46  ─╮
+╰─ bin/kafka-consumer-perf-test.sh --bootstrap-server localhost:9092 --topic testk --fetch-size 1048576 --messages 1000000 --threads 1                    ─╯
+WARNING: option [threads] and [num-fetch-threads] have been deprecated and will be ignored by the test
+start.time, end.time, data.consumed.in.MB, MB.sec, data.consumed.in.nMsg, nMsg.sec, rebalance.time.ms, fetch.time.ms, fetch.MB.sec, fetch.nMsg.sec
+2021-02-19 22:03:36:348, 2021-02-19 22:03:39:195, 954.1006, 335.1249, 1000451, 351405.3390, 1613743416695, -1613743413848, -0.0000, -0.0006
+
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────── ✔  took 4s   at 22:03:39  ─╮
+╰─ bin/kafka-consumer-perf-test.sh --bootstrap-server localhost:9092 --topic testk16 --fetch-size 1048576 --messages 1000000 --threads 4                  ─╯
+WARNING: option [threads] and [num-fetch-threads] have been deprecated and will be ignored by the test
+start.time, end.time, data.consumed.in.MB, MB.sec, data.consumed.in.nMsg, nMsg.sec, rebalance.time.ms, fetch.time.ms, fetch.MB.sec, fetch.nMsg.sec
+2021-02-19 22:04:15:470, 2021-02-19 22:04:18:156, 953.8698, 355.1265, 1000205, 372377.1407, 1613743455843, -1613743453157, -0.0000, -0.0006
+```
+
+
+
+
+
+```sh
+# 创建 ordertest1 topic，并监听
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────── ✔  took 4s   at 22:04:18  ─╮
+╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic ordertest1 --partitions 4 --replication-factor 1                                       ─╯
+Created topic ordertest1.
+
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────── INT ✘  at 22:14:47  ─╮
+╰─ bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning --topic ordertest1
+```
+
+
+
+
+
+```sh
+# 创建集群 tst32 topic
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 22:46:26  ─╮
+╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic test32 --partitions 3 --replication-factor 2                                           ─╯
+Created topic test32.
+
+# 查看集群的描述
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────── INT ✘  at 22:48:33  ─╮
+╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --describe --topic test32                                                                               ─╯
+Topic: test32	PartitionCount: 3	ReplicationFactor: 2	Configs:
+	Topic: test32	Partition: 0	Leader: 3	Replicas: 3,2	Isr: 3,2
+	Topic: test32	Partition: 1	Leader: 1	Replicas: 1,3	Isr: 1,3
+	Topic: test32	Partition: 2	Leader: 2	Replicas: 2,1	Isr: 2,1
+	
+# 生产消息
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ─────────────────────────────────────────────────────────────────────────── INT ✘  took 59s   at 22:56:57  ─╮
+╰─ bin/kafka-console-producer.sh  --bootstrap-server localhost:9091,localhost:9002,localhost:9003 --topic test32                                          ─╯
+>sh
+>rmliu
+>
+
+# 消费消息
+╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 22:57:59  ─╮
+╰─ bin/kafka-console-consumer.sh --bootstrap-server localhost:9091,localhost:9002,localhost:9003 --from-beginning --topic test32                          ─╯
+[2021-02-19 22:58:05,475] WARN [Consumer clientId=consumer-console-consumer-9972-1, groupId=console-consumer-9972] Connection to node -1 (localhost/127.0.0.1:9091) could not be established. Broker may not be available. (org.apache.kafka.clients.NetworkClient)
+[2021-02-19 22:58:05,476] WARN [Consumer clientId=consumer-console-consumer-9972-1, groupId=console-consumer-9972] Bootstrap broker localhost:9091 (id: -1 rack: null) disconnected (org.apache.kafka.clients.NetworkClient)
+rmliu
+sh
+
+```
 
 
 
