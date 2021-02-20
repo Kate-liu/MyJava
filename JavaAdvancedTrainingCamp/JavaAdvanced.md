@@ -12485,52 +12485,151 @@ ActiveMQ的使用场景：
 
 ### Kafka概念与入门
 
+#### 什么是 Kafka
+
+Kafka 是一个消息系统， 由 LinkedIn 于2011年设计开发， 用作 LinkedIn 的活动流（ Activity Stream） 和运营数据处理管道（ Pipeline） 的基础。
+
+Kafka 是一种分布式的， 基于发布 / 订阅的消息系统。 主要设计目标如下：
+
+1. 以时间复杂度为 O(1) 的方式提供消息持久化能力， 即使对 TB 级以上数据也能保证常数时间复杂度的访问性能。
+2. 高吞吐率。 即使在非常廉价的商用机器上也能做到单机支持每秒 100K 条以上消息的传输。
+3. 支持 Kafka Server 间的消息分区， 及分布式消费， 同时保证每个 Partition 内的消息顺序传输。
+4. 同时支持离线数据处理和实时数据处理。
+5. Scale out： 支持在线水平扩展。
 
 
 
+#### Kafka 的基本概念
+
+1. Broker： Kafka 集群包含一个或多个服务器， 这种服务器被称为 broker。
+2. Topic： 每条发布到 Kafka 集群的消息都有一个类别， 这个类别被称为 Topic。（ 物理上不同 Topic 的消息分开存储， 逻辑上一个 Topic 的消息虽然保存于一个或多个 broker 上， 但用户只需指定消息的 Topic 即可生产或消费数据而不必关心数据存于何处） 。
+3. Partition： Partition 是物理上的概念， 每个 Topic 包含一个或多个 Partition。
+4. Producer： 负责发布消息到 Kafka broker。
+5. Consumer： 消息消费者， 向 Kafka broker 读取消息的客户端（采用拉的模式）。
+6. Consumer Group： 每个 Consumer 属于一个特定的 Consumer Group（ 可为每个Consumer 指定 group name， 若不指定 group name 则属于默认的 group） 
+
+
+
+#### 单机部署结构
+
+- Kafka 单机消息处理
+
+![1613726138459](JavaAdvanced.assets/1613726138459.png)
+
+
+
+#### 集群部署结构
+
+- Kafka 集群消息处理
+- 使用 Zookeeper 实现元数据存储，后续版本，轻量化 ZK 的使用
+
+![1613726156266](JavaAdvanced.assets/1613726156266.png)
+
+
+
+#### Topic 和 Partition
+
+多Partition支持水平扩展和并行处理， 顺序写入提升吞吐性能（注意：SSD 与 机械硬盘之间的顺序读写性能差）
+
+![1613726170093](JavaAdvanced.assets/1613726170093.png)
+
+
+
+#### Partition 和 Replica
+
+每个partition可以通过副本因子添加多个副本（默认是3副本，类似于 HDFS 的 DataNode）
+
+![1613726184303](JavaAdvanced.assets/1613726184303.png)
+
+
+
+#### Topic 特性
+
+1. 通过partition增加可扩展性
+2. 通过顺序写入达到高吞吐
+3. 多副本增加容错性
+
+注意：
+
+- 单个机器上，不建议有大量的partition，不建议有大量的topic，因为他们对应一个数据文件。
+- 单个机器上，数据文件大量，就意味着，操作都变成了随机IO读写，性能慢成狗
+
+
+
+
+
+### Kafka 的简单使用
+
+#### 单机安装部署
+
+1、 kafka安装
+
+- http://kafka.apache.org/downloads
+- 下载2.6.0或者2.7.0， 解压。
+
+2、 启动kafka：
+
+- 命令行下进入kafka目录
+- 修改配置文件 vim config/server.properties
+- 打开 listeners=PLAINTEXT://localhost:9092
+- 先启动自带 ZK：bin/zookeeper-server-start.sh config/zookeeper.properties
+- 启动broker server：bin/kafka-server-start.sh config/server.propertie
+- 启动 ZooInspector：java -jar zookeeper-dev-ZooInspector.jar
 
 ```sh
-# 后台启动 zookeeper
-nohup bin/zookeeper-server-start.sh config/zookeeper.properties
+# 启动 zookeeper
+bin/zookeeper-server-start.sh config/zookeeper.properties
+nohup bin/zookeeper-server-start.sh config/zookeeper.properties  # 后台启动 zookeeper
 
-╰─ jps   
+# 启动 Kafka
+bin/kafka-server-start.sh config/server.propertie
+
+# 查看 进程	
+$ jps   
 5584 QuorumPeerMain  # zookeeper 进程
+2917 Kafka  # kafka 进程
 6611 Jps
+```
 
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 21:22:17  ─╮
-╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --list                                                                                                  ─╯
+3、 命令行操作Kafka
 
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 21:22:48  ─╮
-╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic testk --partitions 4 --replication-factor 1                                            ─╯
+```sh
+# 展示 topic 列表 
+$ bin/kafka-topics.sh --zookeeper localhost:2181 --list
+testk
+
+# 创建 testk topic，设置分区 4 和副本数 1
+$ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic testk --partitions 4 --replication-factor 1
 Created topic testk.
-
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 21:24:00  ─╮
-╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic test32 --partitions 3 --replication-factor 2                                           ─╯
+# 创建 test32 topic，设置分区 3 和副本数 2（报错原因：单机kafka，不能设置多个副本数）
+$ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic test32 --partitions 3 --replication-factor 2 
 Error while executing topic command : Replication factor: 2 larger than available brokers: 1.
 [2021-02-19 21:24:39,217] ERROR org.apache.kafka.common.errors.InvalidReplicationFactorException: Replication factor: 2 larger than available brokers: 1.
  (kafka.admin.TopicCommand$)
- 
- 
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ────────────────────────────────────────────────────────────────────────────────────────── 1 ✘  at 21:24:39  ─╮
-╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --describe --topic testk                                                                                ─╯
+
+# 查看 testk topic 的描述
+$ bin/kafka-topics.sh --zookeeper localhost:2181 --describe --topic testk                                     
 Topic: testk	PartitionCount: 4	ReplicationFactor: 1	Configs:
 	Topic: testk	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
 	Topic: testk	Partition: 1	Leader: 0	Replicas: 0	Isr: 0
 	Topic: testk	Partition: 2	Leader: 0	Replicas: 0	Isr: 0
 	Topic: testk	Partition: 3	Leader: 0	Replicas: 0	Isr: 0
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 21:30:10  ─╮
-╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --list                                                                                                  ─╯
-testk
-
-
+	
+# 从开始消息消费 testk topic，进行监听，会卡住当前页面
 bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning --topic testk
+# 生产者， 生产 testk topic 的消息，会进入交互界面，输入消息即可在 consumer 中查看到
 bin/kafka-console-producer.sh --bootstrap-server localhost:9092 --topic testk
-
+```
 
 4、 简单性能测试
-bin/kafka-producer-perf-test.sh --topic testk --num-records 100000 --record-size 1000 --throughput 2000 --producer-props bootstrap.servers=localhost:9092
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────── INT ✘  took 1m 16s   at 21:41:55  ─╮
-╰─ bin/kafka-producer-perf-test.sh --topic testk --num-records 100000 --record-size 1000 --throughput 2000 --producer-props bootstrap.servers=localhost:9092
+
+- 生产者压测
+
+```sh
+# 单机吞吐能力大概是 10万/s
+# 100000 次，大小为 1000 ，吞吐为 2000次/s 的性能测试
+$ bin/kafka-producer-perf-test.sh --topic testk --num-records 100000 --record-size 1000 --throughput 2000 --
+producer-props bootstrap.servers=localhost:9092
 10002 records sent, 2000.0 records/sec (1.91 MB/sec), 2.4 ms avg latency, 313.0 ms max latency.
 10004 records sent, 2000.8 records/sec (1.91 MB/sec), 0.4 ms avg latency, 6.0 ms max latency.
 10002 records sent, 2000.4 records/sec (1.91 MB/sec), 0.4 ms avg latency, 4.0 ms max latency.
@@ -12541,63 +12640,86 @@ bin/kafka-producer-perf-test.sh --topic testk --num-records 100000 --record-size
 10004 records sent, 2000.8 records/sec (1.91 MB/sec), 0.3 ms avg latency, 4.0 ms max latency.
 10000 records sent, 2000.0 records/sec (1.91 MB/sec), 0.3 ms avg latency, 2.0 ms max latency.
 100000 records sent, 1999.680051 records/sec (1.91 MB/sec), 0.55 ms avg latency, 313.00 ms max latency, 0 ms 50th, 1 ms 95th, 2 ms 99th, 31 ms 99.9th.
-
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ─────────────────────────────────────────────────────────────────────────────── ✔  took 51s   at 21:43:27  ─╮
-╰─ bin/kafka-producer-perf-test.sh --topic testk --num-records 1000000 --record-size 1000 --throughput 200000 --producer-props bootstrap.servers=localhost:9092
+# 1000000 次，大小为 1000 ，吞吐为 200000次/s 的性能测试
+$ bin/kafka-producer-perf-test.sh --topic testk --num-records 1000000 --record-size 1000 --throughput 200000 --producer-props bootstrap.servers=localhost:9092
 480504 records sent, 96100.8 records/sec (91.65 MB/sec), 293.5 ms avg latency, 449.0 ms max latency.
 1000000 records sent, 111135.807957 records/sec (105.99 MB/sec), 273.06 ms avg latency, 455.00 ms max latency, 261 ms 50th, 396 ms 95th, 429 ms 99th, 443 ms 99.9th.
-
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ─────────────────────────────────────────────────────────────────────────────── ✔  took 10s   at 21:44:38 
-╰─ bin/kafka-producer-perf-test.sh --topic testk --num-records 1000000 --record-size 1000 --throughput 1000000 --producer-props bootstrap.servers=localhost:9092
+# 1000000 次，大小为 1000 ，吞吐为 1000000次/s 的性能测试
+$ bin/kafka-producer-perf-test.sh --topic testk --num-records 1000000 --record-size 1000 --throughput 1000000 --producer-props bootstrap.servers=localhost:9092
 489729 records sent, 97945.8 records/sec (93.41 MB/sec), 287.1 ms avg latency, 392.0 ms max latency.
 1000000 records sent, 121197.430614 records/sec (115.58 MB/sec), 246.27 ms avg latency, 392.00 ms max latency, 237 ms 50th, 336 ms 95th, 357 ms 99th, 375 ms 99.9th.
 
-# 创建一个 partitions 为1的topic，变慢了
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────── INT ✘  at 21:53:53  ─╮
-╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic testk1 --partitions 1 --replication-factor 1                                           ─╯
-Created topic testk1.
 
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 21:54:37  ─╮
-╰─ bin/kafka-producer-perf-test.sh --topic testk1 --num-records 1000000 --record-size 1000 --throughput 1000000 --producer-props bootstrap.servers=localhost:9092
+# 创建一个 partitions 为1的topic
+$ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic testk1 --partitions 1 --replication-factor 1                                           ─╯
+Created topic testk1.
+# 在一定范围内，减少分区的数量，性能会下降，吞吐变慢
+$ bin/kafka-producer-perf-test.sh --topic testk1 --num-records 1000000 --record-size 1000 --throughput 1000000 --producer-props bootstrap.servers=localhost:9092
 371105 records sent, 74221.0 records/sec (70.78 MB/sec), 385.5 ms avg latency, 678.0 ms max latency.
 1000000 records sent, 110987.791343 records/sec (105.85 MB/sec), 274.20 ms avg latency, 678.00 ms max latency, 219 ms 50th, 523 ms 95th, 632 ms 99th, 672 ms 99.9th.
 
-# 创建一个 partitions 为 16 的topic，变快了，根使用的 SSD 硬盘有关
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ─────────────────────────────────────────────────────────────────────────────── ✔  took 10s   at 21:55:20  ─╮
-╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic testk16 --partitions 16 --replication-factor 1                                         ─╯
+# 创建一个 partitions 为 16 的topic
+$ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic testk16 --partitions 16 --replication-factor 1                                         ─╯
 Created topic testk16.
-
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 21:58:00  ─╮
-╰─ bin/kafka-producer-perf-test.sh --topic testk16 --num-records 1000000 --record-size 1000 --throughput 1000000 --producer-props bootstrap.servers=localhost:9092
+# 在一定范围内，增多分区的数量，性能会上升，吞吐变快
+$ bin/kafka-producer-perf-test.sh --topic testk16 --num-records 1000000 --record-size 1000 --throughput 1000000 --producer-props bootstrap.servers=localhost:9092
 1000000 records sent, 228466.986520 records/sec (217.88 MB/sec), 124.38 ms avg latency, 318.00 ms max latency, 120 ms 50th, 214 ms 95th, 273 ms 99th, 304 ms 99.9th.
-
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────── ✔  took 6s   at 21:58:32  ─╮
-╰─ bin/kafka-producer-perf-test.sh --topic testk16 --num-records 4000000 --record-size 1000 --throughput 1000000 --producer-props bootstrap.servers=localhost:9092
+# 具体的性能，跟使用的 SSD 硬盘有关，达到了 29 万/s
+$ bin/kafka-producer-perf-test.sh --topic testk16 --num-records 4000000 --record-size 1000 --throughput 1000000 --producer-props bootstrap.servers=localhost:9092
 1234081 records sent, 246766.8 records/sec (235.34 MB/sec), 118.5 ms avg latency, 324.0 ms max latency.
 1463953 records sent, 292673.5 records/sec (279.12 MB/sec), 111.6 ms avg latency, 385.0 ms max latency.
 4000000 records sent, 281948.262494 records/sec (268.89 MB/sec), 111.81 ms avg latency, 470.00 ms max latency, 103 ms 50th, 232 ms 95th, 319 ms 99th, 401 ms 99.9th.
+```
 
-# 消费者压测
+- 消费者压测
+
+```sh
 # 每分钟消费30万左右的消息
-bin/kafka-consumer-perf-test.sh --bootstrap-server localhost:9092 --topic testk --fetch-size 1048576 --messages 100000 --threads 1
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 22:02:43  ─╮
-╰─ bin/kafka-consumer-perf-test.sh --bootstrap-server localhost:9092 --topic testk --fetch-size 1048576 --messages 100000 --threads 1                     ─╯
+$ bin/kafka-consumer-perf-test.sh --bootstrap-server localhost:9092 --topic testk --fetch-size 1048576 --messages 100000 --threads 1       
 WARNING: option [threads] and [num-fetch-threads] have been deprecated and will be ignored by the test
 start.time, end.time, data.consumed.in.MB, MB.sec, data.consumed.in.nMsg, nMsg.sec, rebalance.time.ms, fetch.time.ms, fetch.MB.sec, fetch.nMsg.sec
 2021-02-19 22:02:45:615, 2021-02-19 22:02:46:435, 95.7012, 116.7088, 100354, 122382.9268, 1613743365984, -1613743365164, -0.0000, -0.0001
-
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 22:02:46  ─╮
-╰─ bin/kafka-consumer-perf-test.sh --bootstrap-server localhost:9092 --topic testk --fetch-size 1048576 --messages 1000000 --threads 1                    ─╯
+# 增加 消息的消费数量，性能提升
+$ bin/kafka-consumer-perf-test.sh --bootstrap-server localhost:9092 --topic testk --fetch-size 1048576 --messages 1000000 --threads 1  
 WARNING: option [threads] and [num-fetch-threads] have been deprecated and will be ignored by the test
 start.time, end.time, data.consumed.in.MB, MB.sec, data.consumed.in.nMsg, nMsg.sec, rebalance.time.ms, fetch.time.ms, fetch.MB.sec, fetch.nMsg.sec
 2021-02-19 22:03:36:348, 2021-02-19 22:03:39:195, 954.1006, 335.1249, 1000451, 351405.3390, 1613743416695, -1613743413848, -0.0000, -0.0006
-
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────── ✔  took 4s   at 22:03:39  ─╮
-╰─ bin/kafka-consumer-perf-test.sh --bootstrap-server localhost:9092 --topic testk16 --fetch-size 1048576 --messages 1000000 --threads 4                  ─╯
+# 使用 16 个分区的 topic 测试，性能基本不变
+$ bin/kafka-consumer-perf-test.sh --bootstrap-server localhost:9092 --topic testk16 --fetch-size 1048576 --messages 1000000 --threads 4   
 WARNING: option [threads] and [num-fetch-threads] have been deprecated and will be ignored by the test
 start.time, end.time, data.consumed.in.MB, MB.sec, data.consumed.in.nMsg, nMsg.sec, rebalance.time.ms, fetch.time.ms, fetch.MB.sec, fetch.nMsg.sec
 2021-02-19 22:04:15:470, 2021-02-19 22:04:18:156, 953.8698, 355.1265, 1000205, 372377.1407, 1613743455843, -1613743453157, -0.0000, -0.0006
 ```
+
+
+
+#### Java 中使用 kafka 发送接收消息
+
+- 基于Kafka Client发送和接收消息--极简生产者
+
+![1613726204836](JavaAdvanced.assets/1613726204836.png)
+
+- 基于Kafka Client发送和接收消息--极简消费者
+
+![1613726221811](JavaAdvanced.assets/1613726221811.png)
+
+
+
+### Kafka 的集群配置
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
