@@ -12481,7 +12481,7 @@ ActiveMQ的使用场景：
 
 
 
-# 分布式消息 - Kafka 消息中间件
+## 分布式消息 - Kafka 消息中间件
 
 ### Kafka概念与入门
 
@@ -12703,72 +12703,356 @@ start.time, end.time, data.consumed.in.MB, MB.sec, data.consumed.in.nMsg, nMsg.s
 
 ![1613726221811](JavaAdvanced.assets/1613726221811.png)
 
-
-
-### Kafka 的集群配置
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- 命令行操作
 
 ```sh
-# 创建 ordertest1 topic，并监听
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────── ✔  took 4s   at 22:04:18  ─╮
-╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic ordertest1 --partitions 4 --replication-factor 1                                       ─╯
+# 创建 ordertest1 topic, 4 个分区，1 个副本数
+$ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic ordertest1 --partitions 4 --replication-factor 1                               
 Created topic ordertest1.
 
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────── INT ✘  at 22:14:47  ─╮
-╰─ bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning --topic ordertest1
+# 并监听 ordertest1 topic
+$ bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning --topic ordertest1
 ```
 
 
 
 
 
+### Kafka 的集群配置
+
+#### 集群安装部署01
+
+1、 现在我们来部署3个节点的集群， 首选准备3个配置文件(kafka900x.properties)
+
+![1613726235718](JavaAdvanced.assets/1613726235718.png)
+
+
+
+#### 集群安装部署02
+
+2、 清理掉zk上的所有数据， 可以删除zk的本地文件或者用ZooInspector操作
+
+3、 启动3个kafka：
+
+- 三个命令行下进入kafka目录， 分别执行
+- ./bin/kafka-server-start.sh kafka9001.properties
+- ./bin/kafka-server-start.sh kafka9002.properties
+- ./bin/kafka-server-start.sh kafka9003.properties
+- 完成启动操作
+
+
+
+#### 集群安装部署03
+
+4、 执行操作测试
+
+- 创建带有副本的topic：
+
 ```sh
-# 创建集群 tst32 topic
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 22:46:26  ─╮
-╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic test32 --partitions 3 --replication-factor 2                                           ─╯
+# 创建集群 tst32 topic, 3 个分区，2 个副本数
+$ bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic test32 --partitions 3 --replication-factor 2                                   
 Created topic test32.
 
 # 查看集群的描述
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────── INT ✘  at 22:48:33  ─╮
-╰─ bin/kafka-topics.sh --zookeeper localhost:2181 --describe --topic test32                                                                               ─╯
+$ bin/kafka-topics.sh --zookeeper localhost:2181 --describe --topic test32                                                                             
 Topic: test32	PartitionCount: 3	ReplicationFactor: 2	Configs:
 	Topic: test32	Partition: 0	Leader: 3	Replicas: 3,2	Isr: 3,2
 	Topic: test32	Partition: 1	Leader: 1	Replicas: 1,3	Isr: 1,3
 	Topic: test32	Partition: 2	Leader: 2	Replicas: 2,1	Isr: 2,1
 	
 # 生产消息
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ─────────────────────────────────────────────────────────────────────────── INT ✘  took 59s   at 22:56:57  ─╮
-╰─ bin/kafka-console-producer.sh  --bootstrap-server localhost:9091,localhost:9002,localhost:9003 --topic test32                                          ─╯
+$ bin/kafka-console-producer.sh  --bootstrap-server localhost:9091,localhost:9002,localhost:9003 --topic test32                                      
 >sh
 >rmliu
 >
 
 # 消费消息
-╭─    ~/SourceCode/kafka_2.12-2.7.0 ──────────────────────────────────────────────────────────────────────────────────────────── ✔  at 22:57:59  ─╮
-╰─ bin/kafka-console-consumer.sh --bootstrap-server localhost:9091,localhost:9002,localhost:9003 --from-beginning --topic test32                          ─╯
+$ bin/kafka-console-consumer.sh --bootstrap-server localhost:9091,localhost:9002,localhost:9003 --from-beginning --topic test32         
 [2021-02-19 22:58:05,475] WARN [Consumer clientId=consumer-console-consumer-9972-1, groupId=console-consumer-9972] Connection to node -1 (localhost/127.0.0.1:9091) could not be established. Broker may not be available. (org.apache.kafka.clients.NetworkClient)
 [2021-02-19 22:58:05,476] WARN [Consumer clientId=consumer-console-consumer-9972-1, groupId=console-consumer-9972] Bootstrap broker localhost:9091 (id: -1 rack: null) disconnected (org.apache.kafka.clients.NetworkClient)
 rmliu
 sh
 
 ```
+
+- 执行性能测试：
+
+```sh
+bin/kafka-producer-perf-test.sh --topic test32 --num-records 100000 --record-size 1000 --throughput 2000 --producer-props bootstrap.servers=localhost:9002
+
+bin/kafka-consumer-perf-test.sh --bootstrap-server localhost:9002 --topic test32 --fetch-size 1048576 --messages 100000 --threads 1
+```
+
+
+
+#### 集群与多副本的说明
+
+1、 ISR： In-Sync Replica
+
+2、 Rebalance： broker和consumer group的rebalance
+
+3、 热点分区： 需要重新平衡
+
+
+
+### Kafka 的高级特性
+
+#### 生产者-执行步骤
+
+客户端实现序列化， 分区， 压缩操作
+
+![1613726254092](JavaAdvanced.assets/1613726254092.png)
+
+
+
+#### 生产者-确认模式
+
+- ack=0 : 只发送不管有没有写入到broker
+- ack=1： 写入到leader就认为成功
+- ack=-1/all： 写入到最小的复本数则认为成功
+
+![1613726270056](JavaAdvanced.assets/1613726270056.png)
+
+
+
+#### 生产者特性-同步发送
+
+- 同步发送
+
+```java
+KafkaProducer kafkaProducer = new KafkaProducer(pro);
+ProducerRecord record = new ProducerRecord("topic", "key", "value");
+Future future = kafkaProducer.send(record);
+
+//同步发送方法1
+Object o = future.get();
+
+//同步发送方法2
+kafkaProducer.flush();
+```
+
+
+
+#### 生产者特性-异步发送
+
+- 异步发送
+
+```java
+pro.put("linger.ms", “1");
+pro.put("batch.size", "10240");
+        
+KafkaProducer kafkaProducer = new KafkaProducer(pro);
+ProducerRecord record = new ProducerRecord("topic", "key", "value");
+Future future = kafkaProducer.send(record);
+        
+//异步发送方法1
+kafkaProducer.send(record, (metadata, exception) -> {
+		if (exception == null) System.out.println("record = " + record);
+});
+        
+//异步发送方法2
+kafkaProducer.send(record);
+```
+
+
+
+#### 生产者特性-顺序保证
+
+- 顺序保证
+
+```java
+pro.put("max.in.flight.requests.per.connection", “1");
+        
+KafkaProducer kafkaProducer = new KafkaProducer(pro);
+ProducerRecord record = new ProducerRecord("topic", "key", "value");
+Future future = kafkaProducer.send(record);
+        
+//同步发送
+kafkaProducer.send(record);
+kafkaProducer.flush();
+```
+
+
+
+
+
+#### 生产者特性-消息可靠性传递
+
+- 消息的事务
+
+```java
+pro.put("enable.idempotence","true"); // 此时就会默认把acks设置为all
+pro.put("transaction.id","tx0001"); //思考一下， 什么是消息的事务？ ？ ？
+
+try {
+    kafkaProducer.beginTransaction();
+    ProducerRecord record = new ProducerRecord("topic", "key", "value");
+    for (int i = 0; i < 100; i++) {
+        kafkaProducer.send(record, (metadata, exception) -> {
+            if (exception != null) {
+                kafkaProducer.abortTransaction();
+                throw new KafkaException(exception.getMessage() + " , data: " + record);
+            } 
+        }); 
+    }
+    kafkaProducer.commitTransaction();
+} catch (Throwable e) {
+		kafkaProducer.abortTransaction();
+}
+```
+
+
+
+#### 消费者-Consumer Group
+
+- 消费者与Partition对应关系， 如果4个partition， 3个消费者怎么办？ 5个呢？
+- 根据分区，进行不同消费组的分发；当一个消费者挂掉，会触发rebalance机制，影响性能。
+
+![1613726291734](JavaAdvanced.assets/1613726291734.png)
+
+
+
+#### 消费者特性-Offset同步提交
+
+```java
+props.put("enable.auto.commit","false");
+
+while (true) {
+    //拉取数据
+    ConsumerRecords poll = consumer.poll(Duration.ofMillis(100));
+  
+    poll.forEach(o -> {
+        ConsumerRecord<String, String> record = (ConsumerRecord) o;
+        Order order = JSON.parseObject(record.value(), Order.class);
+        System.out.println("order = " + order);
+    });
+    consumer.commitSync();  // 同步
+}
+```
+
+
+
+#### 消费者特性-Offset异步提交
+
+```java
+props.put("enable.auto.commit","false");
+          
+while (true) {
+    //拉取数据
+    ConsumerRecords poll = consumer.poll(Duration.ofMillis(100));
+  
+    poll.forEach(o -> {
+        ConsumerRecord<String, String> record = (ConsumerRecord) o;
+        Order order = JSON.parseObject(record.value(), Order.class);
+        System.out.println("order = " + order);
+    });
+    consumer.commitAsync();  // 异步
+}
+```
+
+
+
+#### 消费者特性-Offset自动提交
+
+```java
+props.put("enable.auto.commit","true");  // 默认设置，确认模式 ack=-1/all
+props.put("auto.commit.interval.ms","5000");
+          
+while (true) {
+    //拉取数据
+    ConsumerRecords poll = consumer.poll(Duration.ofMillis(100));
+  
+    poll.forEach(o -> {
+        ConsumerRecord<String, String> record = (ConsumerRecord) o;
+        Order order = JSON.parseObject(record.value(), Order.class);
+        System.out.println("order = " + order);
+    });
+}
+```
+
+
+
+#### 消费者特性-Offset Seek
+
+```java
+props.put("enable.auto.commit","true");
+
+//订阅topic
+consumer.subscribe(Arrays.asList("demo-source"), new ConsumerRebalanceListener() {
+    @Override
+    public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
+        commitOffsetToDB();
+    } 
+  
+    @Override
+    public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+        partitions.forEach(topicPartition -> consumer.seek(topicPartition,
+        getOffsetFromDB(topicPartition)));
+    }
+});
+
+while (true) {
+    //拉取数据
+    ConsumerRecords poll = consumer.poll(Duration.ofMillis(100));
+  
+    poll.forEach(o -> {
+        ConsumerRecord<String, String> record = (ConsumerRecord) o;
+        processRecord(record);
+        saveRecordAndOffsetInDB(record, record.offset());
+    });
+}
+```
+
+
+
+
+
+### 总结回顾与作业实践 
+
+#### 总结回顾 
+
+1. Kafka概念和入门
+2. Kafka的简单使用*
+3. Kafka的集群配置*
+4. Kafka的高级特性*
+5. 总结回顾与作业实践
+
+![1613726306527](JavaAdvanced.assets/1613726306527.png)
+
+
+
+#### 作业实践
+
+1、 （ 必做） 搭建一个3节点Kafka集群， 测试功能和性能； 实现spring kafka下对kafka集群的操作， 将代码提交到github。
+
+2、 （ 选做） 安装kafka-manager工具， 监控kafka集群状态。
+
+3、 （ 挑战☆） 演练本课提及的各种生产者和消费者特性。
+
+4、 （ 挑战☆☆☆） Kafka金融领域实战： 在证券或者外汇、 数字货币类金融核心交易系统里，对于订单的处理， 大概可以分为收单、 定序、 撮合、 清算等步骤。 其中我们一般可以用mq来实现订单定序， 然后将订单发送给撮合模块。
+1） 收单： 请实现一个订单的rest接口， 能够接收一个订单Order对象；
+2） 定序： 将Order对象写入到kafka集群的order.usd2cny队列， 要求数据有序并且不丢失；
+3） 撮合： 模拟撮合程序（ 不需要实现撮合逻辑） ， 从kafka获取order数据， 并打印订单信息，要求可重放, 顺序消费, 消息仅处理一次。
+
+
+
+
+
+# 分布式消息 - 其他MQ介绍与动手写MQ
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
