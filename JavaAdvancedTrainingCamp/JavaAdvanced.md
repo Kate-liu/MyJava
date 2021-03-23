@@ -744,7 +744,7 @@ public class org.copydays.thinking.java.jvm.core.technology.HelloByteCode {
 
 > 使用verbose ，输出附加信息，看到更详细的字节码参数:
 >
-> major version:52，表示java的版本(使用的事1.8)
+> major version:52，表示java的版本(使用的是1.8)
 >
 > flags: ACC_PUBLIC, ACC_SUPER，表示是不是public和非public
 >
@@ -13038,7 +13038,243 @@ while (true) {
 
 
 
-# 分布式消息 - 其他MQ介绍与动手写MQ
+## 分布式消息 - 其他MQ介绍与动手写MQ
+
+### RabbitMQ
+
+#### 安装
+
+1.直接安装
+
+```sh
+$ brew install rabbitmq  // macos
+
+$ apt/yum install rabbitmq-server  // linux
+
+$ choco install rabbitmq   // windows
+
+$ >>> rabbitmq-plugins enable rabbitmq_management  // 开启管理控制台
+```
+
+2.docker 安装
+
+```sh
+$ docker pull rabbitmq:management  // 注意不带后缀就不会有web控制台
+$  docker run -itd --name rabbitmq-test -e RABBITMQ_DEFAULT_USER=admin -e RABBITMQ_DEFAULT_PASS=admin -p 15672:15672 -p 5672:5672 rabbitmq:management
+$ docker exec -it rabbitmq-test /bin/bash
+
+> rabbitmqctl list_queues 
+> rabbitmqctl status
+> rabbitmqadmin declare queue name=kk01 -u admin -p admin
+> rabbitmqadmin get queue=kk01 -u admin -p admin
+```
+
+
+
+#### Rabbitmq 的核心概念
+
+- queue
+- exchange
+- routekey
+- binding
+
+![1616500515924](JavaAdvanced.assets/1616500515924.png)
+
+
+
+
+
+#### Spring-amqp 操作 rabbitmq
+
+- rabbit 项目
+- spring-amqp 封装好了 Template
+- Rabbitmq-client 直接操作
+
+
+
+
+
+### RocketMQ
+
+#### 安装
+
+1.直接安装，从官网下载，解压即可。
+
+- https://rocketmq.apache.org/release_notes/release-notes-4.8.0/
+- 启动
+  - https://rocketmq.apache.org/docs/quick-start/
+
+```sh
+nohup sh bin/mqnamesrv &
+nohup sh bin/mqbroker -n localhost 9876 &
+
+> export NAMESRV_ADDR=localhost:9876
+> sh bin/tools.sh org.apache.rocketmq.example.quickstart.Producer
+> sh bin/tools.sh org.apache.rocketmq.example.quickstart.Consumer
+```
+
+2.docker 安装
+
+- 挺麻烦的，由于将其安装打散，需要安装多个 image
+- 参见：https://github.com/apache/rocketmq-docker
+
+
+
+#### RocketMQ 介绍
+
+- 与Kafka 的关系
+- 区别：作为kafka的重新实现版，没太大本质区别（百世~可口）
+  - 纯 Java 开发，用不用 zk
+  - 支持延迟投递，消息追溯 -->说实话，意义不大
+  - 多个队列使用同一个日志文件，所以不存在kafka过多topic问题-->这个仁者见仁
+- 参见：https://rocketmq.apache.org/docs/motivation/
+- rocktmq 单机效率低于 kafka
+  - 单个日志文件，会有随机操作
+  - 处理的策略上，比 kafka 更复杂一点
+
+![1616500567628](JavaAdvanced.assets/1616500567628.png)
+
+
+
+### Pulsar
+
+#### 安装
+
+1.下载安装
+
+- 直接下载 2.7.0 版本，解压缩
+- 下载链接：https://pulsar.apache.org/en/download/
+- 文档：https://pulsar.apache.org/docs/en/standalone/
+
+```sh
+$ bin/pulsar standalone
+
+$ bin/pulsar-client consume my-topic -s "first-subscription"
+
+$ bin/pulsar-client produce my-topic --messages "hello-pulsar"
+```
+
+2.docker 安装
+
+- 参考：https://pulsar.apache.org/docs/en/standalone-docker/#start-pulsar-in-docker
+
+
+
+
+
+#### Pulsar 介绍
+
+- 基于 topic，支持 namespace 和多租户
+
+![1616500307086](JavaAdvanced.assets/1616500307086.png)
+
+![1616500327167](JavaAdvanced.assets/1616500327167.png)
+
+- 四种消费模式，支持 Partition
+
+![1616500390784](JavaAdvanced.assets/1616500390784.png)
+
+![1616500406032](JavaAdvanced.assets/1616500406032.png)
+
+- 计算存储分离，高可用集群
+
+![1616500446861](JavaAdvanced.assets/1616500446861.png)
+
+![1616500463939](JavaAdvanced.assets/1616500463939.png)
+
+![1616500484447](JavaAdvanced.assets/1616500484447.png)
+
+
+
+### EIP/Camel/Spring Integration
+
+#### EIP
+
+- 集成领域的两大法宝，就是 RPC和Messageing
+- 也是所有 SOA/ESB的基础
+- 两个开源 EIP 实现框架，Camel 和 Spring Integration
+
+
+
+#### 管道加过滤器模式
+
+EIP里，所有的处理，都可以看做是：
+
+- 数据从一个输入源头出发
+- 数据在一个管道流动
+- 经过一些处理节点，数据被过滤器处理，增强，或者转换，或者做个业务处理等等。
+- 最后，数据输出到一个目的地
+
+
+
+#### Camel 
+
+- 做一个好玩的demo
+- 把 Activemq 的消息，自动转移到 Rabbitmq
+
+![1616500494805](JavaAdvanced.assets/1616500494805.png)
+
+
+
+### 动手写MQ
+
+#### V1-内存 Queue
+
+1.基于内存 Queue 实现生产和消费 API
+
+- 创建内存Queue，作为底层消息存储
+- 定义 Topic，支持多个 Topic
+- 定义Producer，支持 Send 消息
+- 定义 Consumer，支持Poll消息
+
+
+
+#### V2-自定义 Queue
+
+2.去掉内存Queue,设计自定义Queue，实现消息确认和消费 offset
+
+- 自定义内存 Message 数组模拟 Queue，使用数组模拟 Queue
+- 使用指针记录当前消息写入位置
+- 对于每个命名消费者，用指针记录消费位置
+
+因为数据么有真实的弹出，还在内存，容易OOM
+
+
+
+#### V3-基于SpingMVC实现 MQServer
+
+3.拆分 broker 和 client （包括producer 和 consumer）
+
+- 将 Queue 保存到 web server 端
+- 设计消息读写API接口，确认接口，提交offset接口
+- producer 和 consumer 通过 httpclient 访问Queue
+- 实现消息确认，offset 提交
+- 实现 consumer 从offset 增量拉取
+
+
+
+#### V4-功能完善MQ
+
+4.增加多种策略（各条之间没有关系，可以任意选择实现）
+
+- 考虑实现消息过期，消息重试，消息定时投递等策略
+- 考虑批量操作，包括读写，可以打包和压缩
+- 考虑消息清理策略，包括定时清理，按容量清理，LRU等
+- 考虑消息持久化，存入数据库，或 WAL 日志文件，或 BookKeeper
+- 考虑将 Spring mvc 替换成netty 下的tcp传输协议，rsocket/ws（websocket）等传输协议
+
+
+
+#### V5-体系完善MQ
+
+5.对接各种技术
+
+- 考虑封装 JMS 1.1 接口规范
+- 考虑实现 STOMP 消息规范
+- 考虑实现消息事务机制与事务管理器
+- 对接 Spring
+- 对接 Camel 或 Spring Integration
+- 优化内存和磁盘的使用
 
 
 
@@ -13046,17 +13282,17 @@ while (true) {
 
 
 
+### 总结回顾与作业实践
+
+#### 作业实践
+
+- （选做）自己安装和操作 rabbitmq，rocketmq，pulsar，以及 Camel和SI
+- （必做）思考和设计自定义MQ第二个版本或者第三个版本，写代码实现齐总至少一个功能点，把设计思路和实现代码，提交
+- （挑战）完成其他版本的要求
 
 
 
-
-
-
-
-
-
-
-
+# 高并发系统架构设计
 
 
 
